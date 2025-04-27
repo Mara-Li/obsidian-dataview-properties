@@ -50,7 +50,7 @@ body:
       attributes:
           label: Configuration
           description: |
-              Open the configuration settings with any text editor. The settings are located in `.obsidian/plugins/<%= data.id %>`
+              Open the configuration settings with any text editor. The settings are located in `.obsidian/plugins/dataview-properties`
           render: JSON
       validations:
           required: true
