@@ -1,5 +1,5 @@
 import { type App, PluginSettingTab, Setting } from "obsidian";
-import DataviewProperties from "./main";
+import type DataviewProperties from "./main";
 
 export class DataviewPropertiesSettingTab extends PluginSettingTab {
 	plugin: DataviewProperties;
@@ -10,19 +10,19 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 	}
 
 	display(): void {
-		const {containerEl} = this;
+		const { containerEl } = this;
 
 		containerEl.empty();
 
+		containerEl.addClass("obsidian-dataview-properties");
+
 		new Setting(containerEl)
-			.setName("Setting #1")
-			.setDesc("It's a secret")
-			.addText(text => text
-				.setPlaceholder("Enter your secret")
-				.setValue(this.plugin.settings.mySetting)
-				.onChange(async (value) => {
-					this.plugin.settings.mySetting = value;
-					await this.plugin.saveSettings();
-				}));
+			.setName("Dataview")
+			.setDesc("Enable dataview evaluations")
+			.setHeading();
+
+		new Setting(containerEl)
+			.setName("Block")
+			.setDesc("Enable block dataview queries evaluation");
 	}
 }
