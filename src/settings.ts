@@ -54,11 +54,10 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 					.inputEl.onblur = async () => {
 						const value = text.getValue();
 						if (!isNumber(value)) {
-							new Notice("Please enter a valid number");
+							new Notice(sanitizeHTMLToDom("<span class=\"obsidian-dataview-properties notice-error\">Please enter a valid number</span>"));
 							text.inputEl.addClass("is-invalid");
-							text.setValue("10000");
 						} else if (Number(value) < 0) {
-							new Notice("Please enter a positive number");
+							new Notice(sanitizeHTMLToDom("<span class=\"obsidian-dataview-properties notice-error\">Please enter a positive number</span>"));
 							text.inputEl.addClass("is-invalid");
 						} else {
 							this.plugin.settings.frequency = Number(value);

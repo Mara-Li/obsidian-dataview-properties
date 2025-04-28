@@ -28,3 +28,7 @@
 	border-color: var(--background-modifier-error);
 	color: var(--text-error);
 }
+
+.notice:has(.obsidian-dataview-properties.notice-error) {
+	background-color: var(--background-modifier-error);
+}
