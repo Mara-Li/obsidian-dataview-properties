@@ -1,8 +1,30 @@
-/*
+.obsidian-dataview-properties .setting-item {
+	border: none;
+}
 
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
+.obsidian-dataview-properties .setting-item.setting-item-heading.h1 {
+	font-size: var(--h1-size);
+	font-weight: var(--h1-weight);
+	font-family: var(--h1-font);
+	font-style: var(--h1-style);
+	line-height: var(--h1-line-height);
+	padding: 0;
+	text-align: center;
+	flex-direction: column;
+	flex-wrap: nowrap;
+}
 
-If your plugin does not need CSS, delete this file.
+.obsidian-dataview-properties .setting-item.setting-item-heading.h2 {
+	font-size: var(--h2-size);
+	font-weight: var(--h2-weight);
+	font-family: var(--h2-font);
+	font-style: var(--h2-style);
+	line-height: var(--h2-line-height);
+	padding: 10px 0 0 0;
+	border-top: 1px solid var(--divider-color);
+}
 
-*/
+.obsidian-dataview-properties .is-invalid {
+	border-color: var(--background-modifier-error);
+	color: var(--text-error);
+}

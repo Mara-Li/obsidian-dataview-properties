@@ -3,7 +3,7 @@
  * @param value {unknown}
  * @returns {boolean}
  */
-function isNumber(value: unknown): boolean {
+export function isNumber(value: unknown): boolean {
 	return (
 		value !== undefined &&
 		(typeof value === "number" ||

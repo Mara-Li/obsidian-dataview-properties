@@ -3,6 +3,7 @@ import { resources, translationLanguage } from "./i18n";
 import i18next from "i18next";
 import { type DataviewPropertiesSettings, DEFAULT_SETTINGS } from "./interfaces";
 import { getInlineFields } from "./dataview";
+import { DataviewPropertiesSettingTab } from "./settings";
 
 export default class DataviewProperties extends Plugin {
 	settings!: DataviewPropertiesSettings;
@@ -18,6 +19,9 @@ export default class DataviewProperties extends Plugin {
 			returnNull: false,
 			returnEmptyString: false,
 		});
+
+		//load settings tab
+		this.addSettingTab(new DataviewPropertiesSettingTab(this.app, this));
 
 		//add a command to open copy **all** inlines dataview (if found) from the current opened file
 		this.addCommand({
