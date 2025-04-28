@@ -1,6 +1,7 @@
 import { type App, Notice, PluginSettingTab, sanitizeHTMLToDom, Setting } from "obsidian";
 import type DataviewProperties from "./main";
 import { isNumber } from "./utils";
+import i18next from "i18next";
 
 export class DataviewPropertiesSettingTab extends PluginSettingTab {
 	plugin: DataviewProperties;
@@ -46,18 +47,18 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 
 
 		new Setting(containerEl)
-			.setName("Interval")
-			.setDesc(sanitizeHTMLToDom(`Interval in milliseconds (<code>${this.freqToTime(this.plugin.settings.frequency)}</code>) to check new dataview inline field, evaluate and adding them to the frontmatter`))
+			.setName(i18next.t("interval.title"))
+			.setDesc(sanitizeHTMLToDom(`${i18next.t("interval.info")} (<code>${this.freqToTime(this.plugin.settings.frequency)}</code>) ${i18next.t("interval.desc")}`))
 			.addText((text) => {
 				text
 					.setValue(this.plugin.settings.frequency.toString())
 					.inputEl.onblur = async () => {
 						const value = text.getValue();
 						if (!isNumber(value)) {
-							new Notice(sanitizeHTMLToDom("<span class=\"obsidian-dataview-properties notice-error\">Please enter a valid number</span>"));
+							new Notice(sanitizeHTMLToDom(`<span class="obsidian-dataview-properties notice-error">${i18next.t("invalid.number")}</span>`));
 							text.inputEl.addClass("is-invalid");
 						} else if (Number(value) < 0) {
-							new Notice(sanitizeHTMLToDom("<span class=\"obsidian-dataview-properties notice-error\">Please enter a positive number</span>"));
+							new Notice(sanitizeHTMLToDom(`<span class="obsidian-dataview-properties notice-error">${i18next.t("error.positive")}</span>`));
 							text.inputEl.addClass("is-invalid");
 						} else {
 							this.plugin.settings.frequency = Number(value);
@@ -72,17 +73,17 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Dataview")
-			.setDesc("Enable dataview evaluations. If any option is disabled, the query will be added 'as is' to the frontmatter.")
+			.setDesc(i18next.t("dataview.title"))
 			.setHeading()
 			.setClass("h1");
 
 		new Setting(containerEl)
-			.setName("Dataview Query Language")
+			.setName("Dataview Query Language (DQL)")
 			.setHeading()
 			.setClass("h2");
 
 		new Setting(containerEl)
-			.setName("Block")
+			.setName(i18next.t("dataview.block"))
 			.addToggle((toggle) =>
 				toggle
 					.setValue(this.plugin.settings.dql.block)
@@ -92,7 +93,7 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 					})
 			);
 		new Setting(containerEl)
-			.setName("Inline")
+			.setName(i18next.t("dataview.inline"))
 			.addToggle((toggle) =>
 				toggle
 					.setValue(this.plugin.settings.dql.inline)
@@ -102,12 +103,12 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 					})
 			);
 		new Setting(containerEl)
-			.setName("Dataview JS")
+			.setName("Dataview Javascript (DJS)")
 			.setHeading()
 			.setClass("h2");
 
 		new Setting(containerEl)
-			.setName("Block")
+			.setName(i18next.t("dataview.block"))
 			.addToggle((toggle) =>
 				toggle
 					.setValue(this.plugin.settings.djs.block)
@@ -117,7 +118,7 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 					})
 			);
 		new Setting(containerEl)
-			.setName("Inline")
+			.setName(i18next.t("dataview.inline"))
 			.addToggle((toggle) =>
 				toggle
 					.setValue(this.plugin.settings.djs.inline)

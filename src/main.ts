@@ -1,9 +1,10 @@
-import { Plugin, type TFile } from "obsidian";
+import { Notice, Plugin, sanitizeHTMLToDom, type TFile } from "obsidian";
 import { resources, translationLanguage } from "./i18n";
 import i18next from "i18next";
 import { type DataviewPropertiesSettings, DEFAULT_SETTINGS } from "./interfaces";
 import { getInlineFields } from "./dataview";
 import { DataviewPropertiesSettingTab } from "./settings";
+import { isPluginEnabled } from "@enveloppe/obsidian-dataview";
 
 export default class DataviewProperties extends Plugin {
 	settings!: DataviewPropertiesSettings;
@@ -21,12 +22,15 @@ export default class DataviewProperties extends Plugin {
 		});
 
 		//load settings tab
+		if (this.app.plugins.plugins.dataview || !isPluginEnabled(this.app)) {
+			new Notice(sanitizeHTMLToDom(`<span class="obsidian-dataview-properties notice-error">${i18next.t("dataviewEnabled")}</span>`), 5000);
+		}
 		this.addSettingTab(new DataviewPropertiesSettingTab(this.app, this));
 
 		//add a command to open copy **all** inlines dataview (if found) from the current opened file
 		this.addCommand({
-			id: "copy-all-inlines-dataview",
-			name: "Copy all inlines dataview",
+			id: "dataview-to-frontmatter",
+			name: i18next.t("addToFrontmatter"),
 			//@ts-ignore
 			checkCallback: async (checking: boolean) => {
 				const activeFile = this.app.workspace.getActiveFile();

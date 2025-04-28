@@ -1,1 +1,22 @@
-{}
+{
+  "addToFrontmatter": "Add the inline dataview field to the frontmatter",
+  "dataview": {
+    "block": "Block",
+    "dql": {
+    },
+    "inline": "Inline",
+    "title": "Enable dataview evaluations. If any option is disabled, the query will be added 'as is' to the properties (frontmatter)."
+  },
+  "dataviewEnabled": "Dataview need to be enabled to use this plugin.",
+  "error": {
+    "positive": "Please enter a positive number."
+  },
+  "interval": {
+    "desc": "to check new Dataview inline field, evaluate and adding them to the properties (frontmatter).",
+    "info": "Interval in milliseconds",
+    "title": "Interval"
+  },
+  "invalid": {
+    "number": "Please enter a valid number."
+  }
+}
