@@ -2,8 +2,8 @@ import {
 	type DataviewApi,
 	getAPI,
 	isPluginEnabled,
-	type Link,
-	type Literal,
+	Link,
+	type Literal, Values,
 } from "@enveloppe/obsidian-dataview";
 import { Component, type FrontMatterCache, htmlToMarkdown } from "obsidian";
 import type DataviewProperties from "./main";
@@ -274,9 +274,18 @@ async function evaluateInline(
 			);
 		} else {
 			//if the value is a Link, convert it to a "[[link]]" string
-			if (value.constructor.name === "Link") {
+			if (value instanceof Link) {
 				const fieldValue = value as Link;
 				processedInlineFields[field] = stringifyLink(fieldValue);
+			} else if (Values.isHtml(value)) {
+				//if the value is a HTML, it wont be a valid frontmatter, so we warn and skip
+				console.warn(`Invalid frontmatter value: HTML `, value, "-- Skipping");
+			} else if (Values.isWidget(value)) {
+				//if the value is a Widget, it wont be a valid frontmatter, so we warn and skip
+				console.warn(`Invalid frontmatter value: Widget `, value, "-- Skipping");
+			} else if (Values.isFunction(value)) {
+				//if the value is a Function, it wont be a valid frontmatter, so we warn and skip
+				console.warn(`Invalid frontmatter value: Function `, value, "-- Skipping");
 			}
 			//keep the value as is
 			else processedInlineFields[field] = value;
