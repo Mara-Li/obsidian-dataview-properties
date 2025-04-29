@@ -46,18 +46,26 @@ You can also trigger the synchronization manually by using the command palette (
 > ---
 >
 > # Hello world
-> Temperature:: `$= this.force + this.agility`
+> Vitality:: `$= this.force + this.agility`
 > ```
-> The plugin will add the following properties to the frontmatter:
+> The plugin will update the file accordingly:
 > ```markdown
 > ---
 > name: "name"
 > force: 12
 > agility: 5
-> temperature: 17
+> Vitality: 17
 > ---
+>
+> # Hello world
+> Vitality:: `$= this.force + this.agility`
 > ```
 
+The plugin also works with more complex queries, like links (and they will be converted to markdown links as `[[mylinks]]`), date or numbers.
+
+> [!CAUTION]
+> - Widget and function won't be added to the frontmatter.
+> - HTML will be converted to markdown.
 
 ## 📥 Installation
 
