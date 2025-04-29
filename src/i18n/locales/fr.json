@@ -1,13 +1,22 @@
 {
   "addToFrontmatter": "Ajouter les champs dataview \"inline\" au frontmatter",
   "dataview": {
-    "block": "Bloc",
-    "inline": "Inline",
     "title": "Activer les évaluations de DataView. Si une option est désactivée, la requête sera ajoutée « telle quelle » aux propriétés (frontmatter)."
   },
   "dataviewEnabled": "DataView doit être activé pour pouvoir utiliser ce module.",
   "error": {
     "positive": "Merci d'entrée un nombre positif."
+  },
+  "ignore": "Valeur ignorée",
+  "ignoreAccents": {
+    "desc": "Les caractères accentués seront converti en leur valeur correspondante :",
+    "title": "Ignorer les accents"
+  },
+  "ignoredFields": {
+    "desc": "Les champs suivants ne seront pas ajouté au frontmatter. Séparez les valeurs par un retour à la ligne ou une virgule. Pour utiliser une expression régulière, encadré le texte avec",
+    "example": "par exemple :",
+    "placeholder": "champ1, champ-avec-text, autre champ",
+    "title": "Champs ignorés"
   },
   "interval": {
     "desc": "pour vérifier les nouveaux champs en « inline » de Dataview, les évaluer et les ajouter aux propriétés (frontmatter)",
@@ -16,5 +25,13 @@
   },
   "invalid": {
     "number": "Merci d'entrer un nombre valide."
+  },
+  "lowerCase": {
+    "desc": "Les majuscules seront reconnues comme minuscules.",
+    "title": "Insensitive"
+  },
+  "warning": {
+    "desc": "Seuls les données en ligne sont prises en charge par le plugin, car le code ne peut pas être défini pour les champs en ligne.",
+    "title": "Attention"
   }
 }

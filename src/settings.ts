@@ -1,7 +1,8 @@
-import { type App, Notice, PluginSettingTab, sanitizeHTMLToDom, Setting } from "obsidian";
+import { type App, MarkdownRenderer, Notice, PluginSettingTab, sanitizeHTMLToDom, Setting } from "obsidian";
 import type DataviewProperties from "./main";
 import { isNumber } from "./utils";
 import i18next from "i18next";
+import dedent from "dedent";
 
 export class DataviewPropertiesSettingTab extends PluginSettingTab {
 	plugin: DataviewProperties;
@@ -38,7 +39,7 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 		return result;
 	}
 
-	display(): void {
+	async display(): Promise<void> {
 		const { containerEl } = this;
 
 		containerEl.empty();
@@ -70,6 +71,54 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 
 			);
 
+		new Setting(containerEl)
+			.setName(i18next.t("ignore"))
+			.setHeading()
+			.setClass("h1");
+
+		new Setting(containerEl)
+			.setName(i18next.t("ignoredFields.title"))
+			.setDesc(sanitizeHTMLToDom(`${i18next.t("ignoredFields.desc")} <code>/</code> ${i18next.t("ignoredFields.example")} <code>/myRegex/gi</code>`))
+			.setClass("textarea")
+			.addTextArea((text) => {
+				text
+					.setValue(this.plugin.settings.ignoreFields.join(", "))
+					.inputEl.onblur = async () => {
+						const value = text.getValue();
+						if (value.length === 0)
+							this.plugin.settings.ignoreFields = [];
+						else
+							this.plugin.settings.ignoreFields = value.split(/[,\n]+/).map((item) => item.trim()).filter((item => item.length > 0));
+						await this.plugin.saveSettings();
+						await this.display();
+					}
+			})
+
+		new Setting(containerEl)
+			.setName(i18next.t("lowerCase.title"))
+			.setDesc(i18next.t("lowerCase.desc"))
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.lowerCase)
+					.onChange(async (value) => {
+						this.plugin.settings.lowerCase = value;
+						await this.plugin.saveSettings();
+					})
+			);
+
+		new Setting(containerEl)
+			.setName(i18next.t("ignoreAccents.title"))
+			.setDesc(sanitizeHTMLToDom(`${i18next.t("ignoreAccents.desc")} <code>é</code> → <code>e</code>`))
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.ignoreAccents)
+					.onChange(async (value) => {
+						this.plugin.settings.ignoreAccents = value;
+						await this.plugin.saveSettings();
+					})
+			);
+
+
 
 		new Setting(containerEl)
 			.setName("Dataview")
@@ -77,56 +126,34 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 			.setHeading()
 			.setClass("h1");
 
+		await MarkdownRenderer.render(this.app, dedent(`
+			> [!WARNING] ${i18next.t("warning.title")}
+			> ${i18next.t("warning.desc")}
+			`), containerEl, "", this.plugin)
+
 		new Setting(containerEl)
 			.setName("Dataview Query Language (DQL)")
 			.setHeading()
-			.setClass("h2");
-
-		new Setting(containerEl)
-			.setName(i18next.t("dataview.block"))
+			.setClass("h2")
 			.addToggle((toggle) =>
 				toggle
-					.setValue(this.plugin.settings.dql.block)
+					.setValue(this.plugin.settings.dql)
 					.onChange(async (value) => {
-						this.plugin.settings.dql.block = value;
-						await this.plugin.saveSettings();
-					})
-			);
-		new Setting(containerEl)
-			.setName(i18next.t("dataview.inline"))
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.dql.inline)
-					.onChange(async (value) => {
-						this.plugin.settings.dql.inline = value;
+						this.plugin.settings.dql = value;
 						await this.plugin.saveSettings();
 					})
 			);
 		new Setting(containerEl)
 			.setName("Dataview Javascript (DJS)")
 			.setHeading()
-			.setClass("h2");
-
-		new Setting(containerEl)
-			.setName(i18next.t("dataview.block"))
+			.setClass("h2")
 			.addToggle((toggle) =>
 				toggle
-					.setValue(this.plugin.settings.djs.block)
+					.setValue(this.plugin.settings.djs)
 					.onChange(async (value) => {
-						this.plugin.settings.djs.block = value;
+						this.plugin.settings.djs = value;
 						await this.plugin.saveSettings();
 					})
 			);
-		new Setting(containerEl)
-			.setName(i18next.t("dataview.inline"))
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.djs.inline)
-					.onChange(async (value) => {
-						this.plugin.settings.djs.inline = value;
-						await this.plugin.saveSettings();
-					})
-			);
-
 	}
 }

@@ -32,3 +32,15 @@
 .notice:has(.obsidian-dataview-properties.notice-error) {
 	background-color: var(--background-modifier-error);
 }
+
+.obsidian-dataview-properties .setting-item.textarea {
+	display: inline-block;
+}
+
+.obsidian-dataview-properties .setting-item.textarea textarea {
+	width: 100%;
+	height: 100px;
+	resize: none;
+	font-family: var(--font-monospace);
+	margin-top: 10px;
+}

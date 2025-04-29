@@ -1,15 +1,24 @@
 {
   "addToFrontmatter": "Add the inline dataview field to the frontmatter",
   "dataview": {
-    "block": "Block",
     "dql": {
     },
-    "inline": "Inline",
     "title": "Enable dataview evaluations. If any option is disabled, the query will be added 'as is' to the properties (frontmatter)."
   },
   "dataviewEnabled": "Dataview need to be enabled to use this plugin.",
   "error": {
     "positive": "Please enter a positive number."
+  },
+  "ignore": "Ignored values",
+  "ignoreAccents": {
+    "desc": "Accented characters will be converted to their corresponding value:",
+    "title": "Ignore accents"
+  },
+  "ignoredFields": {
+    "desc": "The following fields won't be added to the frontmatter. Separate the value by a new line or a comma. To use regex, encapsulate with",
+    "example": "for example:",
+    "placeholder": "field1, field-with-text, another field",
+    "title": "Ignored fields"
   },
   "interval": {
     "desc": "to check new Dataview inline field, evaluate and adding them to the properties (frontmatter).",
@@ -18,5 +27,13 @@
   },
   "invalid": {
     "number": "Please enter a valid number."
+  },
+  "lowerCase": {
+    "desc": "Uppercase will be recognized as lowercase.",
+    "title": "Insensitive"
+  },
+  "warning": {
+    "desc": "Only inline dataview are supported by the plugin, as code can't be set for inline fields.",
+    "title": "Warning"
   }
 }
