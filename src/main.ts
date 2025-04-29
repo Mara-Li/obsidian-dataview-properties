@@ -1,4 +1,5 @@
 import { Notice, Plugin, sanitizeHTMLToDom, type TFile } from "obsidian";
+import "uniformize";
 import { resources, translationLanguage } from "./i18n";
 import i18next from "i18next";
 import { type DataviewPropertiesSettings, DEFAULT_SETTINGS } from "./interfaces";
@@ -8,6 +9,9 @@ import { isPluginEnabled } from "@enveloppe/obsidian-dataview";
 
 export default class DataviewProperties extends Plugin {
 	settings!: DataviewPropertiesSettings;
+	// Ajouter ces propriétés privées pour le cache
+	private ignoredKeys: string[] = [];
+	private ignoredRegex: RegExp[] = [];
 
 	async onload() {
 		console.log(`[${this.manifest.name}] Loaded`);
@@ -20,11 +24,13 @@ export default class DataviewProperties extends Plugin {
 			returnNull: false,
 			returnEmptyString: false,
 		});
-
-		//load settings tab
-		if (this.app.plugins.plugins.dataview || !isPluginEnabled(this.app)) {
-			new Notice(sanitizeHTMLToDom(`<span class="obsidian-dataview-properties notice-error">${i18next.t("dataviewEnabled")}</span>`), 5000);
-		}
+		//wait for the app to be ready before displaying an error (if dataview is not enabled)
+		this.app.workspace.onLayoutReady(() => {
+			//load settings tab
+			if (!this.app.plugins.plugins.dataview || !isPluginEnabled(this.app) || !this.app.plugins.plugins.dataview._loaded) {
+				new Notice(sanitizeHTMLToDom(`<span class="obsidian-dataview-properties notice-error">${i18next.t("dataviewEnabled")}</span>`), 5000);
+			}
+		});
 		this.addSettingTab(new DataviewPropertiesSettingTab(this.app, this));
 
 		//add a command to open copy **all** inlines dataview (if found) from the current opened file
@@ -59,12 +65,71 @@ export default class DataviewProperties extends Plugin {
 		const inline = await getInlineFields(activeFile.path, this, frontmatter);
 		await this.addToFrontmatter(activeFile, inline);
 	}
+	private removeDuplicateFlag(input: string): string {
+		return input.replace(/(.)\1+/g, '$1');
+	}
+
+	private recognizeRegex(key: string) {
+		const regRecognition = new RegExp(/\/(?<regex>.*)\/(?<flag>[gmiyuvsd]*)/);
+		const match = key.match(regRecognition);
+		if (match) {
+			const { regex, flag } = match.groups!;
+			//prevent flags to be multiple, aka only one of each
+			const correctedFlag = this.removeDuplicateFlag(flag);
+			return new RegExp(regex, correctedFlag);
+		}
+		return null;
+	}
+
+	// Nouvelle méthode pour préparer les données d'ignorance
+	private prepareIgnoredFields() {
+		this.ignoredKeys = [];
+		this.ignoredRegex = [];
+
+		const ignoredFields = this.settings.ignoreFields;
+		if (ignoredFields.length === 0) return;
+
+		for (let key of ignoredFields) {
+			if (this.settings.lowerCase) key = key.toLowerCase();
+			if (this.settings.ignoreAccents) key = key.removeAccents();
+			const regex = this.recognizeRegex(key);
+			if (regex) this.ignoredRegex.push(regex);
+			else this.ignoredKeys.push(key);
+
+		}
+	}
+
+	private isIgnored(key: string) {
+		if (this.ignoredKeys.length === 0 && this.ignoredRegex.length === 0) return false;
+
+		let processedKey = key;
+		if (this.settings.lowerCase)
+			processedKey = processedKey.toLowerCase();
+		if (this.settings.ignoreAccents)
+			processedKey = processedKey.removeAccents();
+		//console.log(processedKey, this.ignoredKeys, this.ignoredRegex);
+
+		if (this.ignoredKeys.includes(processedKey))
+			return true;
+		for (const regex of this.ignoredRegex) {
+			regex.lastIndex = 0; // Reset the lastIndex property to ensure a fresh match
+			const result = regex.test(processedKey);
+			console.log(`Testing ${processedKey} (for ${key}) against ${regex} = ${result}`);
+			if (result)
+				return true;
+		}
+		return false;
+	}
 
 	async addToFrontmatter(file: TFile, inlineFields: Record<string, any>) {
 		await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
 			for (const [key, value] of Object.entries(inlineFields)) {
-				//override the value if it exists
-				frontmatter[key] = value;
+				const isIgnored = this.isIgnored(key);
+				console.log(`${key} is ignored: ${isIgnored}`);
+				if (!isIgnored) {
+					console.log("Adding to frontmatter", key, value);
+					frontmatter[key] = value;
+				}
 			}
 		});
 	}
@@ -75,9 +140,11 @@ export default class DataviewProperties extends Plugin {
 
 	async loadSettings() {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		this.prepareIgnoredFields(); // Préparer les données après le chargement des paramètres
 	}
 
 	async saveSettings() {
 		await this.saveData(this.settings);
+		this.prepareIgnoredFields(); // Préparer les données après la sauvegarde des paramètres
 	}
 }

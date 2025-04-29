@@ -13,6 +13,7 @@
         "dotenv": "^16.5.0",
         "dotenv-cli": "^8.0.0",
         "obsidian-typings": "^3.3.0",
+        "uniformize": "^2.4.0",
       },
       "devDependencies": {
         "@biomejs/biome": "1.9.4",
@@ -1044,6 +1045,8 @@
     "uglify-js": ["uglify-js@3.19.3", "", { "bin": { "uglifyjs": "bin/uglifyjs" } }, "sha512-v3Xu+yuwBXisp6QYTcH4UbH+xYJXqnq2m/LtQVWKWzYc1iehYnLixoQDN9FH6/j9/oybfd6W9Ghwkl8+UMKTKQ=="],
 
     "undici-types": ["undici-types@6.21.0", "", {}, "sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ=="],
+
+    "uniformize": ["uniformize@2.4.0", "", { "peerDependencies": { "typescript": "^5.5.4" } }, "sha512-DTYhwaj6x4oGabYpWIhkdVvyEkC222A4gcRn+7D3tVk3voiO+sJPj54K+6VaZM+To05pCXYHL31NJF5BnfhYVQ=="],
 
     "universalify": ["universalify@0.1.2", "", {}, "sha512-rBJeI5CXAlmy1pV+617WB9J63U6XcazHHF2f2dbJix4XzpUF0RS3Zbj0FGIOCAva5P/d/GBOYaACQ1w+0azUkg=="],
 
