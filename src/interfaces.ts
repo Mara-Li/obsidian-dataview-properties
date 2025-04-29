@@ -1,26 +1,27 @@
-type DataviewOptions = {
-	block: boolean;
-	inline: boolean;
-};
-
 export interface DataviewPropertiesSettings {
-	dql: DataviewOptions;
-	djs: DataviewOptions;
+	dql: boolean;
+	djs: boolean;
 	/**
 	 * The frequency of the plugin to check for changes in the file & update the frontmatter
 	 * @format: ms
 	 */
 	frequency: number;
+	/**
+	 * Ignore the following fields
+	 */
+	ignoreFields: string[];
+	/** Ignore with lowercase */
+	lowerCase: boolean;
+
+	/** ignore accents */
+	ignoreAccents: boolean;
 }
 
 export const DEFAULT_SETTINGS: DataviewPropertiesSettings = {
-	dql: {
-		block: true,
-		inline: true,
-	},
-	djs: {
-		block: true,
-		inline: true,
-	},
+	dql: true,
+	djs: true,
 	frequency: 1000,
+	ignoreFields: [],
+	lowerCase: true,
+	ignoreAccents: true,
 };
