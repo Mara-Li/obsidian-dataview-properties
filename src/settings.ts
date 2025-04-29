@@ -71,6 +71,8 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 
 			);
 
+		containerEl.createEl("hr");
+
 		new Setting(containerEl)
 			.setName(i18next.t("ignore"))
 			.setHeading()
@@ -119,7 +121,7 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 			);
 
 
-
+		containerEl.createEl("hr");
 		new Setting(containerEl)
 			.setName("Dataview")
 			.setDesc(i18next.t("dataview.title"))
@@ -132,9 +134,7 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 			`), containerEl, "", this.plugin)
 
 		new Setting(containerEl)
-			.setName("Dataview Query Language (DQL)")
-			.setHeading()
-			.setClass("h2")
+			.setName("Query language (DQL)")
 			.addToggle((toggle) =>
 				toggle
 					.setValue(this.plugin.settings.dql)
@@ -144,9 +144,7 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 					})
 			);
 		new Setting(containerEl)
-			.setName("Dataview Javascript (DJS)")
-			.setHeading()
-			.setClass("h2")
+			.setName("Javascript (DJS)")
 			.addToggle((toggle) =>
 				toggle
 					.setValue(this.plugin.settings.djs)

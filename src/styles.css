@@ -44,3 +44,7 @@
 	font-family: var(--font-monospace);
 	margin-top: 10px;
 }
+
+.obsidian-dataview-properties hr {
+	--hr-thickness: 1px;
+}
