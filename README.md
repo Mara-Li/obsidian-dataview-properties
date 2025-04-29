@@ -81,7 +81,7 @@ The plugin also works with more complex queries, like links (and they will be co
 ### 🎼 Languages
 
 - [x] English
-- [ ] French
+- [x] French
 
 To add a translation:
 1. Fork the repository
