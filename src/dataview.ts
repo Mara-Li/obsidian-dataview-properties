@@ -11,15 +11,15 @@ import { convertToNumber } from "./utils";
 
 class Dataview {
 	dvApi: DataviewApi;
-	sourceText: string;
 	path: string;
 	plugin: DataviewProperties;
+	sourceText: string;
 
-	constructor(dvApi: DataviewApi, sourceText: string, path: string, plugin: DataviewProperties) {
+	constructor(dvApi: DataviewApi, path: string, plugin: DataviewProperties) {
 		this.dvApi = dvApi;
-		this.sourceText = sourceText;
 		this.path = path;
 		this.plugin = plugin;
+		this.sourceText = "";
 	}
 	private escapeRegex(filepath: string): string {
 		return filepath.replace(/[/\-\\^$*+?.()|[\]{}]/g, "\\$&");
@@ -59,6 +59,7 @@ class Dataview {
 	 */
 
 	async inlineDQLDataview(query: string) {
+		console.log('inlineDQLDataview', query);
 		const dataviewResult = this.dvApi.evaluateInline(query, this.path);
 		if (dataviewResult.successful) {
 			return this.removeDataviewQueries(dataviewResult.value);
@@ -92,11 +93,9 @@ class Dataview {
 	async evaluateInline(
 		value: unknown,
 	) {
-		if (typeof value === "string")
-			//evaluate
-			return convertToNumber(
-				await this.convertDataviewQueries(value)
-			);
+		if (typeof value === "string") return convertToNumber(
+			await this.convertDataviewQueries(value)
+		);
 
 		//if the value is a Link, convert it to a "[[link]]" string
 		if (value instanceof Link) {
@@ -132,14 +131,13 @@ class Dataview {
 	) {
 		const { app, settings } = this.plugin;
 		let replacedText = text;
-		const dataViewRegex = /```dataview\s(.+?)```/gms;
 		const isDataviewEnabled = app.plugins.plugins.dataview;
 		if (!isDataviewEnabled || !isPluginEnabled(app)) return replacedText;
 		const dvApi = getAPI(app);
 		if (!dvApi) return replacedText;
-		const matches = text.matchAll(dataViewRegex);
+		this.sourceText = text;
 		const { inlineMatches, inlineJsMatches } = this.matches();
-		if (!matches && !inlineMatches && !inlineJsMatches) {
+		if (!inlineMatches && !inlineJsMatches) {
 			console.warn("No dataview queries found");
 			return replacedText;
 		}
@@ -194,7 +192,7 @@ export async function getInlineFields(
 	if (!pageData) return {};
 	const inlineFields: Record<string, any> = {};
 	const processedKeys = new Set<string>(); // Pour suivre les clés déjà traitées
-	const compiler = new Dataview(dvApi, pageData.file.path, path, plugin);
+	const compiler = new Dataview(dvApi, path, plugin);
 	for (const key in pageData) {
 		const normalizedKey = key.toLowerCase(); // Simple normalisation en minuscules
 		if (processedKeys.has(normalizedKey)) continue;
@@ -210,6 +208,5 @@ export async function getInlineFields(
 			}
 		}
 	}
-	console.log("Inline fields", inlineFields);
 	return inlineFields;
 }
