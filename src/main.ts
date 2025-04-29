@@ -105,14 +105,11 @@ export default class DataviewProperties extends Plugin {
 			processedKey = processedKey.toLowerCase();
 		if (this.settings.ignoreAccents)
 			processedKey = processedKey.removeAccents();
-		//console.log(processedKey, this.ignoredKeys, this.ignoredRegex);
-
 		if (this.ignoredKeys.includes(processedKey))
 			return true;
 		for (const regex of this.ignoredRegex) {
 			regex.lastIndex = 0; // Reset the lastIndex property to ensure a fresh match
 			const result = regex.test(processedKey);
-			console.log(`Testing ${processedKey} (for ${key}) against ${regex} = ${result}`);
 			if (result)
 				return true;
 		}
@@ -123,9 +120,7 @@ export default class DataviewProperties extends Plugin {
 		await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
 			for (const [key, value] of Object.entries(inlineFields)) {
 				const isIgnored = this.isIgnored(key);
-				console.log(`${key} is ignored: ${isIgnored}`);
 				if (!isIgnored) {
-					console.log("Adding to frontmatter", key, value);
 					frontmatter[key] = value;
 				}
 			}
