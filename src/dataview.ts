@@ -2,7 +2,7 @@ import {
 	type DataviewApi,
 	getAPI,
 	isPluginEnabled,
-	Link,
+	type Link,
 	type Literal, Values,
 } from "@enveloppe/obsidian-dataview";
 import { Component, type FrontMatterCache, htmlToMarkdown } from "obsidian";
@@ -59,7 +59,6 @@ class Dataview {
 	 */
 
 	async inlineDQLDataview(query: string) {
-		console.log('inlineDQLDataview', query);
 		const dataviewResult = this.dvApi.evaluateInline(query, this.path);
 		if (dataviewResult.successful) {
 			return this.removeDataviewQueries(dataviewResult.value);
@@ -92,24 +91,30 @@ class Dataview {
 	}
 	async evaluateInline(
 		value: unknown,
-	) {
-		if (typeof value === "string") return convertToNumber(
+	): Promise<unknown | undefined> {
+		if (value === "" || value === undefined) return;
+		if (Values.isString(value)) return convertToNumber(
 			await this.convertDataviewQueries(value)
 		);
 
 		//if the value is a Link, convert it to a "[[link]]" string
-		if (value instanceof Link) {
-			const fieldValue = value as Link;
-			return this.stringifyLink(fieldValue);
+		if (Values.isLink(value)) {
+			return this.stringifyLink(value);
 		} if (Values.isHtml(value)) {
-			//if the value is a HTML, it wont be a valid frontmatter, so we warn and skip
-			console.warn(`Invalid frontmatter value: HTML `, value, "-- Skipping");
+			//if the value is HTML, convert to markdown :
+			return Values.toString(value);
 		} else if (Values.isWidget(value)) {
 			//if the value is a Widget, it wont be a valid frontmatter, so we warn and skip
-			console.warn(`Invalid frontmatter value: Widget `, value, "-- Skipping");
+			console.warn(`Invalid field value: Widget `, value, "-- Skipping");
+			return;
 		} else if (Values.isFunction(value)) {
 			//if the value is a Function, it wont be a valid frontmatter, so we warn and skip
-			console.warn(`Invalid frontmatter value: Function `, value, "-- Skipping");
+			console.warn(`Invalid field value: Function `, value, "-- Skipping");
+			return;
+		} else if (Values.isNull(value)) {
+			//if the value is null, return the default value
+			console.warn("Invalid field value: Null -- Skipping");
+			return;
 		}
 		//keep the value as is
 		return value;
@@ -190,7 +195,7 @@ export async function getInlineFields(
 	if (!dvApi) return {};
 	const pageData = dvApi.page(path);
 	if (!pageData) return {};
-	const inlineFields: Record<string, any> = {};
+	const inlineFields: Record<string, unknown> = {};
 	const processedKeys = new Set<string>(); // Pour suivre les clés déjà traitées
 	const compiler = new Dataview(dvApi, path, plugin);
 	for (const key in pageData) {

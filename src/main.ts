@@ -120,9 +120,10 @@ export default class DataviewProperties extends Plugin {
 		await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
 			for (const [key, value] of Object.entries(inlineFields)) {
 				const isIgnored = this.isIgnored(key);
-				if (!isIgnored) {
+				if (!isIgnored && value !== undefined) {
+					console.info("[DataviewProperties] Adding to frontmatter:", key, value);
 					frontmatter[key] = value;
-				}
+				} else console.info("[DataviewProperties] Ignoring key:", key, value);
 			}
 		});
 	}
