@@ -1,3 +1,14 @@
+## [0.0.2](https://github.com/Mara-Li/obsidian-dataview-properties/compare/0.0.1...0.0.2) (2025-04-29)
+### Features
+
+* add dep 'uniformize' for ignoring fields ([4f3cdc1](https://github.com/Mara-Li/obsidian-dataview-properties/commit/4f3cdc1c1e1a1d71dde0612bb5f0daa7d184bb82))
+* add ignore field options ([f52bf6c](https://github.com/Mara-Li/obsidian-dataview-properties/commit/f52bf6c75e37ee79f9d320f1c8d7c97e36d05bbd))
+
+### Bug Fixes
+
+* duplicate value between uppercase/lowercase fields ([2a5aff6](https://github.com/Mara-Li/obsidian-dataview-properties/commit/2a5aff61d0dda9447beb364c4e4dec7909baa162))
+* empty source text so no evaluation was done ([ccca7c6](https://github.com/Mara-Li/obsidian-dataview-properties/commit/ccca7c6b816a1d402e3fb92bff054c4cd58e8e70))
+
 ## 0.0.1 (2025-04-28)
 ### Features
 
