@@ -35,22 +35,22 @@ if you want to view the source, please visit the github repository of this plugi
 // Determine the output directory based on options
 function resolveOutputDir() {
     if (options.outputDir) return options.outputDir;
-    
+
     if (options.vault) {
-        const vaultPath = typeof options.vault === "string" 
-            ? options.vault 
+        const vaultPath = typeof options.vault === "string"
+            ? options.vault
             : process.env.VAULT;
-            
+
         if (!vaultPath) throw new Error("VAULT environment variable not set");
-        
+
         const folderPath = path.join(vaultPath, ".obsidian", "plugins", pluginID);
         if (!fs.existsSync(folderPath)) fs.mkdirSync(folderPath, { recursive: true });
-        
+
         if (!isProd) fs.writeFileSync(path.join(folderPath, ".hotreload"), "");
-        
+
         return folderPath;
     }
-    
+
     return isProd ? "./dist" : "./";
 }
 
@@ -59,7 +59,7 @@ function prepareOutputDir(dir) {
     if ((isProd || options.outputDir) && fs.existsSync(dir)) {
         fs.rmSync(dir, { recursive: true });
     }
-    
+
     if (isBeta && !fs.existsSync("manifest-beta.json")) {
         fs.copyFileSync("manifest.json", "manifest-beta.json");
     }
@@ -68,7 +68,7 @@ function prepareOutputDir(dir) {
 // Get plugins for esbuild
 function getPlugins(outDir) {
     const plugins = [];
-    
+
     // Plugin pour déplacer les styles
     if (isStyled) {
         plugins.push({
@@ -80,7 +80,7 @@ function getPlugins(outDir) {
             }
         });
     }
-    
+
     // Copy manifest file
     plugins.push({
         name: "copy-manifest",
@@ -91,7 +91,7 @@ function getPlugins(outDir) {
             });
         }
     });
-    
+
     return plugins;
 }
 
@@ -99,10 +99,10 @@ function getPlugins(outDir) {
 async function buildPlugin() {
     const outDir = resolveOutputDir();
     prepareOutputDir(outDir);
-    
+
     const entryPoints = ["src/main.ts"];
     if (isStyled) entryPoints.push("src/styles.css");
-    
+
     // Créer le contexte esbuild
     const context = await esbuild.context({
         banner: { js: banner },
@@ -133,12 +133,13 @@ async function buildPlugin() {
         minifySyntax: isProd,
         minifyWhitespace: isProd,
         outdir: outDir,
+        drop: isProd ? ["console", "debugger"] : [],
         plugins: getPlugins(outDir)
     });
 
     console.log(`🚀 ${isProd ? 'Production' : 'Development'} build`);
     console.log(`📤 Output directory: ${outDir}`);
-    
+
     if (isProd) {
         await context.rebuild();
         console.log("✅ Build successful");
