@@ -19,18 +19,10 @@ class Dataview {
 		this.sourceText = sourceText;
 		this.path = path;
 	}
-	escapeRegex(filepath: string): string {
+	private escapeRegex(filepath: string): string {
 		return filepath.replace(/[/\-\\^$*+?.()|[\]{}]/g, "\\$&");
 	}
-	dvJsMatch() {
-		const dataviewJsPrefix = this.dvApi.settings.dataviewJsKeyword || "dataviewjs";
-		const dataViewJsRegex = new RegExp(
-			`\`\`\`${this.escapeRegex(dataviewJsPrefix)}\\s(.+?)\`\`\``,
-			"gsm"
-		);
-		return this.sourceText.matchAll(dataViewJsRegex);
-	}
-	dvInlineQueryMatches() {
+	private dvInlineQueryMatches() {
 		const inlineQueryPrefix = this.dvApi.settings.inlineQueryPrefix || "=";
 		const inlineDataViewRegex = new RegExp(
 			`\`${this.escapeRegex(inlineQueryPrefix)}(.+?)\``,
@@ -38,7 +30,7 @@ class Dataview {
 		);
 		return this.sourceText.matchAll(inlineDataViewRegex);
 	}
-	dvInlineJSMatches() {
+	private dvInlineJSMatches() {
 		const inlineJsQueryPrefix = this.dvApi.settings.inlineJsQueryPrefix || "$=";
 		const inlineJsDataViewRegex = new RegExp(
 			`\`${this.escapeRegex(inlineJsQueryPrefix)}(.+?)\``,
@@ -48,69 +40,15 @@ class Dataview {
 	}
 	matches() {
 		return {
-			dataviewJsMatches: this.dvJsMatch(),
 			inlineMatches: this.dvInlineQueryMatches(),
 			inlineJsMatches: this.dvInlineJSMatches(),
 		};
 	}
-	sanitizeQuery(query: string): { isInsideCallout: boolean; finalQuery: string } {
-		let isInsideCallout = false;
-		const parts = query.split("\n");
-		const sanitized = [];
-
-		for (const part of parts) {
-			if (part.startsWith(">")) {
-				isInsideCallout = true;
-				sanitized.push(part.substring(1).trim());
-			} else {
-				sanitized.push(part);
-			}
-		}
-		const finalQuery = isInsideCallout ? sanitized.join("\n") : query;
-		return { isInsideCallout, finalQuery };
-	}
-	removeDataviewQueries(dataviewMarkdown: Literal): string {
+	private removeDataviewQueries(dataviewMarkdown: Literal): string {
 		const toStr = dataviewMarkdown?.toString();
 		return dataviewMarkdown && toStr ? toStr : "";
 	}
-	surroundWithCalloutBlock(input: string): string {
-		const tmp = input.split("\n");
 
-		return ` ${tmp.join("\n> ")}`;
-	}
-	/**
-	 * DQL Dataview - The SQL-like Dataview Query Language
-	 * Are in **code blocks**
-	 * @link https://blacksmithgu.github.io/obsidian-dataview/queries/dql-js-inline/#dataview-query-language-dql
-	 */
-	async dataviewDQL(query: string) {
-		const { isInsideCallout, finalQuery } = this.sanitizeQuery(query);
-		const markdown = this.removeDataviewQueries(
-			(await this.dvApi.tryQueryMarkdown(finalQuery, this.path)) as string
-		);
-		if (isInsideCallout) {
-			return this.surroundWithCalloutBlock(markdown);
-		}
-		return markdown;
-	}
-	/**
-	 * DataviewJS - JavaScript API for Dataview
-	 * Are in **CODE BLOCKS**
-	 * @link https://blacksmithgu.github.io/obsidian-dataview/api/intro/
-	 */
-	async dataviewJS(query: string) {
-		const { isInsideCallout, finalQuery } = this.sanitizeQuery(query);
-		// biome-ignore lint/correctness/noUndeclaredVariables: <explanation>
-		const div = createEl("div");
-		const component = new Component();
-		await this.dvApi.executeJs(finalQuery, div, component, this.path);
-		component.load();
-		const markdown = this.removeDataviewQueries(div.innerHTML);
-		if (isInsideCallout) {
-			return this.surroundWithCalloutBlock(markdown);
-		}
-		return markdown;
-	}
 	/**
 	 * Inline DQL Dataview - The SQL-like Dataview Query Language in inline
 	 * Syntax : `= query`
@@ -165,44 +103,14 @@ export async function convertDataviewQueries(
 	if (!dvApi) return replacedText;
 	const matches = text.matchAll(dataViewRegex);
 	const compiler = new Dataview(dvApi, text, path);
-	const { dataviewJsMatches, inlineMatches, inlineJsMatches } = compiler.matches();
-	if (!matches && !inlineMatches && !dataviewJsMatches && !inlineJsMatches) {
+	const { inlineMatches, inlineJsMatches } = compiler.matches();
+	if (!matches && !inlineMatches && !inlineJsMatches) {
 		console.warn("No dataview queries found");
 		return replacedText;
 	}
-	/**
-	 * DQL Dataview - The SQL-like Dataview Query Language
-	 */
-	if (settings.dql?.block) {
-		for (const queryBlock of matches) {
-			try {
-				const block = queryBlock[0];
-				const markdown = await compiler.dataviewDQL(queryBlock[1]);
-				replacedText = replacedText.replace(block, markdown);
-			} catch (e) {
-				console.error(e);
-				return queryBlock[0];
-			}
-		}
-	}
-	/**
-	 * DataviewJS - JavaScript API for Dataview
-	 */
-	if (settings.djs?.block) {
-		for (const queryBlock of dataviewJsMatches) {
-			try {
-				const block = queryBlock[0];
-				const markdown = await compiler.dataviewJS(queryBlock[1]);
-				replacedText = replacedText.replace(block, markdown);
-			} catch (e) {
-				console.error(e);
-				return queryBlock[0];
-			}
-		}
-	}
 
 	//Inline queries
-	if (settings.dql?.inline) {
+	if (settings.dql) {
 		for (const inlineQuery of inlineMatches) {
 			try {
 				const code = inlineQuery[0];
@@ -216,7 +124,7 @@ export async function convertDataviewQueries(
 		}
 	}
 	//Inline JS queries
-	if (settings.djs?.inline) {
+	if (settings.djs) {
 		for (const inlineJsQuery of inlineJsMatches) {
 			try {
 				const code = inlineJsQuery[0];
