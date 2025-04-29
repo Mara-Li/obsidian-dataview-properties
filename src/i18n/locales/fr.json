@@ -1,5 +1,5 @@
 {
-  "addToFrontmatter": "Ajouter les champs dataview \"inline\" au frontmatter",
+  "addToFrontmatter": "Ajouter les champs Dataview au frontmatter",
   "dataview": {
     "title": "Activer les évaluations de DataView. Si une option est désactivée, la requête sera ajoutée « telle quelle » aux propriétés (frontmatter)."
   },

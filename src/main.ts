@@ -60,7 +60,7 @@ export default class DataviewProperties extends Plugin {
 		);
 	}
 
-	async resolveDataview(activeFile: TFile) {
+	private async resolveDataview(activeFile: TFile) {
 		const frontmatter = this.app.metadataCache.getFileCache(activeFile)?.frontmatter;
 		const inline = await getInlineFields(activeFile.path, this, frontmatter);
 		await this.addToFrontmatter(activeFile, inline);
@@ -80,8 +80,6 @@ export default class DataviewProperties extends Plugin {
 		}
 		return null;
 	}
-
-	// Nouvelle méthode pour préparer les données d'ignorance
 	private prepareIgnoredFields() {
 		this.ignoredKeys = [];
 		this.ignoredRegex = [];

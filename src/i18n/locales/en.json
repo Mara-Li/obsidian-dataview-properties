@@ -1,5 +1,5 @@
 {
-  "addToFrontmatter": "Add the inline dataview field to the frontmatter",
+  "addToFrontmatter": "Add the Dataview field to the frontmatter",
   "dataview": {
     "dql": {
     },
