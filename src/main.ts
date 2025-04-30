@@ -16,16 +16,19 @@ import { Utils } from "./utils";
 
 export default class DataviewProperties extends Plugin {
 	settings!: DataviewPropertiesSettings;
-	// Ajouter ces propriétés privées pour le cache
-	private ignoredKeys: string[] = [];
+	// Cache for performance improvements
+	private ignoredKeys: Set<string> = new Set(); // Using Set for O(1) lookups instead of array
 	private ignoredRegex: RegExp[] = [];
 	private ignoreUtils!: Utils;
 	private cleanUtils!: Utils;
+	// Store processed files to avoid redundant operations
+	private processingFiles: Set<string> = new Set();
 
 	async onload() {
 		console.log(`[${this.manifest.name}] Loaded`);
 		await this.loadSettings();
-		//load i18next
+
+		// Initialize i18next once
 		await i18next.init({
 			lng: translationLanguage,
 			fallbackLng: "en",
@@ -33,186 +36,248 @@ export default class DataviewProperties extends Plugin {
 			returnNull: false,
 			returnEmptyString: false,
 		});
-		//wait for the app to be ready before displaying an error (if dataview is not enabled)
-		this.app.workspace.onLayoutReady(() => {
-			//load settings tab
-			if (
-				!this.app.plugins.plugins.dataview ||
-				!isPluginEnabled(this.app) ||
-				!this.app.plugins.plugins.dataview._loaded
-			) {
-				new Notice(
-					sanitizeHTMLToDom(
-						`<span class="obsidian-dataview-properties notice-error">${i18next.t("dataviewEnabled")}</span>`
-					),
-					5000
-				);
-			}
-		});
+
+		// Wait for layout to be ready before checking dependencies
+		this.app.workspace.onLayoutReady(() => this.checkDependencies());
+
+		// Add settings tab
 		this.addSettingTab(new DataviewPropertiesSettingTab(this.app, this));
 
-		//add a command to open copy **all** inlines dataview (if found) from the current opened file
+		// Register command
 		this.addCommand({
 			id: "dataview-to-frontmatter",
 			name: i18next.t("addToFrontmatter"),
-			//@ts-ignore
-			checkCallback: async (checking: boolean) => {
+			checkCallback: (checking: boolean) => {
 				const activeFile = this.app.workspace.getActiveFile();
-				if (activeFile) {
-					if (!checking) {
-						await this.resolveDataview(activeFile);
-					}
-					return true;
+				if (!activeFile) return false;
+
+				if (!checking) {
+					this.resolveDataview(activeFile).catch((err) =>
+						console.error(`[${this.manifest.name}] Error processing file:`, err)
+					);
 				}
-				return false;
+				return true;
 			},
 		});
 
+		// Register metadata change event with debouncing
+		let debounceTimeout: NodeJS.Timeout | null = null;
 		this.registerEvent(
 			this.app.metadataCache.on(
 				//@ts-ignore
 				"dataview:metadata-change",
 				(_eventName: string, file: TFile) => {
-					console.log("[DataviewProperties] Metadata change detected:", file.path);
-					this.resolveDataview(file);
+					// Debounce to avoid multiple rapid updates
+					if (debounceTimeout) clearTimeout(debounceTimeout);
+
+					debounceTimeout = setTimeout(() => {
+						this.resolveDataview(file).catch((err) =>
+							console.error(`[${this.manifest.name}] Error processing file:`, err)
+						);
+						debounceTimeout = null;
+					}, 300); // 300ms debounce
 				}
 			)
 		);
 	}
 
-	private async shouldBeUpdated(
-		fields: Record<string, any>,
-		file: TFile,
-		frontmatter?: FrontMatterCache
-	) {
-		console.log("[DataviewProperties] Checking if update is needed for", file.path);
-		if (!fields || Object.keys(fields).length === 0) {
-			console.log(
-				`[DataviewProperties] No inline fields for ${file.path}, no update needed`
-			);
-			return false;
-		}
-		if (!frontmatter) {
-			console.log(
-				`[DataviewProperties] No frontmatter but inline fields found for ${file.path}, update needed`
-			);
-			return true;
-		}
-
-		const needsUpdate = Object.entries(fields).some(([key, inlineValue]) => {
-			if (this.isIgnored(key)) return false;
-			const frontmatterKey = Object.keys(frontmatter).find(
-				(fmKey) => !this.isIgnored(fmKey) && this.ignoreUtils.keysMatch(fmKey, key)
-			);
-			if (!frontmatterKey || inlineValue == null) {
-				if (inlineValue != null) {
-					console.debug(
-						`[DataviewProperties] Key ${key} not found in frontmatter, update needed`
-					);
-					return true;
-				}
-				return false;
-			}
-			const frontmatterValue = frontmatter[frontmatterKey];
-			const areEqual = this.ignoreUtils.valuesEqual(inlineValue, frontmatterValue);
-
-			if (!areEqual) {
-				console.log(
-					`[DataviewProperties] Values differ for ${key}: inline=${inlineValue}, frontmatter=${frontmatterValue}`
-				);
-				return true;
-			}
-
-			return false;
-		});
-
-		console.log("[DataviewProperties] Needs update:", needsUpdate, "for", file.path);
-		return needsUpdate;
-	}
-
-	private async resolveDataview(activeFile: TFile) {
-		const frontmatter = this.app.metadataCache.getFileCache(activeFile)?.frontmatter;
-		const inline = await getInlineFields(activeFile.path, this, frontmatter);
-		if (await this.shouldBeUpdated(inline, activeFile, frontmatter)) {
-			console.log(`[DataviewProperties] Updating frontmatter for ${activeFile.path}`);
-			await this.addToFrontmatter(activeFile, inline);
-		}
-	}
-
-	private prepareIgnoredFields() {
-		this.ignoredKeys = [];
-		this.ignoredRegex = [];
-
-		const ignoredFields = this.settings.ignoreFields.fields;
-		if (ignoredFields.length === 0) return;
-
-		for (let key of ignoredFields) {
-			key = this.ignoreUtils.processString(key);
-			const regex = this.ignoreUtils.recognizeRegex(key);
-			if (regex) this.ignoredRegex.push(regex);
-			else this.ignoredKeys.push(key);
-		}
-	}
-
-	private isIgnored(key: string) {
-		if (this.ignoredKeys.length === 0 && this.ignoredRegex.length === 0) return false;
-
-		const processedKey = this.ignoreUtils.processString(key);
-		if (this.ignoredKeys.includes(processedKey)) return true;
-		for (const regex of this.ignoredRegex) {
-			regex.lastIndex = 0; // Reset the lastIndex property to ensure a fresh match
-			const result = regex.test(processedKey);
-			if (result) return true;
-		}
-		return false;
-	}
-
-	async addToFrontmatter(file: TFile, inlineFields: Record<string, any>) {
+	/**
+	 * Check if Dataview plugin is enabled and notify user if not
+	 */
+	private checkDependencies(): void {
 		if (
 			!this.app.plugins.plugins.dataview ||
 			!isPluginEnabled(this.app) ||
 			!this.app.plugins.plugins.dataview._loaded
-		)
+		) {
+			new Notice(
+				sanitizeHTMLToDom(
+					`<span class="obsidian-dataview-properties notice-error">${i18next.t("dataviewEnabled")}</span>`
+				),
+				5000
+			);
+		}
+	}
+
+	/**
+	 * Determines if frontmatter needs updating based on inline fields
+	 */
+	private shouldBeUpdated(
+		fields: Record<string, any>,
+		frontmatter?: FrontMatterCache
+	): boolean {
+		// Early exit if no fields
+		if (!fields || Object.keys(fields).length === 0) {
+			return false;
+		}
+
+		// Update needed if no frontmatter exists
+		if (!frontmatter) {
+			return true;
+		}
+
+		// Check if any field needs updating
+		return Object.entries(fields).some(([key, inlineValue]) => {
+			// Skip ignored fields
+			if (this.isIgnored(key)) return false;
+
+			// Find matching key in frontmatter (case-insensitive, accent-insensitive)
+			const frontmatterKey = Object.keys(frontmatter).find(
+				(fmKey) => !this.isIgnored(fmKey) && this.ignoreUtils.keysMatch(fmKey, key)
+			);
+
+			// If key doesn't exist in frontmatter and value is not null, update needed
+			if (!frontmatterKey) {
+				return inlineValue != null;
+			}
+
+			// If values differ, update needed
+			return !this.ignoreUtils.valuesEqual(inlineValue, frontmatter[frontmatterKey]);
+		});
+	}
+
+	/**
+	 * Process file to update frontmatter with inline Dataview fields
+	 */
+	private async resolveDataview(activeFile: TFile): Promise<void> {
+		const filePath = activeFile.path;
+
+		// Prevent concurrent processing of the same file
+		if (this.processingFiles.has(filePath)) {
 			return;
-		if (inlineFields === undefined || Object.keys(inlineFields).length === 0) return;
+		}
+
+		try {
+			this.processingFiles.add(filePath);
+
+			// Check if Dataview is enabled
+			if (!this.isDataviewEnabled()) {
+				return;
+			}
+
+			const frontmatter = this.app.metadataCache.getFileCache(activeFile)?.frontmatter;
+			const inline = await getInlineFields(filePath, this, frontmatter);
+
+			if (this.shouldBeUpdated(inline, frontmatter)) {
+				await this.addToFrontmatter(activeFile, inline);
+			}
+		} finally {
+			this.processingFiles.delete(filePath);
+		}
+	}
+
+	/**
+	 * Check if Dataview plugin is enabled
+	 */
+	private isDataviewEnabled(): boolean {
+		return (
+			!!this.app.plugins.plugins.dataview &&
+			isPluginEnabled(this.app) &&
+			!!this.app.plugins.plugins.dataview._loaded
+		);
+	}
+
+	/**
+	 * Prepare ignored fields from settings
+	 */
+	private prepareIgnoredFields(): void {
+		// Clear existing caches
+		this.ignoredKeys.clear();
+		this.ignoredRegex = [];
+
+		const ignoredFields = this.settings.ignoreFields.fields;
+		if (!ignoredFields.length) return;
+
+		// Process each field
+		for (const key of ignoredFields) {
+			const processedKey = this.ignoreUtils.processString(key);
+			const regex = this.ignoreUtils.recognizeRegex(key);
+
+			if (regex) {
+				this.ignoredRegex.push(regex);
+			} else {
+				this.ignoredKeys.add(processedKey);
+			}
+		}
+	}
+
+	/**
+	 * Check if a key should be ignored
+	 */
+	private isIgnored(key: string): boolean {
+		// Fast path if no ignored items
+		if (!this.ignoredKeys.size && !this.ignoredRegex.length) {
+			return false;
+		}
+
+		const processedKey = this.ignoreUtils.processString(key);
+
+		// Check if key is in ignored set (O(1) lookup)
+		if (this.ignoredKeys.has(processedKey)) {
+			return true;
+		}
+
+		// Check against regex patterns
+		return this.ignoredRegex.some((regex) => {
+			regex.lastIndex = 0; // Reset lastIndex for safety
+			return regex.test(processedKey);
+		});
+	}
+
+	/**
+	 * Add inline fields to frontmatter
+	 */
+	async addToFrontmatter(file: TFile, inlineFields: Record<string, any>): Promise<void> {
+		if (!this.isDataviewEnabled()) return;
+		if (!inlineFields || Object.keys(inlineFields).length === 0) return;
 
 		await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
 			for (const [key, value] of Object.entries(inlineFields)) {
-				const isIgnored = this.isIgnored(key);
-				const correctedValue = this.cleanUtils.removeFromValue(
-					value,
-					this.settings.cleanUpText.fields
-				);
-				if (!isIgnored && correctedValue != undefined) {
-					console.info("[DataviewProperties] Adding to frontmatter:", key, value);
+				// Skip if field is ignored or value is undefined
+				if (this.isIgnored(key) || value === undefined) {
+					continue;
+				}
+
+				// Process value with cleanup rules
+				const correctedValue =
+					typeof value === "string"
+						? this.cleanUtils.removeFromValue(value, this.settings.cleanUpText.fields)
+						: value;
+
+				// Add to frontmatter if value is valid
+				if (correctedValue != null) {
 					frontmatter[key] = correctedValue;
-				} else console.info("[DataviewProperties] Ignoring key:", key, value);
+				}
 			}
 		});
 	}
 
-	onunload() {
+	onunload(): void {
 		console.log(`[${this.manifest.name}] Unloaded`);
 	}
 
-	private loadUtils() {
+	/**
+	 * Initialize utility classes with current settings
+	 */
+	private loadUtils(): void {
 		this.cleanUtils = new Utils({
 			ignoreAccents: this.settings.cleanUpText.ignoreAccents,
 			lowerCase: this.settings.cleanUpText.lowerCase,
 		});
+
 		this.ignoreUtils = new Utils({
 			ignoreAccents: this.settings.ignoreFields.ignoreAccents,
 			lowerCase: this.settings.ignoreFields.lowerCase,
 		});
 	}
 
-	async loadSettings() {
+	async loadSettings(): Promise<void> {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
 		this.loadUtils();
 		this.prepareIgnoredFields();
 	}
 
-	async saveSettings() {
+	async saveSettings(): Promise<void> {
 		await this.saveData(this.settings);
 		this.loadUtils();
 		this.prepareIgnoredFields();
