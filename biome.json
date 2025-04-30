@@ -1,7 +1,11 @@
 {
-	"$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
-	"organizeImports": {
-		"enabled": true
+	"$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+	"assist": {
+		"actions": {
+			"source": {
+				"organizeImports": "on"
+			}
+		}
 	},
 	"linter": {
 		"enabled": true,
@@ -9,22 +13,9 @@
 			"recommended": false,
 			"complexity": {
 				"noExtraBooleanCast": "error",
-				"noMultipleSpacesInRegularExpressionLiterals": "error",
+				"noAdjacentSpacesInRegex": "error",
 				"noUselessCatch": "error",
 				"noWith": "error"
-			},
-			"style": {
-				"noVar": "error",
-				"useFilenamingConvention": "error",
-				"useImportType": "error",
-				"useNamingConvention": {
-					"level": "warn",
-					"options": {
-						"strictCase": false
-					}
-				},
-				"useTemplate": "warn",
-				"useConst": "error"
 			},
 			"correctness": {
 				"noConstAssign": "error",
@@ -34,7 +25,9 @@
 				"noGlobalObjectCalls": "error",
 				"noInnerDeclarations": "error",
 				"noInvalidConstructorSuper": "error",
-				"noNewSymbol": "error",
+				"noInvalidBuiltinInstantiation": {
+					"level": "error"
+				},
 				"noNonoctalDecimalEscape": "error",
 				"noPrecisionLoss": "error",
 				"noSelfAssign": "error",
@@ -75,21 +68,50 @@
 				"noShadowRestrictedNames": "error",
 				"noUnsafeNegation": "error",
 				"useGetterReturn": "error",
-				"useValidTypeof": "error"
+				"useValidTypeof": "error",
+				"noVar": "error"
+			},
+			"style": {
+				"useFilenamingConvention": "error",
+				"useImportType": "error",
+				"useNamingConvention": {
+					"level": "warn",
+					"options": {
+						"strictCase": false
+					}
+				},
+				"useTemplate": "warn",
+				"useConst": "error"
 			}
 		},
-		"ignore": ["**/npm node_modules", "**/build", "**/dist", "**/src/i18n/locales"]
+		"includes": [
+			"**",
+			"!**/npm node_modules",
+			"!**/build",
+			"!**/dist",
+			"!**/src/i18n/locales"
+		]
 	},
 	"overrides": [
 		{
-			"ignore": ["**/*.js"],
-			"include": ["**/*.ts", "**/*.tsx"]
+			"includes": [
+				"**/*.ts",
+				"**/*.tsx",
+				"!**/*.js",
+				"!**/node_modules/**"
+			]
 		},
 		{
-			"include": ["**/*.js"]
+			"includes": [
+				"**/*.js",
+				"!**/node_modules/**"
+			]
 		},
 		{
-			"include": ["*.json"]
+			"includes": [
+				"**/*.json",
+				"!**/node_modules/**"
+			]
 		}
 	],
 	"formatter": {
@@ -97,6 +119,11 @@
 		"indentStyle": "tab",
 		"indentWidth": 2,
 		"lineWidth": 90
+	},
+	"html": {
+		"formatter": {
+			"enabled": true
+		}
 	},
 	"javascript": {
 		"formatter": {

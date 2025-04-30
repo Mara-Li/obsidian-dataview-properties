@@ -23,7 +23,7 @@
   "author": "Mara-Li",
   "license": "GPL-3.0",
   "devDependencies": {
-    "@biomejs/biome": "1.9.4",
+    "@biomejs/biome": "^2.0.0-beta.2",
     "@types/node": "^22.15.2",
     "builtin-modules": "5.0.0",
     "i18next": "^25.0.1",
