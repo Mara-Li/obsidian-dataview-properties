@@ -1,4 +1,4 @@
-import { Notice, Plugin, sanitizeHTMLToDom, type TFile } from "obsidian";
+import { Notice, Plugin, sanitizeHTMLToDom, type FrontMatterCache, type TFile } from "obsidian";
 import "uniformize";
 import { resources, translationLanguage } from "./i18n";
 import i18next from "i18next";
@@ -6,6 +6,7 @@ import { type DataviewPropertiesSettings, DEFAULT_SETTINGS } from "./interfaces"
 import { getInlineFields } from "./dataview";
 import { DataviewPropertiesSettingTab } from "./settings";
 import { isPluginEnabled } from "@enveloppe/obsidian-dataview";
+import { Utils } from "./utils";
 
 export default class DataviewProperties extends Plugin {
 	settings!: DataviewPropertiesSettings;
@@ -13,9 +14,12 @@ export default class DataviewProperties extends Plugin {
 	private ignoredKeys: string[] = [];
 	private ignoredRegex: RegExp[] = [];
 
+	private utils!: Utils;
+
 	async onload() {
 		console.log(`[${this.manifest.name}] Loaded`);
 		await this.loadSettings();
+		this.utils = new Utils(this);
 		//load i18next
 		await i18next.init({
 			lng: translationLanguage,
@@ -50,26 +54,69 @@ export default class DataviewProperties extends Plugin {
 			},
 		});
 
-		this.registerInterval(
-			window.setInterval(() => {
-				const activeFile = this.app.workspace.getActiveFile();
-				if (activeFile) {
-					this.resolveDataview(activeFile);
-				}
-			}, this.settings.frequency)
+		this.registerEvent(
+			//@ts-ignore
+			this.app.metadataCache.on("dataview:metadata-change", (_eventName: string, file: TFile) => {
+				console.log("[DataviewProperties] Metadata change detected:", file.path);
+				this.resolveDataview(file);
+			})
 		);
+	}
+
+
+
+	private async shouldBeUpdated(fields: Record<string, any>, file: TFile, frontmatter?: FrontMatterCache) {
+		console.log("[DataviewProperties] Checking if update is needed for", file.path);
+		if (!fields || Object.keys(fields).length === 0) {
+			console.log(`[DataviewProperties] No inline fields for ${file.path}, no update needed`);
+			return false;
+		}
+		if (!frontmatter) {
+			console.log(`[DataviewProperties] No frontmatter but inline fields found for ${file.path}, update needed`);
+			return true;
+		}
+
+		const needsUpdate = Object.entries(fields).some(([key, inlineValue]) => {
+			if (this.isIgnored(key)) return false;
+			const frontmatterKey = Object.keys(frontmatter).find(fmKey =>
+				!this.isIgnored(fmKey) && this.utils.keysMatch(fmKey, key)
+			);
+			if (!frontmatterKey || inlineValue == null) {
+				if (inlineValue != null) {
+					console.debug(`[DataviewProperties] Key ${key} not found in frontmatter, update needed`);
+					return true;
+				}
+				return false;
+			}
+			const frontmatterValue = frontmatter[frontmatterKey];
+			const areEqual = this.utils.valuesEqual(inlineValue, frontmatterValue);
+
+			if (!areEqual) {
+				console.log(`[DataviewProperties] Values differ for ${key}: inline=${inlineValue}, frontmatter=${frontmatterValue}`);
+				return true;
+			}
+
+			return false;
+		}
+		);
+
+		console.log("[DataviewProperties] Needs update:", needsUpdate, "for", file.path);
+		return needsUpdate;
 	}
 
 	private async resolveDataview(activeFile: TFile) {
 		const frontmatter = this.app.metadataCache.getFileCache(activeFile)?.frontmatter;
 		const inline = await getInlineFields(activeFile.path, this, frontmatter);
-		await this.addToFrontmatter(activeFile, inline);
+		if (await this.shouldBeUpdated(inline, activeFile, frontmatter)) {
+			console.log(`[DataviewProperties] Updating frontmatter for ${activeFile.path}`);
+			await this.addToFrontmatter(activeFile, inline);
+		}
 	}
 	private removeDuplicateFlag(input: string): string {
 		return input.replace(/(.)\1+/g, '$1');
 	}
 
-	private recognizeRegex(key: string) {
+	recognizeRegex(key: string) {
 		const regRecognition = new RegExp(/\/(?<regex>.*)\/(?<flag>[gmiyuvsd]*)/);
 		const match = key.match(regRecognition);
 		if (match) {
@@ -88,8 +135,7 @@ export default class DataviewProperties extends Plugin {
 		if (ignoredFields.length === 0) return;
 
 		for (let key of ignoredFields) {
-			if (this.settings.lowerCase) key = key.toLowerCase();
-			if (this.settings.ignoreAccents) key = key.removeAccents();
+			key = this.utils.processString(key);
 			const regex = this.recognizeRegex(key);
 			if (regex) this.ignoredRegex.push(regex);
 			else this.ignoredKeys.push(key);
@@ -100,11 +146,7 @@ export default class DataviewProperties extends Plugin {
 	private isIgnored(key: string) {
 		if (this.ignoredKeys.length === 0 && this.ignoredRegex.length === 0) return false;
 
-		let processedKey = key;
-		if (this.settings.lowerCase)
-			processedKey = processedKey.toLowerCase();
-		if (this.settings.ignoreAccents)
-			processedKey = processedKey.removeAccents();
+		const processedKey = this.utils.processString(key);
 		if (this.ignoredKeys.includes(processedKey))
 			return true;
 		for (const regex of this.ignoredRegex) {
@@ -117,6 +159,8 @@ export default class DataviewProperties extends Plugin {
 	}
 
 	async addToFrontmatter(file: TFile, inlineFields: Record<string, any>) {
+		if (!this.app.plugins.plugins.dataview || !isPluginEnabled(this.app) || !this.app.plugins.plugins.dataview._loaded) return;
+		if (inlineFields === undefined || Object.keys(inlineFields).length === 0) return;
 		await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
 			for (const [key, value] of Object.entries(inlineFields)) {
 				const isIgnored = this.isIgnored(key);
