@@ -3,10 +3,9 @@ import { moment } from "obsidian";
 import en from "./locales/en.json";
 import fr from "./locales/fr.json";
 
-
 export const resources = {
 	fr: { translation: fr },
-	en: { translation: en }
+	en: { translation: en },
 };
 
 const localeUsed: string = window.localStorage.language || moment.locale();

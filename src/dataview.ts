@@ -3,7 +3,8 @@ import {
 	getAPI,
 	isPluginEnabled,
 	type Link,
-	type Literal, Values,
+	type Literal,
+	Values,
 } from "@enveloppe/obsidian-dataview";
 import { Component, type FrontMatterCache, htmlToMarkdown } from "obsidian";
 import type DataviewProperties from "./main";
@@ -82,25 +83,23 @@ class Dataview {
 				const query = ${query};
 				dv.paragraph(query);
 			`;
-		// biome-ignore lint/correctness/noUndeclaredVariables: <explanation>
+		// biome-ignore lint/correctness/noUndeclaredVariables: createDiv is a global function from obsidian
 		const div = createEl("div");
 		const component = new Component();
 		await this.dvApi.executeJs(evaluateQuery, div, component, this.path);
 		component.load();
 		return this.removeDataviewQueries(htmlToMarkdown(div.innerHTML));
 	}
-	async evaluateInline(
-		value: unknown,
-	): Promise<unknown | undefined> {
+	async evaluateInline(value: unknown): Promise<unknown | undefined> {
 		if (value === "" || value === undefined) return;
-		if (Values.isString(value)) return convertToNumber(
-			await this.convertDataviewQueries(value)
-		);
+		if (Values.isString(value))
+			return convertToNumber(await this.convertDataviewQueries(value));
 
 		//if the value is a Link, convert it to a "[[link]]" string
 		if (Values.isLink(value)) {
 			return this.stringifyLink(value);
-		} if (Values.isHtml(value)) {
+		}
+		if (Values.isHtml(value)) {
 			//if the value is HTML, convert to markdown :
 			return Values.toString(value);
 		} else if (Values.isWidget(value)) {
@@ -118,7 +117,6 @@ class Dataview {
 		}
 		//keep the value as is
 		return value;
-
 	}
 
 	private stringifyLink(fieldValue: Link) {
@@ -131,9 +129,7 @@ class Dataview {
 		}
 		return `[[${path}]]`;
 	}
-	private async convertDataviewQueries(
-		text: string
-	) {
+	private async convertDataviewQueries(text: string) {
 		const { app, settings } = this.plugin;
 		let replacedText = text;
 		const isDataviewEnabled = app.plugins.plugins.dataview;
@@ -178,9 +174,7 @@ class Dataview {
 		}
 		return replacedText;
 	}
-
 }
-
 
 export async function getInlineFields(
 	path: string,
@@ -207,7 +201,9 @@ export async function getInlineFields(
 		} else {
 			if (Array.isArray(pageData[key]) && pageData[key].length > 1) {
 				//get the last value
-				inlineFields[key] = await compiler.evaluateInline(pageData[key][pageData[key].length - 1]);
+				inlineFields[key] = await compiler.evaluateInline(
+					pageData[key][pageData[key].length - 1]
+				);
 			} else if (Array.isArray(pageData[key])) {
 				inlineFields[key] = await compiler.evaluateInline(pageData[key][0]);
 			}
