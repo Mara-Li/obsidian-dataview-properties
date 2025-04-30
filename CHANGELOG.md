@@ -1,3 +1,12 @@
+## [0.0.3](https://github.com/Mara-Li/obsidian-dataview-properties/compare/0.0.2...0.0.3) (2025-04-30)
+### Features
+
+* remove text from value when adding to the frontmatter ([0942ed8](https://github.com/Mara-Li/obsidian-dataview-properties/commit/0942ed8126e587efb2bc6a5dbf592b68182793f0))
+
+### Bug Fixes
+
+* prevent reading & updating the frontmatter when not needing ([98fc56a](https://github.com/Mara-Li/obsidian-dataview-properties/commit/98fc56a74c53c7c955f58c109639e44186c868d7))
+
 ## [0.0.2](https://github.com/Mara-Li/obsidian-dataview-properties/compare/0.0.1...0.0.2) (2025-04-29)
 ### Features
 
