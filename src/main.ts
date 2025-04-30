@@ -19,6 +19,8 @@ export default class DataviewProperties extends Plugin {
 	// Ajouter ces propriétés privées pour le cache
 	private ignoredKeys: string[] = [];
 	private ignoredRegex: RegExp[] = [];
+	private ignoreUtils!: Utils;
+	private cleanUtils!: Utils;
 
 	async onload() {
 		console.log(`[${this.manifest.name}] Loaded`);
@@ -67,8 +69,8 @@ export default class DataviewProperties extends Plugin {
 		});
 
 		this.registerEvent(
-			//@ts-ignore
 			this.app.metadataCache.on(
+				//@ts-ignore
 				"dataview:metadata-change",
 				(_eventName: string, file: TFile) => {
 					console.log("[DataviewProperties] Metadata change detected:", file.path);
@@ -83,10 +85,7 @@ export default class DataviewProperties extends Plugin {
 		file: TFile,
 		frontmatter?: FrontMatterCache
 	) {
-		const utils = new Utils({
-			ignoreAccents: this.settings.ignoreFields.ignoreAccents,
-			lowerCase: this.settings.ignoreFields.lowerCase,
-		});
+
 		console.log("[DataviewProperties] Checking if update is needed for", file.path);
 		if (!fields || Object.keys(fields).length === 0) {
 			console.log(
@@ -104,7 +103,7 @@ export default class DataviewProperties extends Plugin {
 		const needsUpdate = Object.entries(fields).some(([key, inlineValue]) => {
 			if (this.isIgnored(key)) return false;
 			const frontmatterKey = Object.keys(frontmatter).find(
-				(fmKey) => !this.isIgnored(fmKey) && utils.keysMatch(fmKey, key)
+				(fmKey) => !this.isIgnored(fmKey) && this.ignoreUtils.keysMatch(fmKey, key)
 			);
 			if (!frontmatterKey || inlineValue == null) {
 				if (inlineValue != null) {
@@ -116,7 +115,7 @@ export default class DataviewProperties extends Plugin {
 				return false;
 			}
 			const frontmatterValue = frontmatter[frontmatterKey];
-			const areEqual = utils.valuesEqual(inlineValue, frontmatterValue);
+			const areEqual = this.ignoreUtils.valuesEqual(inlineValue, frontmatterValue);
 
 			if (!areEqual) {
 				console.log(
@@ -142,8 +141,6 @@ export default class DataviewProperties extends Plugin {
 	}
 
 	private prepareIgnoredFields() {
-		const { ignoreAccents, lowerCase } = this.settings.ignoreFields;
-		const utils = new Utils({ ignoreAccents, lowerCase });
 		this.ignoredKeys = [];
 		this.ignoredRegex = [];
 
@@ -151,21 +148,17 @@ export default class DataviewProperties extends Plugin {
 		if (ignoredFields.length === 0) return;
 
 		for (let key of ignoredFields) {
-			key = utils.processString(key);
-			const regex = utils.recognizeRegex(key);
+			key = this.ignoreUtils.processString(key);
+			const regex = this.ignoreUtils.recognizeRegex(key);
 			if (regex) this.ignoredRegex.push(regex);
 			else this.ignoredKeys.push(key);
 		}
 	}
 
 	private isIgnored(key: string) {
-		const utils = new Utils({
-			ignoreAccents: this.settings.ignoreFields.ignoreAccents,
-			lowerCase: this.settings.ignoreFields.lowerCase,
-		});
 		if (this.ignoredKeys.length === 0 && this.ignoredRegex.length === 0) return false;
 
-		const processedKey = utils.processString(key);
+		const processedKey = this.ignoreUtils.processString(key);
 		if (this.ignoredKeys.includes(processedKey)) return true;
 		for (const regex of this.ignoredRegex) {
 			regex.lastIndex = 0; // Reset the lastIndex property to ensure a fresh match
@@ -183,14 +176,11 @@ export default class DataviewProperties extends Plugin {
 		)
 			return;
 		if (inlineFields === undefined || Object.keys(inlineFields).length === 0) return;
-		const utils = new Utils({
-			ignoreAccents: this.settings.cleanUpText.ignoreAccents,
-			lowerCase: this.settings.cleanUpText.lowerCase,
-		});
+
 		await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
 			for (const [key, value] of Object.entries(inlineFields)) {
 				const isIgnored = this.isIgnored(key);
-				const correctedValue = utils.removeFromValue(
+				const correctedValue = this.cleanUtils.removeFromValue(
 					value,
 					this.settings.cleanUpText.fields
 				);
@@ -206,13 +196,26 @@ export default class DataviewProperties extends Plugin {
 		console.log(`[${this.manifest.name}] Unloaded`);
 	}
 
+	private loadUtils() {
+		this.cleanUtils = new Utils({
+			ignoreAccents: this.settings.cleanUpText.ignoreAccents,
+			lowerCase: this.settings.cleanUpText.lowerCase,
+		});
+		this.ignoreUtils = new Utils({
+			ignoreAccents: this.settings.ignoreFields.ignoreAccents,
+			lowerCase: this.settings.ignoreFields.lowerCase,
+		});
+	}
+
 	async loadSettings() {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-		this.prepareIgnoredFields(); // Préparer les données après le chargement des paramètres
+		this.loadUtils();
+		this.prepareIgnoredFields();
 	}
 
 	async saveSettings() {
 		await this.saveData(this.settings);
-		this.prepareIgnoredFields(); // Préparer les données après la sauvegarde des paramètres
+		this.loadUtils();
+		this.prepareIgnoredFields();
 	}
 }
