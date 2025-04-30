@@ -1,5 +1,4 @@
-import type { DataviewPropertiesSettings } from "./interfaces";
-import type DataviewProperties from "./main";
+import type { TextOptions } from "./interfaces";
 
 /**
  * Verify if a value is a number, even if it's a "number" string
@@ -28,34 +27,45 @@ export function convertToNumber(value: unknown): number | unknown {
 	return value;
 }
 
-
 export class Utils {
-	private settings: DataviewPropertiesSettings;
-	private plugin: DataviewProperties;
+	options: TextOptions;
 
-	constructor(plugin: DataviewProperties) {
-		this.plugin = plugin;
-		this.settings = plugin.settings;
+	constructor(options: TextOptions) {
+		this.options = options;
 	}
 
+	private removeDuplicateFlag(input: string): string {
+		return input.replace(/(.)\1+/g, "$1");
+	}
+	recognizeRegex(key: string) {
+		const regRecognition = new RegExp(/\/(?<regex>.*)\/(?<flag>[gmiyuvsd]*)/);
+		const match = key.match(regRecognition);
+		if (match) {
+			const { regex, flag } = match.groups!;
+			//prevent flags to be multiple, aka only one of each
+			const correctedFlag = this.removeDuplicateFlag(flag);
+			return new RegExp(regex, correctedFlag);
+		}
+		return null;
+	}
 	keysMatch(frontmatterKey: string, inlineKey: string): boolean {
 		const processedFmKey = this.processString(frontmatterKey);
 		const processedInlineKey = this.processString(inlineKey);
 		if (processedFmKey === processedInlineKey) return true;
 
 		// Vérification par regex si la clé frontmatter est une regex
-		const regex = this.plugin.recognizeRegex(frontmatterKey);
+		const regex = this.recognizeRegex(frontmatterKey);
 		if (regex && regex.test(inlineKey)) return true;
 
 		return false;
-	};
+	}
 
 	processString(str: string): string {
 		let result = str;
-		if (this.settings.lowerCase) result = result.toLowerCase();
-		if (this.settings.ignoreAccents) result = result.removeAccents();
+		if (this.options.lowerCase) result = result.toLowerCase();
+		if (this.options.ignoreAccents) result = result.removeAccents();
 		return result;
-	};
+	}
 	valuesEqual(val1: any, val2: any): boolean {
 		if (val1 === val2) return true;
 		if (typeof val1 === "string" && typeof val2 === "string") {
@@ -63,5 +73,23 @@ export class Utils {
 		}
 
 		return false;
-	};
+	}
+
+	removeFromValue(value: string, fields: string[]): string | null {
+		if (fields.length === 0) return value;
+		for (let regex of fields) {
+			let flags = "";
+			if (this.options.lowerCase) flags += "i";
+			if (this.options.ignoreAccents) regex = regex.removeAccents();
+			const processedRegex = this.recognizeRegex(regex);
+			if (processedRegex) {
+				value = value.replace(processedRegex, "");
+			} else {
+				value = value.replace(new RegExp(regex, flags), "");
+			}
+		}
+		value = value.trim();
+		if (value.length === 0) return null;
+		return value;
+	}
 }

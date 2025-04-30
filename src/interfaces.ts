@@ -1,21 +1,33 @@
+export type TextOptions = {
+	ignoreAccents: boolean;
+	lowerCase: boolean;
+};
+
+type AreaSettings = {
+	fields: string[];
+} & TextOptions;
+
 export interface DataviewPropertiesSettings {
 	dql: boolean;
 	djs: boolean;
 	/**
 	 * Ignore the following fields
 	 */
-	ignoreFields: string[];
-	/** Ignore with lowercase */
-	lowerCase: boolean;
-
-	/** ignore accents */
-	ignoreAccents: boolean;
+	ignoreFields: AreaSettings;
+	cleanUpText: AreaSettings;
 }
 
 export const DEFAULT_SETTINGS: DataviewPropertiesSettings = {
 	dql: true,
 	djs: true,
-	ignoreFields: [],
-	lowerCase: true,
-	ignoreAccents: true,
+	ignoreFields: {
+		fields: [],
+		lowerCase: true,
+		ignoreAccents: true,
+	},
+	cleanUpText: {
+		fields: [],
+		lowerCase: true,
+		ignoreAccents: true,
+	},
 };
