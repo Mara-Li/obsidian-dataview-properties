@@ -4,7 +4,7 @@ import {
 	PluginSettingTab,
 	sanitizeHTMLToDom,
 	Setting,
-	type TextAreaComponent
+	type TextAreaComponent,
 } from "obsidian";
 import type DataviewProperties from "./main";
 import i18next from "i18next";

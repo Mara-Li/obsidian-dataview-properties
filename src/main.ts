@@ -85,7 +85,6 @@ export default class DataviewProperties extends Plugin {
 		file: TFile,
 		frontmatter?: FrontMatterCache
 	) {
-
 		console.log("[DataviewProperties] Checking if update is needed for", file.path);
 		if (!fields || Object.keys(fields).length === 0) {
 			console.log(
