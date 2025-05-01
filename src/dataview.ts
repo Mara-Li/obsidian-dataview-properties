@@ -6,15 +6,22 @@ import {
 	type Literal,
 	Values,
 } from "@enveloppe/obsidian-dataview";
+import dedent from "dedent";
 import { Component, type FrontMatterCache, htmlToMarkdown } from "obsidian";
 import type DataviewProperties from "./main";
 import { convertToNumber } from "./utils";
 
+/**
+ * Handles Dataview API interactions and query evaluation
+ */
 class Dataview {
 	dvApi: DataviewApi;
 	path: string;
 	plugin: DataviewProperties;
 	sourceText: string;
+	// Cache for evaluated queries
+	private queryCache: Map<string, string> = new Map();
+	prefix: string = "[Dataview Properties]";
 
 	constructor(dvApi: DataviewApi, path: string, plugin: DataviewProperties) {
 		this.dvApi = dvApi;
@@ -22,10 +29,18 @@ class Dataview {
 		this.plugin = plugin;
 		this.sourceText = "";
 	}
-	private escapeRegex(filepath: string): string {
-		return filepath.replace(/[/\-\\^$*+?.()|[\]{}]/g, "\\$&");
+
+	/**
+	 * Escape special regex characters in string
+	 */
+	private escapeRegex(text: string): string {
+		return text.replace(/[/\-\\^$*+?.()|[\]{}]/g, "\\$&");
 	}
-	private dvInlineQueryMatches() {
+
+	/**
+	 * Get all matches for inline DQL queries
+	 */
+	private dvInlineQueryMatches(): IterableIterator<RegExpMatchArray> | [] {
 		const inlineQueryPrefix = this.dvApi.settings.inlineQueryPrefix || "=";
 		const inlineDataViewRegex = new RegExp(
 			`\`${this.escapeRegex(inlineQueryPrefix)}(.+?)\``,
@@ -33,7 +48,11 @@ class Dataview {
 		);
 		return this.sourceText.matchAll(inlineDataViewRegex);
 	}
-	private dvInlineJSMatches() {
+
+	/**
+	 * Get all matches for inline JS queries
+	 */
+	private dvInlineJSMatches(): IterableIterator<RegExpMatchArray> | [] {
 		const inlineJsQueryPrefix = this.dvApi.settings.inlineJsQueryPrefix || "$=";
 		const inlineJsDataViewRegex = new RegExp(
 			`\`${this.escapeRegex(inlineJsQueryPrefix)}(.+?)\``,
@@ -41,173 +60,258 @@ class Dataview {
 		);
 		return this.sourceText.matchAll(inlineJsDataViewRegex);
 	}
+
+	/**
+	 * Find all dataview query matches in the sourceText
+	 */
 	matches() {
 		return {
 			inlineMatches: this.dvInlineQueryMatches(),
 			inlineJsMatches: this.dvInlineJSMatches(),
 		};
 	}
+
+	/**
+	 * Clean and sanitize dataview results
+	 */
 	private removeDataviewQueries(dataviewMarkdown: Literal): string {
+		if (!dataviewMarkdown) return "";
 		const toStr = dataviewMarkdown?.toString();
-		return dataviewMarkdown && toStr ? toStr : "";
+		return toStr || "";
 	}
 
 	/**
-	 * Inline DQL Dataview - The SQL-like Dataview Query Language in inline
-	 * Syntax : `= query`
-	 * (the prefix can be changed in the settings)
-	 * @source https://blacksmithgu.github.io/obsidian-dataview/queries/dql-js-inline/#inline-dql
+	 * Process inline DQL Dataview queries
+	 * @param query The DQL query to evaluate
+	 * @returns The evaluated result as string
 	 */
+	async inlineDQLDataview(query: string): Promise<string> {
+		// Check cache first
+		const cacheKey = `dql:${query}:${this.path}`;
+		if (this.queryCache.has(cacheKey)) {
+			return this.queryCache.get(cacheKey)!;
+		}
 
-	async inlineDQLDataview(query: string) {
-		const dataviewResult = this.dvApi.evaluateInline(query, this.path);
-		if (dataviewResult.successful) {
-			return this.removeDataviewQueries(dataviewResult.value);
-		} else {
-			return this.removeDataviewQueries(this.dvApi.settings.renderNullAs);
+		try {
+			const dataviewResult = this.dvApi.evaluateInline(query, this.path);
+			let result: string;
+
+			if (dataviewResult.successful) {
+				result = this.removeDataviewQueries(dataviewResult.value);
+			} else {
+				result = this.removeDataviewQueries(this.dvApi.settings.renderNullAs);
+			}
+
+			// Cache the result
+			this.queryCache.set(cacheKey, result);
+			return result;
+		} catch (error) {
+			console.error(`${this.prefix} Error evaluating DQL query '${query}':`, error);
+			return "";
 		}
 	}
+
 	/**
-	 * Inline DataviewJS - JavaScript API for Dataview in inline
-	 * Syntax : `$=js query`
-	 * For the moment, it is not possible to properly process the inlineJS.
-	 * Temporary solution : encapsulate the query into "pure" JS :
-	 * ```ts
-	 * const query = queryFound;
-	 * dv.paragraph(query);
-	 * ```
-	 * After the evaluation, the div is converted to markdown with {@link htmlToMarkdown()} and the dataview queries are removed
+	 * Process inline DataviewJS queries
+	 * @param query The JavaScript query to evaluate
+	 * @returns The evaluated result as markdown
 	 */
-	async inlineDataviewJS(query: string) {
-		const evaluateQuery = `
-				const query = ${query};
-				dv.paragraph(query);
-			`;
-		// biome-ignore lint/correctness/noUndeclaredVariables: createDiv is a global function from obsidian
-		const div = createEl("div");
-		const component = new Component();
-		await this.dvApi.executeJs(evaluateQuery, div, component, this.path);
-		component.load();
-		return this.removeDataviewQueries(htmlToMarkdown(div.innerHTML));
+	async inlineDataviewJS(query: string): Promise<string> {
+		// Check cache first
+		const cacheKey = `djs:${query}:${this.path}`;
+		if (this.queryCache.has(cacheKey)) {
+			return this.queryCache.get(cacheKey)!;
+		}
+
+		try {
+			// Create a clean context for evaluation
+			// biome-ignore lint/correctness/noUndeclaredVariables: createEl is a global function from Obsidian
+			const div = createEl("div");
+			const component = new Component();
+
+			// Wrap query in a format that will output the result
+			const evaluateQuery = dedent(`
+				try {
+					const query = ${query};
+					dv.paragraph(query);
+				} catch(e) {
+					dv.paragraph("Evaluation Error: " + e.message);
+				}
+			`);
+
+			// Execute the JS query
+			await this.dvApi.executeJs(evaluateQuery, div, component, this.path);
+			component.load();
+
+			// Convert HTML to markdown
+			const result = this.removeDataviewQueries(htmlToMarkdown(div.innerHTML));
+
+			// Cache the result
+			this.queryCache.set(cacheKey, result);
+			return result;
+		} catch (error) {
+			console.error(`${this.prefix} Error evaluating JS query '${query}':`, error);
+			return "Evaluation Error";
+		}
 	}
+
+	/**
+	 * Evaluate and convert a dataview field value
+	 */
 	async evaluateInline(value: unknown): Promise<unknown | undefined> {
 		if (value === "" || value === undefined) return;
-		if (Values.isString(value))
-			return convertToNumber(await this.convertDataviewQueries(value));
 
-		//if the value is a Link, convert it to a "[[link]]" string
-		if (Values.isLink(value)) {
-			return this.stringifyLink(value);
+		try {
+			// String values might contain dataview queries
+			if (Values.isString(value))
+				return convertToNumber(await this.convertDataviewQueries(value));
+
+			if (Values.isLink(value)) return this.stringifyLink(value);
+
+			if (Values.isHtml(value)) return Values.toString(value);
+
+			if (Values.isWidget(value)) {
+				// Using debug level to reduce console noise
+				console.warn(`${this.prefix} Skipping widget value: ${value}`);
+				return;
+			}
+			if (Values.isFunction(value)) {
+				console.warn(`${this.prefix} Skipping function value: ${value}`);
+				return;
+			}
+			if (Values.isNull(value)) {
+				console.warn(`${this.prefix}  Skipping null value`);
+				return;
+			}
+			return value;
+		} catch (error) {
+			console.error(`${this.prefix} Error evaluating inline value:`, error);
+			return;
 		}
-		if (Values.isHtml(value)) {
-			//if the value is HTML, convert to markdown :
-			return Values.toString(value);
-		} else if (Values.isWidget(value)) {
-			//if the value is a Widget, it wont be a valid frontmatter, so we warn and skip
-			console.warn(`Invalid field value: Widget `, value, "-- Skipping");
-			return;
-		} else if (Values.isFunction(value)) {
-			//if the value is a Function, it wont be a valid frontmatter, so we warn and skip
-			console.warn(`Invalid field value: Function `, value, "-- Skipping");
-			return;
-		} else if (Values.isNull(value)) {
-			//if the value is null, return the default value
-			console.warn("Invalid field value: Null -- Skipping");
-			return;
-		}
-		//keep the value as is
-		return value;
 	}
 
-	private stringifyLink(fieldValue: Link) {
+	/**
+	 * Convert a Dataview Link object to markdown link format
+	 */
+	private stringifyLink(fieldValue: Link): string {
 		let path = fieldValue.path;
+
+		// Add subpath if available
 		if (fieldValue.subpath) {
 			path += `#${fieldValue.subpath}`;
 		}
+
+		// Format with display text if available
 		if (fieldValue.display) {
 			return `[[${path}|${fieldValue.display}]]`;
 		}
+
 		return `[[${path}]]`;
 	}
-	private async convertDataviewQueries(text: string) {
+
+	/**
+	 * Process text to evaluate and convert any dataview queries
+	 */
+	private async convertDataviewQueries(text: string): Promise<string> {
 		const { app, settings } = this.plugin;
-		let replacedText = text;
-		const isDataviewEnabled = app.plugins.plugins.dataview;
-		if (!isDataviewEnabled || !isPluginEnabled(app)) return replacedText;
+
+		// Quick check if Dataview is enabled
+		if (!app.plugins.plugins.dataview || !isPluginEnabled(app)) return text;
+
 		const dvApi = getAPI(app);
-		if (!dvApi) return replacedText;
+		if (!dvApi) return text;
+
+		// Set the source text and find matches
 		this.sourceText = text;
 		const { inlineMatches, inlineJsMatches } = this.matches();
-		if (!inlineMatches && !inlineJsMatches) {
-			console.warn("No dataview queries found");
-			return replacedText;
-		}
-
-		//Inline queries
+		let replacedText = text;
+		// Process DQL queries
 		if (settings.dql) {
 			for (const inlineQuery of inlineMatches) {
-				try {
-					const code = inlineQuery[0];
-					const query = inlineQuery[1].trim();
-					const markdown = await this.inlineDQLDataview(query);
-					if (!markdown.includes("Evaluation Error"))
-						replacedText = replacedText.replace(code, markdown);
-				} catch (e) {
-					console.error(e);
-					return inlineQuery[0];
+				const code = inlineQuery[0];
+				const query = inlineQuery[1].trim();
+
+				const markdown = await this.inlineDQLDataview(query);
+
+				if (!markdown.includes("Evaluation Error")) {
+					replacedText = replacedText.replace(code, markdown);
 				}
 			}
 		}
-		//Inline JS queries
+
+		// Process JS queries
 		if (settings.djs) {
 			for (const inlineJsQuery of inlineJsMatches) {
-				try {
-					const code = inlineJsQuery[0];
-					const markdown = await this.inlineDataviewJS(inlineJsQuery[1].trim());
-					if (!markdown.includes("Evaluation Error"))
-						replacedText = replacedText.replace(code, markdown);
-				} catch (e) {
-					console.error(e);
-					return inlineJsQuery[0];
+				const code = inlineJsQuery[0];
+				const query = inlineJsQuery[1].trim();
+
+				const markdown = await this.inlineDataviewJS(query);
+
+				if (!markdown.includes("Evaluation Error")) {
+					replacedText = replacedText.replace(code, markdown);
 				}
 			}
 		}
+
 		return replacedText;
 	}
 }
 
+/**
+ * Get all inline dataview fields from a file
+ * @param path File path
+ * @param plugin Plugin instance
+ * @param frontmatter Existing frontmatter (optional)
+ * @returns Object containing field names and values
+ */
 export async function getInlineFields(
 	path: string,
 	plugin: DataviewProperties,
 	frontmatter?: FrontMatterCache
 ): Promise<Record<string, any>> {
 	const { app } = plugin;
-	const isDataviewEnabled = app.plugins.plugins.dataview;
-	if (!isDataviewEnabled || !isPluginEnabled(app)) return {};
+
+	// Quick return if Dataview is not enabled
+	if (!app.plugins.plugins.dataview || !isPluginEnabled(app)) {
+		return {};
+	}
 
 	const dvApi = getAPI(app);
 	if (!dvApi) return {};
+
+	// Get page data from Dataview API
 	const pageData = dvApi.page(path);
 	if (!pageData) return {};
-	const inlineFields: Record<string, unknown> = {};
-	const processedKeys = new Set<string>(); // Pour suivre les clés déjà traitées
+
+	// Initialize compiler and result object
 	const compiler = new Dataview(dvApi, path, plugin);
+	const inlineFields: Record<string, unknown> = {};
+
+	// Track processed keys to handle case-insensitive duplicates
+	const processedKeys = new Set<string>();
+
+	// Process each field in the page data
 	for (const key in pageData) {
-		const normalizedKey = key.toLowerCase(); // Simple normalisation en minuscules
+		// Skip processing if already handled (case-insensitive)
+		const normalizedKey = key.toLowerCase();
 		if (processedKeys.has(normalizedKey)) continue;
 		processedKeys.add(normalizedKey);
+
+		// Only process fields not already in frontmatter
 		if (key !== "file" && (!frontmatter || !(key in frontmatter))) {
-			inlineFields[key] = await compiler.evaluateInline(pageData[key]);
-		} else {
-			if (Array.isArray(pageData[key]) && pageData[key].length > 1) {
-				//get the last value
-				inlineFields[key] = await compiler.evaluateInline(
-					pageData[key][pageData[key].length - 1]
-				);
-			} else if (Array.isArray(pageData[key])) {
-				inlineFields[key] = await compiler.evaluateInline(pageData[key][0]);
+			const evaluated = await compiler.evaluateInline(pageData[key]);
+			if (evaluated !== undefined) {
+				inlineFields[key] = evaluated;
 			}
+		} else if (Array.isArray(pageData[key]) && pageData[key].length > 0) {
+			// Handle arrays by using the last value (most recent)
+			const arrayValue = pageData[key];
+			const valueToUse = arrayValue[arrayValue.length - 1];
+
+			const evaluated = await compiler.evaluateInline(valueToUse);
+			if (evaluated !== undefined) inlineFields[key] = evaluated;
 		}
 	}
+
 	return inlineFields;
 }
