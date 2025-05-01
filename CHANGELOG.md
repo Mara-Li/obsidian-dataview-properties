@@ -1,3 +1,8 @@
+## [0.0.4](https://github.com/Mara-Li/obsidian-dataview-properties/compare/0.0.3...0.0.4) (2025-05-01)
+### Features
+
+* debounce interval settings ([0b7c063](https://github.com/Mara-Li/obsidian-dataview-properties/commit/0b7c0634ed91c404d934ebf699259923139f01af))
+
 ## [0.0.3](https://github.com/Mara-Li/obsidian-dataview-properties/compare/0.0.2...0.0.3) (2025-04-30)
 ### Features
 
