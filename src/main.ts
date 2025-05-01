@@ -240,7 +240,7 @@ export default class DataviewProperties extends Plugin {
 				console.debug(`${this.prefix} Keys that must be removed :`, removedKey);
 				this.utils.useConfig("delete");
 				for (const key of removedKey) {
-					if (this.isIgnored(key)) continue;
+					if (this.isIgnored(key)) continue; //more efficient to check if the key is ignored as we don't need to process it
 					const frontmatterKey = Object.keys(frontmatter).find((fmKey) =>
 						this.utils.keysMatch(fmKey, key)
 					);
