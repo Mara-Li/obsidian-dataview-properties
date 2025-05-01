@@ -9,6 +9,10 @@
     "title": "Activer les évaluations de DataView. Si une option est désactivée, la requête sera ajoutée « telle quelle » aux propriétés (frontmatter)."
   },
   "dataviewEnabled": "DataView doit être activé pour pouvoir utiliser ce module.",
+  "deleteFromFrontmatter": {
+    "desc": "Nettoyer le frontmatter quand un champ est supprimé.",
+    "title": "Supprimer du frontmatter"
+  },
   "ignore": "Valeur ignorée",
   "ignoreAccents": {
     "desc": "Les caractères accentués seront converti en leur valeur correspondante :",

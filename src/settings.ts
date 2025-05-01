@@ -88,6 +88,55 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 					};
 			});
 
+		containerEl.createEl("hr");
+
+		new Setting(containerEl)
+			.setHeading()
+			.setName(i18next.t("deleteFromFrontmatter.title"))
+			.setDesc(i18next.t("deleteFromFrontmatter.desc"))
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.deleteFromFrontmatter.enabled)
+					.onChange(async (value) => {
+						this.plugin.settings.deleteFromFrontmatter.enabled = value;
+						await this.plugin.saveSettings();
+						await this.display();
+					})
+			);
+
+		if (this.plugin.settings.deleteFromFrontmatter.enabled) {
+			new Setting(containerEl)
+				.setClass("li")
+				.setName(i18next.t("lowerCase.title"))
+				.setDesc(i18next.t("lowerCase.desc"))
+				.addToggle((toggle) =>
+					toggle
+						.setValue(this.plugin.settings.deleteFromFrontmatter.lowerCase)
+						.onChange(async (value) => {
+							this.plugin.settings.deleteFromFrontmatter.lowerCase = value;
+							await this.plugin.saveSettings();
+						})
+				);
+
+			new Setting(containerEl)
+				.setName(i18next.t("ignoreAccents.title"))
+				.setClass("li")
+				.setDesc(
+					sanitizeHTMLToDom(
+						`${i18next.t("ignoreAccents.desc")} <code>é</code> → <code>e</code>`
+					)
+				)
+				.addToggle((toggle) =>
+					toggle
+						.setValue(this.plugin.settings.deleteFromFrontmatter.ignoreAccents)
+						.onChange(async (value) => {
+							this.plugin.settings.deleteFromFrontmatter.ignoreAccents = value;
+							await this.plugin.saveSettings();
+						})
+				);
+			containerEl.createEl("hr");
+		}
+
 		const set = new Setting(containerEl)
 			.setName(i18next.t("cleanUpText.title"))
 			.setHeading()
@@ -116,34 +165,36 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 			this.plugin
 		);
 
-		new Setting(containerEl)
-			.setName(i18next.t("lowerCase.title"))
-			.setDesc(i18next.t("lowerCase.desc"))
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.cleanUpText.lowerCase)
-					.onChange(async (value) => {
-						this.plugin.settings.cleanUpText.lowerCase = value;
-						await this.plugin.saveSettings();
-					})
-			);
+		if (this.plugin.settings.cleanUpText.fields.length > 0) {
+			new Setting(containerEl)
+				.setName(i18next.t("lowerCase.title"))
+				.setDesc(i18next.t("lowerCase.desc"))
+				.addToggle((toggle) =>
+					toggle
+						.setValue(this.plugin.settings.cleanUpText.lowerCase)
+						.onChange(async (value) => {
+							this.plugin.settings.cleanUpText.lowerCase = value;
+							await this.plugin.saveSettings();
+						})
+				);
 
-		new Setting(containerEl)
-			.setName(i18next.t("ignoreAccents.title"))
-			.setDesc(
-				sanitizeHTMLToDom(
-					`${i18next.t("ignoreAccents.desc")} <code>é</code> → <code>e</code>`
+			new Setting(containerEl)
+				.setName(i18next.t("ignoreAccents.title"))
+				.setDesc(
+					sanitizeHTMLToDom(
+						`${i18next.t("ignoreAccents.desc")} <code>é</code> → <code>e</code>`
+					)
 				)
-			)
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.cleanUpText.ignoreAccents)
-					.onChange(async (value) => {
-						this.plugin.settings.cleanUpText.ignoreAccents = value;
-						await this.plugin.saveSettings();
-					})
-			);
-		this.containerEl.createEl("hr");
+				.addToggle((toggle) =>
+					toggle
+						.setValue(this.plugin.settings.cleanUpText.ignoreAccents)
+						.onChange(async (value) => {
+							this.plugin.settings.cleanUpText.ignoreAccents = value;
+							await this.plugin.saveSettings();
+						})
+				);
+			this.containerEl.createEl("hr");
+		}
 
 		new Setting(containerEl)
 			.setHeading()
@@ -164,36 +215,37 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 					await this.display();
 				};
 			});
+		if (this.plugin.settings.ignoreFields.fields.length > 0) {
+			new Setting(containerEl)
+				.setName(i18next.t("lowerCase.title"))
+				.setDesc(i18next.t("lowerCase.desc"))
+				.addToggle((toggle) =>
+					toggle
+						.setValue(this.plugin.settings.ignoreFields.lowerCase)
+						.onChange(async (value) => {
+							this.plugin.settings.ignoreFields.lowerCase = value;
+							await this.plugin.saveSettings();
+						})
+				);
 
-		new Setting(containerEl)
-			.setName(i18next.t("lowerCase.title"))
-			.setDesc(i18next.t("lowerCase.desc"))
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.ignoreFields.lowerCase)
-					.onChange(async (value) => {
-						this.plugin.settings.ignoreFields.lowerCase = value;
-						await this.plugin.saveSettings();
-					})
-			);
-
-		new Setting(containerEl)
-			.setName(i18next.t("ignoreAccents.title"))
-			.setDesc(
-				sanitizeHTMLToDom(
-					`${i18next.t("ignoreAccents.desc")} <code>é</code> → <code>e</code>`
+			new Setting(containerEl)
+				.setName(i18next.t("ignoreAccents.title"))
+				.setDesc(
+					sanitizeHTMLToDom(
+						`${i18next.t("ignoreAccents.desc")} <code>é</code> → <code>e</code>`
+					)
 				)
-			)
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.ignoreFields.ignoreAccents)
-					.onChange(async (value) => {
-						this.plugin.settings.ignoreFields.ignoreAccents = value;
-						await this.plugin.saveSettings();
-					})
-			);
+				.addToggle((toggle) =>
+					toggle
+						.setValue(this.plugin.settings.ignoreFields.ignoreAccents)
+						.onChange(async (value) => {
+							this.plugin.settings.ignoreFields.ignoreAccents = value;
+							await this.plugin.saveSettings();
+						})
+				);
 
-		containerEl.createEl("hr");
+			containerEl.createEl("hr");
+		}
 		new Setting(containerEl)
 			.setName("Dataview")
 			.setDesc(i18next.t("dataview.title"))

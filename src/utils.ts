@@ -32,15 +32,26 @@ export function convertToNumber(value: unknown): number | unknown {
 }
 
 export class Utils {
-	options: TextOptions;
-	// Cache for processed strings to avoid redundant processing
 	private stringCache: Map<string, string> = new Map();
 	// Cache for regex objects
 	private regexCache: Map<string, RegExp | null> = new Map();
 	prefix: string = "[Dataview Properties]";
+	private configs: Map<string, TextOptions> = new Map();
+	private activeConfig: string = "default";
 
 	constructor(options: TextOptions) {
-		this.options = options;
+		this.configs.set("default", options);
+	}
+	setConfig(name: string, options: TextOptions): void {
+		this.configs.set(name, options);
+	}
+	useConfig(name: string): boolean {
+		if (!this.configs.has(name)) return false;
+		this.activeConfig = name;
+		return true;
+	}
+	private getOptions(): TextOptions {
+		return this.configs.get(this.activeConfig) || this.configs.get("default")!;
 	}
 
 	/**
@@ -106,12 +117,13 @@ export class Utils {
 	 */
 	processString(str: string): string {
 		// Return from cache if available
-		const cacheKey = `${str}_${this.options.lowerCase}_${this.options.ignoreAccents}`;
+		const options = this.getOptions();
+		const cacheKey = `${str}_${options.lowerCase}_${options.ignoreAccents}`;
 		const cached = this.stringCache.get(cacheKey);
 		if (cached !== undefined) return cached;
 		let result = str;
-		if (this.options.lowerCase) result = result.toLowerCase();
-		if (this.options.ignoreAccents) result = result.removeAccents();
+		if (options.lowerCase) result = result.toLowerCase();
+		if (options.ignoreAccents) result = result.removeAccents();
 		this.stringCache.set(cacheKey, result);
 		return result;
 	}
@@ -138,15 +150,16 @@ export class Utils {
 	 * @returns The cleaned value or null if empty
 	 */
 	removeFromValue(value: string, fields: string[]): string | null {
+		const options = this.getOptions();
 		if (!fields.length) return value;
 		let result = value;
-		const flags = this.options.lowerCase ? "i" : "";
+		const flags = options.lowerCase ? "i" : "";
 		for (const field of fields) {
 			const regex = this.recognizeRegex(field);
 			if (regex) result = result.replace(regex, "");
 			else {
 				let fieldPattern = field;
-				if (this.options.ignoreAccents) fieldPattern = fieldPattern.removeAccents();
+				if (options.ignoreAccents) fieldPattern = fieldPattern.removeAccents();
 				fieldPattern = fieldPattern.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 				const fieldRegex = new RegExp(fieldPattern, flags);
 				result = result.replace(fieldRegex, "");

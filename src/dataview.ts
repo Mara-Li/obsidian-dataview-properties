@@ -21,6 +21,7 @@ class Dataview {
 	sourceText: string;
 	// Cache for evaluated queries
 	private queryCache: Map<string, string> = new Map();
+
 	prefix: string = "[Dataview Properties]";
 
 	constructor(dvApi: DataviewApi, path: string, plugin: DataviewProperties) {
@@ -272,9 +273,7 @@ export async function getInlineFields(
 	const { app } = plugin;
 
 	// Quick return if Dataview is not enabled
-	if (!app.plugins.plugins.dataview || !isPluginEnabled(app)) {
-		return {};
-	}
+	if (!app.plugins.plugins.dataview || !isPluginEnabled(app)) return {};
 
 	const dvApi = getAPI(app);
 	if (!dvApi) return {};
@@ -300,9 +299,7 @@ export async function getInlineFields(
 		// Only process fields not already in frontmatter
 		if (key !== "file" && (!frontmatter || !(key in frontmatter))) {
 			const evaluated = await compiler.evaluateInline(pageData[key]);
-			if (evaluated !== undefined) {
-				inlineFields[key] = evaluated;
-			}
+			if (evaluated !== undefined) inlineFields[key] = evaluated;
 		} else if (Array.isArray(pageData[key]) && pageData[key].length > 0) {
 			// Handle arrays by using the last value (most recent)
 			const arrayValue = pageData[key];

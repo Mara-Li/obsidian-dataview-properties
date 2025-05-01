@@ -9,6 +9,10 @@
     "title": "Enable dataview evaluations. If any option is disabled, the query will be added 'as is' to the properties (frontmatter)."
   },
   "dataviewEnabled": "Dataview need to be enabled to use this plugin.",
+  "deleteFromFrontmatter": {
+    "desc": "Cleanup the frontmatter when a field is deleted.",
+    "title": "Clean frontmatter"
+  },
   "ignore": "Ignored values",
   "ignoreAccents": {
     "desc": "Accented characters will be converted to their corresponding value:",

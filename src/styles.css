@@ -24,6 +24,12 @@
 	border-top: 1px solid var(--divider-color);
 }
 
+.obsidian-dataview-properties .setting-item.li {
+	padding-left: 1em;
+	border-left: 1px solid var(--divider-color);
+	padding-right: 2em;
+}
+
 .obsidian-dataview-properties .is-invalid {
 	border-color: var(--background-modifier-error);
 	color: var(--text-error);

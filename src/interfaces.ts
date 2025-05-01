@@ -19,6 +19,9 @@ export interface DataviewPropertiesSettings {
 	 * Interval in milliseconds to check for changes in the file
 	 */
 	interval: number;
+	deleteFromFrontmatter: {
+		enabled: boolean;
+	} & TextOptions;
 }
 
 export const DEFAULT_SETTINGS: DataviewPropertiesSettings = {
@@ -35,4 +38,9 @@ export const DEFAULT_SETTINGS: DataviewPropertiesSettings = {
 		ignoreAccents: true,
 	},
 	interval: 1000,
+	deleteFromFrontmatter: {
+		enabled: true,
+		lowerCase: true,
+		ignoreAccents: true,
+	},
 };
