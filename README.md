@@ -10,6 +10,8 @@ The plugin offers the following features:
 - Automatic synchronization based on a configurable interval
 - Dedicated command to manually trigger synchronization
 - Evaluation of calculated values before insertion into frontmatter
+- Automatic cleanup of the frontmatter when the Dataview field is removed (optional)
+- Lowercase & ignore accents for values and fields recognition
 
 > [!WARNING]
 > The Dataview plugin must be installed and activated in your Obsidian vault.
@@ -17,10 +19,15 @@ The plugin offers the following features:
 ## ⚙️ Configuration
 <screenshot>
 
+> [!TIP]
+> Both options (frontmatter cleanup, ignore and text removing) supports **insensitive** and **ignore accent** recognition:
+> - **Insensitive** : The plugin will ignore the case of the field names when checking for matches. For example, if you have a field named "Name" and you set "name", both value will be recognized as the same.
+> - **Ignore accent** : The accented characters will be converted to their non-accented counterparts. For example, if you have a field named "école" and you set "ecole", both value will be recognized as the same.
+
 - **Interval**: The time interval (in milliseconds) at which the plugin will check for changes in the Dataview queries and update the frontmatter properties accordingly. The default value is 1000ms (1 second).
+- **Frontmatter cleanup** : Automatically remove the frontmatter properties when the corresponding Dataview field is removed. Enabled by default.
 - **Ignored fields** : A list (of string) of fields to ignore (aka that won't be copied). Separate the fields with a comma or a new line. To use regex, encapsulate with `/` (ex: `/^name$/i`). 
-    - **Insensitive** : If checked, the plugin will ignore the case of the field names when checking for matches. For example, if you have a field named "Name" and you set "name" in the ignored fields, it will be ignored (and vice versa).
-    - **Ignore accent** : If checked, the plugin will ignore accents when checking for matches. For example, if you have a field named "école" and you set "ecole" in the ignored fields, it will be ignored, and vice versa.
+- **Text removing** : Remove pattern or value from the field **value** when adding it to the frontmatter. Useful to remove some unwanted characters like `%%`. Like **ignored fields**, you can use regex by encapsulating the pattern with `/` (ex: `/^name$/i`).
 - **Dataview** : Enable/disable the evaluation of each type of dataview query. Only inline queries are supported.
     - **Dataview Query Language (DQL)**
     - **DataviewJS**
@@ -30,7 +37,8 @@ The plugin offers the following features:
 
 ## 🛠️ Usage
 ### Automatic synchronization
-By default, the plugin automatically synchronizes the Dataview queries within the frontmatter (proprieties) at the interval defined in the settings.
+
+By default, the plugin automatically synchronizes the Dataview queries within the frontmatter (proprieties) when the metadata are changed. This synchronization is triggered based on the configured interval (default: `1000ms`).
 
 ### Manual command
 
