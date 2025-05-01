@@ -109,12 +109,9 @@ export default class DataviewProperties extends Plugin {
 		fields: Record<string, any>,
 		frontmatter?: FrontMatterCache
 	): boolean {
-		if (!fields || Object.keys(fields).length === 0)
-			return false;
+		if (!fields || Object.keys(fields).length === 0) return false;
 
-		if (!frontmatter)
-			return true;
-
+		if (!frontmatter) return true;
 
 		this.utils.useConfig("ignore");
 		// Check if any field needs updating
@@ -161,7 +158,7 @@ export default class DataviewProperties extends Plugin {
 					}
 				});
 			}
-			console.debug(`${this.prefix} Previous keys:`, previousKeys)
+			console.debug(`${this.prefix} Previous keys:`, previousKeys);
 			console.debug(`${this.prefix} Actual fields:`, inline);
 
 			const hasNewFields = this.shouldBeUpdated(inline, frontmatter);
@@ -243,6 +240,7 @@ export default class DataviewProperties extends Plugin {
 				console.debug(`${this.prefix} Keys that must be removed :`, removedKey);
 				this.utils.useConfig("delete");
 				for (const key of removedKey) {
+					if (this.isIgnored(key)) continue;
 					const frontmatterKey = Object.keys(frontmatter).find((fmKey) =>
 						this.utils.keysMatch(fmKey, key)
 					);

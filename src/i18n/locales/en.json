@@ -1,45 +1,45 @@
 {
-  "addToFrontmatter": "Add the Dataview field to the frontmatter",
-  "cleanUpText": {
-    "desc": "When adding the value to the frontmatter, remove the following text. Separate value by comma or a newline. To use a regex, encapsulate the value with",
-    "heading": "Remove texte from value",
-    "title": "Remove text from value"
-  },
-  "dataview": {
-    "title": "Enable dataview evaluations. If any option is disabled, the query will be added 'as is' to the properties (frontmatter)."
-  },
-  "dataviewEnabled": "Dataview need to be enabled to use this plugin.",
-  "deleteFromFrontmatter": {
-    "desc": "Cleanup the frontmatter when a field is deleted.",
-    "title": "Clean frontmatter"
-  },
-  "ignore": "Ignored values",
-  "ignoreAccents": {
-    "desc": "Accented characters will be converted to their corresponding value:",
-    "title": "Ignore accents"
-  },
-  "ignoredFields": {
-    "desc": "The following fields won't be added to the frontmatter. Separate the value by a new line or a comma. To use regex, encapsulate with",
-    "example": "for example:",
-    "placeholder": "field1, field-with-text, another field",
-    "title": "Ignored fields"
-  },
-  "interval": {
-    "desc": "to check new Dataview inline field, evaluate and adding them to the properties (frontmatter).",
-    "info": "Interval in milliseconds",
-    "invalid": {
-      "negative": "Please enter a positive number.",
-      "number": "Please, enter a valid number."
-    },
-    "title": "Interval"
-  },
-  "lowerCase": {
-    "desc": "Uppercase will be recognized as lowercase.",
-    "title": "Insensitive"
-  },
-  "note": "Fields with empty value won't be added!",
-  "warning": {
-    "desc": "Only inline dataview are supported by the plugin, as code can't be set for inline fields.",
-    "title": "Warning"
-  }
+	"addToFrontmatter": "Add the Dataview field to the frontmatter",
+	"cleanUpText": {
+		"desc": "When adding the value to the frontmatter, remove the following text. Separate value by comma or a newline. To use a regex, encapsulate the value with",
+		"heading": "Remove texte from value",
+		"title": "Remove text from value"
+	},
+	"dataview": {
+		"title": "Enable dataview evaluations. If any option is disabled, the query will be added 'as is' to the properties (frontmatter)."
+	},
+	"dataviewEnabled": "Dataview need to be enabled to use this plugin.",
+	"deleteFromFrontmatter": {
+		"desc": "Cleanup the frontmatter when a field is deleted.",
+		"title": "Clean frontmatter"
+	},
+	"ignore": "Ignored values",
+	"ignoreAccents": {
+		"desc": "Accented characters will be converted to their corresponding value:",
+		"title": "Ignore accents"
+	},
+	"ignoredFields": {
+		"desc": "The following fields won't be added to the frontmatter. Separate the value by a new line or a comma. To use regex, encapsulate with",
+		"example": "for example:",
+		"placeholder": "field1, field-with-text, another field",
+		"title": "Ignored fields"
+	},
+	"interval": {
+		"desc": "to check new Dataview inline field, evaluate and adding them to the properties (frontmatter).",
+		"info": "Interval in milliseconds",
+		"invalid": {
+			"negative": "Please enter a positive number.",
+			"number": "Please, enter a valid number."
+		},
+		"title": "Interval"
+	},
+	"lowerCase": {
+		"desc": "Uppercase will be recognized as lowercase.",
+		"title": "Insensitive"
+	},
+	"note": "Fields with empty value won't be added!",
+	"warning": {
+		"desc": "Only inline dataview are supported by the plugin, as code can't be set for inline fields.",
+		"title": "Warning"
+	}
 }
