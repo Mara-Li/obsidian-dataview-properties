@@ -1,31 +1,44 @@
 import {
+	debounce,
+	type FrontMatterCache,
 	Notice,
 	Plugin,
 	sanitizeHTMLToDom,
-	type FrontMatterCache,
 	type TFile,
 } from "obsidian";
 import "uniformize";
-import { resources, translationLanguage } from "./i18n";
-import i18next from "i18next";
-import { type DataviewPropertiesSettings, DEFAULT_SETTINGS } from "./interfaces";
-import { getInlineFields } from "./dataview";
-import { DataviewPropertiesSettingTab } from "./settings";
 import { isPluginEnabled } from "@enveloppe/obsidian-dataview";
+import i18next from "i18next";
+import { getInlineFields } from "./dataview";
+import { resources, translationLanguage } from "./i18n";
+import { type DataviewPropertiesSettings, DEFAULT_SETTINGS } from "./interfaces";
+import { DataviewPropertiesSettingTab } from "./settings";
 import { Utils } from "./utils";
 
 export default class DataviewProperties extends Plugin {
 	settings!: DataviewPropertiesSettings;
-	// Cache for performance improvements
-	private ignoredKeys: Set<string> = new Set(); // Using Set for O(1) lookups instead of array
+	private ignoredKeys: Set<string> = new Set();
 	private ignoredRegex: RegExp[] = [];
 	private ignoreUtils!: Utils;
 	private cleanUtils!: Utils;
-	// Store processed files to avoid redundant operations
 	private processingFiles: Set<string> = new Set();
+	private debounced!: (file: TFile) => void;
+	prefix: string = "obsidian-dataview-properties";
+
+	private updateDebouced(): void {
+		console.debug("[Dataview Properties] Debounce updated to", this.settings.interval);
+		this.debounced = debounce(
+			async (file: TFile) => {
+				await this.resolveDataview(file);
+			},
+			this.settings.interval,
+			true
+		);
+	}
 
 	async onload() {
-		console.log(`[${this.manifest.name}] Loaded`);
+		this.prefix = `[${this.manifest.name}]`;
+		console.log(`${this.prefix} Loaded`);
 		await this.loadSettings();
 
 		// Initialize i18next once
@@ -60,22 +73,12 @@ export default class DataviewProperties extends Plugin {
 			},
 		});
 
-		// Register metadata change event with debouncing
-		let debounceTimeout: NodeJS.Timeout | null = null;
 		this.registerEvent(
 			this.app.metadataCache.on(
 				//@ts-ignore
 				"dataview:metadata-change",
 				(_eventName: string, file: TFile) => {
-					// Debounce to avoid multiple rapid updates
-					if (debounceTimeout) clearTimeout(debounceTimeout);
-
-					debounceTimeout = setTimeout(() => {
-						this.resolveDataview(file).catch((err) =>
-							console.error(`[${this.manifest.name}] Error processing file:`, err)
-						);
-						debounceTimeout = null;
-					}, 300); // 300ms debounce
+					this.debounced(file);
 				}
 			)
 		);
@@ -143,24 +146,18 @@ export default class DataviewProperties extends Plugin {
 		const filePath = activeFile.path;
 
 		// Prevent concurrent processing of the same file
-		if (this.processingFiles.has(filePath)) {
-			return;
-		}
+		if (this.processingFiles.has(filePath)) return;
 
 		try {
 			this.processingFiles.add(filePath);
 
-			// Check if Dataview is enabled
-			if (!this.isDataviewEnabled()) {
-				return;
-			}
+			if (!this.isDataviewEnabled()) return;
 
 			const frontmatter = this.app.metadataCache.getFileCache(activeFile)?.frontmatter;
 			const inline = await getInlineFields(filePath, this, frontmatter);
 
-			if (this.shouldBeUpdated(inline, frontmatter)) {
+			if (this.shouldBeUpdated(inline, frontmatter))
 				await this.addToFrontmatter(activeFile, inline);
-			}
 		} finally {
 			this.processingFiles.delete(filePath);
 		}
@@ -173,7 +170,7 @@ export default class DataviewProperties extends Plugin {
 		return (
 			!!this.app.plugins.plugins.dataview &&
 			isPluginEnabled(this.app) &&
-			!!this.app.plugins.plugins.dataview._loaded
+			this.app.plugins.plugins.dataview._loaded
 		);
 	}
 
@@ -193,11 +190,8 @@ export default class DataviewProperties extends Plugin {
 			const processedKey = this.ignoreUtils.processString(key);
 			const regex = this.ignoreUtils.recognizeRegex(key);
 
-			if (regex) {
-				this.ignoredRegex.push(regex);
-			} else {
-				this.ignoredKeys.add(processedKey);
-			}
+			if (regex) this.ignoredRegex.push(regex);
+			else this.ignoredKeys.add(processedKey);
 		}
 	}
 
@@ -206,18 +200,12 @@ export default class DataviewProperties extends Plugin {
 	 */
 	private isIgnored(key: string): boolean {
 		// Fast path if no ignored items
-		if (!this.ignoredKeys.size && !this.ignoredRegex.length) {
-			return false;
-		}
+		if (!this.ignoredKeys.size && !this.ignoredRegex.length) return false;
 
 		const processedKey = this.ignoreUtils.processString(key);
 
-		// Check if key is in ignored set (O(1) lookup)
-		if (this.ignoredKeys.has(processedKey)) {
-			return true;
-		}
+		if (this.ignoredKeys.has(processedKey)) return true;
 
-		// Check against regex patterns
 		return this.ignoredRegex.some((regex) => {
 			regex.lastIndex = 0; // Reset lastIndex for safety
 			return regex.test(processedKey);
@@ -233,10 +221,7 @@ export default class DataviewProperties extends Plugin {
 
 		await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
 			for (const [key, value] of Object.entries(inlineFields)) {
-				// Skip if field is ignored or value is undefined
-				if (this.isIgnored(key) || value === undefined) {
-					continue;
-				}
+				if (this.isIgnored(key) || value === undefined) continue;
 
 				// Process value with cleanup rules
 				const correctedValue =
@@ -245,15 +230,13 @@ export default class DataviewProperties extends Plugin {
 						: value;
 
 				// Add to frontmatter if value is valid
-				if (correctedValue != null) {
-					frontmatter[key] = correctedValue;
-				}
+				if (correctedValue != null) frontmatter[key] = correctedValue;
 			}
 		});
 	}
 
 	onunload(): void {
-		console.log(`[${this.manifest.name}] Unloaded`);
+		console.log(`${this.prefix} Unloaded`);
 	}
 
 	/**
@@ -275,11 +258,13 @@ export default class DataviewProperties extends Plugin {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
 		this.loadUtils();
 		this.prepareIgnoredFields();
+		this.updateDebouced();
 	}
 
 	async saveSettings(): Promise<void> {
 		await this.saveData(this.settings);
 		this.loadUtils();
 		this.prepareIgnoredFields();
+		this.updateDebouced();
 	}
 }

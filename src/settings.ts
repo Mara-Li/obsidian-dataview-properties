@@ -1,14 +1,16 @@
+import dedent from "dedent";
+import i18next from "i18next";
 import {
 	type App,
 	MarkdownRenderer,
 	PluginSettingTab,
-	sanitizeHTMLToDom,
 	Setting,
+	sanitizeHTMLToDom,
 	type TextAreaComponent,
+	Notice,
 } from "obsidian";
 import type DataviewProperties from "./main";
-import i18next from "i18next";
-import dedent from "dedent";
+import { isNumber } from "./utils";
 
 export class DataviewPropertiesSettingTab extends PluginSettingTab {
 	plugin: DataviewProperties;
@@ -28,12 +30,63 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 				.filter((item) => item.length > 0);
 	}
 
+	private convertTimeInterval(ms: number) {
+		if (ms < 1000) return `${ms}ms`;
+
+		const seconds = Math.floor(ms / 1000);
+		const hours = Math.floor(seconds / 3600);
+		const minutes = Math.floor((seconds % 3600) / 60);
+		const secs = seconds % 60;
+		let result = "";
+
+		if (hours > 0) result += `${hours}h`;
+
+		if (minutes > 0 || hours > 0) result += `${minutes}m`;
+
+		if (secs > 0 || (hours === 0 && minutes === 0)) result += `${secs}s`;
+
+		return result;
+	}
+
 	async display(): Promise<void> {
 		const { containerEl } = this;
 
 		containerEl.empty();
 
 		containerEl.addClass("obsidian-dataview-properties");
+
+		new Setting(containerEl)
+			.setName(i18next.t("interval.title"))
+			.setDesc(
+				sanitizeHTMLToDom(
+					`${i18next.t("interval.info")} (→ <code>${this.convertTimeInterval(this.plugin.settings.interval)}</code>) ${i18next.t("interval.desc")}`
+				)
+			)
+			.addText((text) => {
+				text.setValue(this.plugin.settings.interval.toString()).inputEl.onblur =
+					async () => {
+						const value = text.getValue();
+						if (!isNumber(value)) {
+							new Notice(
+								sanitizeHTMLToDom(
+									`<span class="notice-error">${i18next.t("interval.invalid.number")}</span>`
+								)
+							);
+							text.inputEl.addClass("is-invalid");
+						} else if (Number(value) < 0) {
+							new Notice(
+								sanitizeHTMLToDom(
+									`<span class="notice-error);">${i18next.t("interval.invalid.negative")}</span>`
+								)
+							);
+							text.inputEl.addClass("is-invalid");
+						} else {
+							this.plugin.settings.interval = Number(value);
+							await this.plugin.saveSettings();
+							await this.display();
+						}
+					};
+			});
 
 		const set = new Setting(containerEl)
 			.setName(i18next.t("cleanUpText.title"))

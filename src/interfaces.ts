@@ -15,6 +15,10 @@ export interface DataviewPropertiesSettings {
 	 */
 	ignoreFields: AreaSettings;
 	cleanUpText: AreaSettings;
+	/**
+	 * Interval in milliseconds to check for changes in the file
+	 */
+	interval: number;
 }
 
 export const DEFAULT_SETTINGS: DataviewPropertiesSettings = {
@@ -30,4 +34,5 @@ export const DEFAULT_SETTINGS: DataviewPropertiesSettings = {
 		lowerCase: true,
 		ignoreAccents: true,
 	},
+	interval: 1000,
 };

@@ -6,10 +6,10 @@ import {
 	type Literal,
 	Values,
 } from "@enveloppe/obsidian-dataview";
+import dedent from "dedent";
 import { Component, type FrontMatterCache, htmlToMarkdown } from "obsidian";
 import type DataviewProperties from "./main";
 import { convertToNumber } from "./utils";
-import dedent from "dedent";
 
 /**
  * Handles Dataview API interactions and query evaluation
@@ -19,19 +19,15 @@ class Dataview {
 	path: string;
 	plugin: DataviewProperties;
 	sourceText: string;
-	// Regex patterns compiled once and reused
-	private inlineQueryRegex: RegExp | null = null;
-	private inlineJsQueryRegex: RegExp | null = null;
 	// Cache for evaluated queries
 	private queryCache: Map<string, string> = new Map();
+	prefix: string = "[Dataview Properties]";
 
 	constructor(dvApi: DataviewApi, path: string, plugin: DataviewProperties) {
 		this.dvApi = dvApi;
 		this.path = path;
 		this.plugin = plugin;
 		this.sourceText = "";
-		// Initialize regex patterns
-		this.compileRegexPatterns();
 	}
 
 	/**
@@ -42,37 +38,27 @@ class Dataview {
 	}
 
 	/**
-	 * Compile regex patterns for dataview queries
-	 */
-	private compileRegexPatterns(): void {
-		const inlineQueryPrefix = this.dvApi.settings.inlineQueryPrefix || "=";
-		const inlineJsQueryPrefix = this.dvApi.settings.inlineJsQueryPrefix || "$=";
-
-		this.inlineQueryRegex = new RegExp(
-			`\`${this.escapeRegex(inlineQueryPrefix)}(.+?)\``,
-			"gsm"
-		);
-
-		this.inlineJsQueryRegex = new RegExp(
-			`\`${this.escapeRegex(inlineJsQueryPrefix)}(.+?)\``,
-			"gsm"
-		);
-	}
-
-	/**
 	 * Get all matches for inline DQL queries
 	 */
 	private dvInlineQueryMatches(): IterableIterator<RegExpMatchArray> | [] {
-		if (!this.inlineQueryRegex || !this.sourceText) return [];
-		return this.sourceText.matchAll(this.inlineQueryRegex);
+		const inlineQueryPrefix = this.dvApi.settings.inlineQueryPrefix || "=";
+		const inlineDataViewRegex = new RegExp(
+			`\`${this.escapeRegex(inlineQueryPrefix)}(.+?)\``,
+			"gsm"
+		);
+		return this.sourceText.matchAll(inlineDataViewRegex);
 	}
 
 	/**
 	 * Get all matches for inline JS queries
 	 */
 	private dvInlineJSMatches(): IterableIterator<RegExpMatchArray> | [] {
-		if (!this.inlineJsQueryRegex || !this.sourceText) return [];
-		return this.sourceText.matchAll(this.inlineJsQueryRegex);
+		const inlineJsQueryPrefix = this.dvApi.settings.inlineJsQueryPrefix || "$=";
+		const inlineJsDataViewRegex = new RegExp(
+			`\`${this.escapeRegex(inlineJsQueryPrefix)}(.+?)\``,
+			"gsm"
+		);
+		return this.sourceText.matchAll(inlineJsDataViewRegex);
 	}
 
 	/**
@@ -120,7 +106,7 @@ class Dataview {
 			this.queryCache.set(cacheKey, result);
 			return result;
 		} catch (error) {
-			console.error(`Error evaluating DQL query '${query}':`, error);
+			console.error(`${this.prefix} Error evaluating DQL query '${query}':`, error);
 			return "";
 		}
 	}
@@ -164,7 +150,7 @@ class Dataview {
 			this.queryCache.set(cacheKey, result);
 			return result;
 		} catch (error) {
-			console.error(`Error evaluating JS query '${query}':`, error);
+			console.error(`${this.prefix} Error evaluating JS query '${query}':`, error);
 			return "Evaluation Error";
 		}
 	}
@@ -177,43 +163,29 @@ class Dataview {
 
 		try {
 			// String values might contain dataview queries
-			if (Values.isString(value)) {
+			if (Values.isString(value))
 				return convertToNumber(await this.convertDataviewQueries(value));
-			}
 
-			// Convert links to markdown format
-			if (Values.isLink(value)) {
-				return this.stringifyLink(value);
-			}
+			if (Values.isLink(value)) return this.stringifyLink(value);
 
-			// Convert HTML to markdown
-			if (Values.isHtml(value)) {
-				return Values.toString(value);
-			}
+			if (Values.isHtml(value)) return Values.toString(value);
 
-			// Skip widget values
 			if (Values.isWidget(value)) {
 				// Using debug level to reduce console noise
-				console.debug(`Skipping widget value: ${value}`);
+				console.warn(`${this.prefix} Skipping widget value: ${value}`);
 				return;
 			}
-
-			// Skip function values
 			if (Values.isFunction(value)) {
-				console.debug(`Skipping function value: ${value}`);
+				console.warn(`${this.prefix} Skipping function value: ${value}`);
 				return;
 			}
-
-			// Skip null values
 			if (Values.isNull(value)) {
-				console.debug("Skipping null value");
+				console.warn(`${this.prefix}  Skipping null value`);
 				return;
 			}
-
-			// Keep other values as is
 			return value;
 		} catch (error) {
-			console.error("Error evaluating inline value:", error);
+			console.error(`${this.prefix} Error evaluating inline value:`, error);
 			return;
 		}
 	}
@@ -244,9 +216,7 @@ class Dataview {
 		const { app, settings } = this.plugin;
 
 		// Quick check if Dataview is enabled
-		if (!app.plugins.plugins.dataview || !isPluginEnabled(app)) {
-			return text;
-		}
+		if (!app.plugins.plugins.dataview || !isPluginEnabled(app)) return text;
 
 		const dvApi = getAPI(app);
 		if (!dvApi) return text;
@@ -254,14 +224,7 @@ class Dataview {
 		// Set the source text and find matches
 		this.sourceText = text;
 		const { inlineMatches, inlineJsMatches } = this.matches();
-
-		// Early return if no matches
-		if (![...inlineMatches].length && ![...inlineJsMatches].length) {
-			return text;
-		}
-
 		let replacedText = text;
-
 		// Process DQL queries
 		if (settings.dql) {
 			for (const inlineQuery of inlineMatches) {
@@ -346,9 +309,7 @@ export async function getInlineFields(
 			const valueToUse = arrayValue[arrayValue.length - 1];
 
 			const evaluated = await compiler.evaluateInline(valueToUse);
-			if (evaluated !== undefined) {
-				inlineFields[key] = evaluated;
-			}
+			if (evaluated !== undefined) inlineFields[key] = evaluated;
 		}
 	}
 
