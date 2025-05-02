@@ -11,7 +11,11 @@ import { isPluginEnabled } from "@enveloppe/obsidian-dataview";
 import i18next from "i18next";
 import { getInlineFields } from "./dataview";
 import { resources, translationLanguage } from "./i18n";
-import { type DataviewPropertiesSettings, DEFAULT_SETTINGS } from "./interfaces";
+import {
+	type DataviewPropertiesSettings,
+	DEFAULT_SETTINGS,
+	UtilsConfig,
+} from "./interfaces";
 import { DataviewPropertiesSettingTab } from "./settings";
 import { Utils } from "./utils";
 
@@ -41,7 +45,6 @@ export default class DataviewProperties extends Plugin {
 		console.log(`${this.prefix} Loaded`);
 		await this.loadSettings();
 
-		// Initialize i18next once
 		await i18next.init({
 			lng: translationLanguage,
 			fallbackLng: "en",
@@ -50,13 +53,10 @@ export default class DataviewProperties extends Plugin {
 			returnEmptyString: false,
 		});
 
-		// Wait for layout to be ready before checking dependencies
 		this.app.workspace.onLayoutReady(() => this.checkDependencies());
 
-		// Add settings tab
 		this.addSettingTab(new DataviewPropertiesSettingTab(this.app, this));
 
-		// Register command
 		this.addCommand({
 			id: "dataview-to-frontmatter",
 			name: i18next.t("addToFrontmatter"),
@@ -88,11 +88,7 @@ export default class DataviewProperties extends Plugin {
 	 * Check if Dataview plugin is enabled and notify user if not
 	 */
 	private checkDependencies(): void {
-		if (
-			!this.app.plugins.plugins.dataview ||
-			!isPluginEnabled(this.app) ||
-			!this.app.plugins.plugins.dataview._loaded
-		) {
+		if (!this.isDataviewEnabled()) {
 			new Notice(
 				sanitizeHTMLToDom(
 					`<span class="obsidian-dataview-properties notice-error">${i18next.t("dataviewEnabled")}</span>`
@@ -113,23 +109,15 @@ export default class DataviewProperties extends Plugin {
 
 		if (!frontmatter) return true;
 
-		this.utils.useConfig("ignore");
-		// Check if any field needs updating
+		this.utils.useConfig(UtilsConfig.Ignore);
 		return Object.entries(fields).some(([key, inlineValue]) => {
-			// Skip ignored fields
 			if (this.isIgnored(key)) return false;
 
-			// Find matching key in frontmatter (case-insensitive, accent-insensitive)
 			const frontmatterKey = Object.keys(frontmatter).find(
 				(fmKey) => !this.isIgnored(fmKey) && this.utils.keysMatch(fmKey, key)
 			);
+			if (!frontmatterKey) return inlineValue != null;
 
-			// If key doesn't exist in frontmatter and value is not null, update needed
-			if (!frontmatterKey) {
-				return inlineValue != null;
-			}
-
-			// If values differ, update needed
 			return !this.utils.valuesEqual(inlineValue, frontmatter[frontmatterKey]);
 		});
 	}
@@ -152,10 +140,7 @@ export default class DataviewProperties extends Plugin {
 			if (shouldCheckRemoved) {
 				const currentKeys = new Set(Object.keys(inline || {}));
 				previousKeys.forEach((key) => {
-					if (!currentKeys.has(key)) {
-						// If the key is not present in the current keys, remove it
-						removedKey.add(key);
-					}
+					if (!currentKeys.has(key)) removedKey.add(key);
 				});
 			}
 			console.debug(`${this.prefix} Previous keys:`, previousKeys);
@@ -176,7 +161,7 @@ export default class DataviewProperties extends Plugin {
 	/**
 	 * Check if Dataview plugin is enabled
 	 */
-	private isDataviewEnabled(): boolean {
+	isDataviewEnabled(): boolean {
 		return (
 			!!this.app.plugins.plugins.dataview &&
 			isPluginEnabled(this.app) &&
@@ -188,19 +173,16 @@ export default class DataviewProperties extends Plugin {
 	 * Prepare ignored fields from settings
 	 */
 	private prepareIgnoredFields(): void {
-		// Clear existing caches
 		this.ignoredKeys.clear();
 		this.ignoredRegex = [];
-		this.utils.useConfig("ignore");
+		this.utils.useConfig(UtilsConfig.Ignore);
 
 		const ignoredFields = this.settings.ignoreFields.fields;
 		if (!ignoredFields.length) return;
 
-		// Process each field
 		for (const key of ignoredFields) {
 			const processedKey = this.utils.processString(key);
 			const regex = this.utils.recognizeRegex(key);
-
 			if (regex) this.ignoredRegex.push(regex);
 			else this.ignoredKeys.add(processedKey);
 		}
@@ -210,16 +192,15 @@ export default class DataviewProperties extends Plugin {
 	 * Check if a key should be ignored
 	 */
 	private isIgnored(key: string): boolean {
-		// Fast path if no ignored items
 		if (!this.ignoredKeys.size && !this.ignoredRegex.length) return false;
-		this.utils.useConfig("ignore");
+		this.utils.useConfig(UtilsConfig.Ignore);
 
 		const processedKey = this.utils.processString(key);
 
 		if (this.ignoredKeys.has(processedKey)) return true;
 
 		return this.ignoredRegex.some((regex) => {
-			regex.lastIndex = 0; // Reset lastIndex for safety
+			regex.lastIndex = 0;
 			return regex.test(processedKey);
 		});
 	}
@@ -238,7 +219,7 @@ export default class DataviewProperties extends Plugin {
 		await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
 			if (removedKey && removedKey.size > 0) {
 				console.debug(`${this.prefix} Keys that must be removed :`, removedKey);
-				this.utils.useConfig("delete");
+				this.utils.useConfig(UtilsConfig.Delete);
 				for (const key of removedKey) {
 					if (this.isIgnored(key)) continue; //more efficient to check if the key is ignored as we don't need to process it
 					const frontmatterKey = Object.keys(frontmatter).find((fmKey) =>
@@ -247,17 +228,14 @@ export default class DataviewProperties extends Plugin {
 					if (frontmatterKey) delete frontmatter[key];
 				}
 			}
-			this.utils.useConfig("clean");
+			this.utils.useConfig(UtilsConfig.Cleanup);
 			for (const [key, value] of Object.entries(inlineFields)) {
 				if (this.isIgnored(key) || value === undefined) continue;
 
-				// Process value with cleanup rules
 				const correctedValue =
 					typeof value === "string"
 						? this.utils.removeFromValue(value, this.settings.cleanUpText.fields)
 						: value;
-
-				// Add to frontmatter if value is valid
 				if (correctedValue != null) frontmatter[key] = correctedValue;
 			}
 		});
@@ -267,17 +245,12 @@ export default class DataviewProperties extends Plugin {
 		console.log(`${this.prefix} Unloaded`);
 	}
 
-	/**
-	 * Initialize utility classes with current settings
-	 */
 	private loadUtils(): void {
-		// Créer une seule instance
 		this.utils = new Utils(this.settings.cleanUpText);
 
-		// Configurer les différents profils
-		this.utils.setConfig("clean", this.settings.cleanUpText);
-		this.utils.setConfig("ignore", this.settings.ignoreFields);
-		this.utils.setConfig("delete", this.settings.deleteFromFrontmatter);
+		this.utils.setConfig(UtilsConfig.Cleanup, this.settings.cleanUpText);
+		this.utils.setConfig(UtilsConfig.Ignore, this.settings.ignoreFields);
+		this.utils.setConfig(UtilsConfig.Delete, this.settings.deleteFromFrontmatter);
 	}
 
 	async loadSettings(): Promise<void> {

@@ -24,6 +24,13 @@ export interface DataviewPropertiesSettings {
 	} & TextOptions;
 }
 
+export enum UtilsConfig {
+	Default = "default",
+	Ignore = "ignore",
+	Cleanup = "cleanup",
+	Delete = "delete",
+}
+
 export const DEFAULT_SETTINGS: DataviewPropertiesSettings = {
 	dql: true,
 	djs: true,

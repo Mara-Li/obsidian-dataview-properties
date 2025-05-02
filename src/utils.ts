@@ -1,13 +1,14 @@
-import type { TextOptions } from "./interfaces";
+import { type TextOptions, UtilsConfig } from "./interfaces";
 
 // Regex patterns compiled once for better performance
-const NUMBER_REGEX = /^-?\d+(\.\d+)?$/;
+const NUMBER_REGEX = /^-?\d+e?\d*(\.\d+)?$/;
 const REGEX_RECOGNITION = /\/(?<regex>.*)\/(?<flag>[gmiyuvsd]*)/;
 const DUPLICATE_FLAG_REGEX = /(.)\1+/g;
 
 /**
  * Verify if a value is a number, even if it's a "number" string
- * Optimized with direct regex check
+ * @param {unknown} value The value to verify
+ * @return {boolean} True if the value is a number or a string that can be converted to a number
  */
 export function isNumber(value: unknown): boolean {
 	if (value === undefined) return false;
@@ -19,39 +20,35 @@ export function isNumber(value: unknown): boolean {
 
 /**
  * Convert a value to number if possible
- * Faster implementation with early returns
+ * @param {unknown} value The value to convert
+ * @return {number | unknown} The converted number or the original value
  */
 export function convertToNumber(value: unknown): number | unknown {
-	// Fast path for actual numbers
 	if (typeof value === "number") return value;
-
-	// Only process strings that might be numbers
 	if (isNumber(value)) return Number(value);
-
 	return value;
 }
 
 export class Utils {
 	private stringCache: Map<string, string> = new Map();
-	// Cache for regex objects
 	private regexCache: Map<string, RegExp | null> = new Map();
 	prefix: string = "[Dataview Properties]";
-	private configs: Map<string, TextOptions> = new Map();
-	private activeConfig: string = "default";
+	private configs: Map<UtilsConfig, TextOptions> = new Map();
+	private activeConfig: UtilsConfig = UtilsConfig.Default;
 
 	constructor(options: TextOptions) {
-		this.configs.set("default", options);
+		this.configs.set(UtilsConfig.Default, options);
 	}
-	setConfig(name: string, options: TextOptions): void {
+	setConfig(name: UtilsConfig, options: TextOptions): void {
 		this.configs.set(name, options);
 	}
-	useConfig(name: string): boolean {
+	useConfig(name: UtilsConfig): boolean {
 		if (!this.configs.has(name)) return false;
 		this.activeConfig = name;
 		return true;
 	}
 	private getOptions(): TextOptions {
-		return this.configs.get(this.activeConfig) || this.configs.get("default")!;
+		return this.configs.get(this.activeConfig) || this.configs.get(UtilsConfig.Default)!;
 	}
 
 	/**
@@ -63,7 +60,6 @@ export class Utils {
 
 	/**
 	 * Parse a string to extract regex pattern and flags
-	 * With caching to avoid recompiling the same regex
 	 */
 	recognizeRegex(key: string): RegExp | null {
 		if (this.regexCache.has(key)) return this.regexCache.get(key) || null;
@@ -93,30 +89,21 @@ export class Utils {
 	 * Check if two keys match, considering case and accent options
 	 */
 	keysMatch(frontmatterKey: string, inlineKey: string): boolean {
-		// Fast path for direct equality
 		if (frontmatterKey === inlineKey) return true;
-
 		const processedFmKey = this.processString(frontmatterKey);
 		const processedInlineKey = this.processString(inlineKey);
-
-		// Check normalized strings
 		if (processedFmKey === processedInlineKey) return true;
-
-		// Check regex match if frontmatterKey might be a regex
 		if (frontmatterKey.includes("/")) {
 			const regex = this.recognizeRegex(frontmatterKey);
 			if (regex && regex.test(inlineKey)) return true;
 		}
-
 		return false;
 	}
 
 	/**
 	 * Process string based on options (lowercase, accent removal)
-	 * With caching for performance
 	 */
 	processString(str: string): string {
-		// Return from cache if available
 		const options = this.getOptions();
 		const cacheKey = `${str}_${options.lowerCase}_${options.ignoreAccents}`;
 		const cached = this.stringCache.get(cacheKey);
@@ -129,7 +116,7 @@ export class Utils {
 	}
 
 	/**
-	 * Check if two values are equal, considering options
+	 * Check if two values are equal
 	 */
 	valuesEqual(val1: any, val2: any): boolean {
 		if (val1 === val2) return true;
