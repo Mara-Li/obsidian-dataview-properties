@@ -11,7 +11,7 @@ const DUPLICATE_FLAG_REGEX = /(.)\1+/g;
  * @return {boolean} True if the value is a number or a string that can be converted to a number
  */
 export function isNumber(value: unknown): boolean {
-	if (value === undefined) return false;
+	if (value == null) return false;
 	if (typeof value === "number") return !Number.isNaN(value);
 	if (typeof value !== "string" || !value.trim()) return false;
 
