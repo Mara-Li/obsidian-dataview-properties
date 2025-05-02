@@ -1,3 +1,9 @@
+## [0.0.5](https://github.com/Mara-Li/obsidian-dataview-properties/compare/0.0.4...0.0.5) (2025-05-02)
+### Features
+
+* add frontmatter cleanup and accent ignoring features in documentation ([96f2c5a](https://github.com/Mara-Li/obsidian-dataview-properties/commit/96f2c5a70412b421048232efda78e7964c290a89))
+* delete keys if deleted from frontmatter, without deleting already existing frontmatter ([e3148b8](https://github.com/Mara-Li/obsidian-dataview-properties/commit/e3148b8bc3410d165d4e9db38928af192a79bfa5))
+
 ## [0.0.4](https://github.com/Mara-Li/obsidian-dataview-properties/compare/0.0.3...0.0.4) (2025-05-01)
 ### Features
 
