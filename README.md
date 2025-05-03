@@ -1,4 +1,4 @@
-# Dataview Properties
+# Dataview (to) Properties
 
 Dataview Properties allows you to automatically copy Dataview inline fields (and their values, even calculated ones!) into frontmatter properties and keep them synchronized.
 
