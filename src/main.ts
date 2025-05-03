@@ -53,7 +53,10 @@ export default class DataviewProperties extends Plugin {
 			returnEmptyString: false,
 		});
 
-		this.app.workspace.onLayoutReady(() => this.checkDependencies());
+		this.app.workspace.onLayoutReady(async () => {
+			this.checkDependencies()
+			await this.createIndex();
+		});
 
 		this.addSettingTab(new DataviewPropertiesSettingTab(this.app, this));
 
@@ -77,8 +80,12 @@ export default class DataviewProperties extends Plugin {
 			this.app.metadataCache.on(
 				//@ts-ignore
 				"dataview:metadata-change",
-				(_eventName: string, file: TFile) => {
-					this.debounced(file);
+				async (eventName: string, file: TFile) => {
+					if (eventName === "delete") { //delete from the previousDataviewFields instead
+						this.previousDataviewFields.delete(file.path);
+						console.debug(`${this.prefix} File deleted from previous keys:`, file.path);
+					}
+					else this.debounced(file);
 				}
 			)
 		);
@@ -120,6 +127,33 @@ export default class DataviewProperties extends Plugin {
 
 			return !this.utils.valuesEqual(inlineValue, frontmatter[frontmatterKey]);
 		});
+	}
+
+	private async createIndex(): Promise<void> {
+		if (!this.isDataviewEnabled()) return;
+		const markdownFiles = this.app.vault.getMarkdownFiles();
+		console.debug(`${this.prefix} Indexing ${markdownFiles.length} files...`);
+		const batchSize = 5;
+		//each every 5 files, we sleep 50ms
+		for (let i = 0; i < markdownFiles.length; i += batchSize) {
+			const batch = markdownFiles.slice(i, i + batchSize);
+			await Promise.all(
+				batch.map(async (file) => {
+					if (this.processingFiles.has(file.path)) return;
+					const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
+					if (frontmatter) {
+						const inline = await getInlineFields(file.path, this, frontmatter);
+						if (inline && Object.keys(inline).length > 0)
+							this.previousDataviewFields.set(file.path, new Set(Object.keys(inline)));
+					}
+				})
+			);
+			if (i + batchSize < markdownFiles.length) {
+				// biome-ignore lint/correctness/noUndeclaredVariables: sleep is in obsidian global env
+				await sleep(50);
+			}
+		}
+		console.debug(`${this.prefix} ${markdownFiles.length} files indexed.`);
 	}
 
 	/**
