@@ -1,3 +1,8 @@
+## [0.0.6](https://github.com/Mara-Li/obsidian-dataview-properties/compare/0.0.5...0.0.6) (2025-05-03)
+### Features
+
+* enhance onLayoutReady to create index and delete previouskeys when the file connected is deleted ([04cd660](https://github.com/Mara-Li/obsidian-dataview-properties/commit/04cd6609aaf740751f62150758c045def554d3e2))
+
 ## [0.0.5](https://github.com/Mara-Li/obsidian-dataview-properties/compare/0.0.4...0.0.5) (2025-05-02)
 ### Features
 
