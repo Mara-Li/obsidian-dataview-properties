@@ -37,13 +37,19 @@ export default class DataviewProperties extends Plugin {
 
 	private updateDebouced(): void {
 		console.debug("[Dataview Properties] Debounce updated to", this.settings.interval);
-		this.debounced = debounce(
-			async (file: TFile) => {
-				await this.resolveDataview(file);
-			},
-			this.settings.interval,
-			true
-		);
+		if (this.settings.interval <= 0) {
+			console.debug("[Dataview Properties] Debounce disabled");
+			this.debounced = () => {
+				return;
+			};
+		} else
+			this.debounced = debounce(
+				async (file: TFile) => {
+					await this.resolveDataview(file);
+				},
+				this.settings.interval,
+				true
+			);
 	}
 
 	async onload() {
