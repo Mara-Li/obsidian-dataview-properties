@@ -8,7 +8,7 @@ import {
 import dedent from "dedent";
 import { Component, type FrontMatterCache, htmlToMarkdown } from "obsidian";
 import type DataviewProperties from "./main";
-import { convertToNumber } from "./utils";
+import { convertToNumber } from "./utils/number";
 
 /**
  * Handles Dataview API interactions and query evaluation

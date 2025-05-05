@@ -18,6 +18,8 @@ import {
 } from "./interfaces";
 import { DataviewPropertiesSettingTab } from "./settings";
 import { Utils } from "./utils";
+import { isIgnored, prepareIgnoredFields } from "./fields/ignored-fields";
+import { shouldBeUpdated as checkShouldBeUpdated } from "./fields/update-checker";
 
 export default class DataviewProperties extends Plugin {
 	settings!: DataviewPropertiesSettings;
@@ -54,7 +56,7 @@ export default class DataviewProperties extends Plugin {
 		});
 
 		this.app.workspace.onLayoutReady(async () => {
-			this.checkDependencies()
+			this.checkDependencies();
 			await this.createIndex();
 		});
 
@@ -81,11 +83,11 @@ export default class DataviewProperties extends Plugin {
 				//@ts-ignore
 				"dataview:metadata-change",
 				async (eventName: string, file: TFile) => {
-					if (eventName === "delete") { //delete from the previousDataviewFields instead
+					if (eventName === "delete") {
+						//delete from the previousDataviewFields instead
 						this.previousDataviewFields.delete(file.path);
 						console.debug(`${this.prefix} File deleted from previous keys:`, file.path);
-					}
-					else this.debounced(file);
+					} else this.debounced(file);
 				}
 			)
 		);
@@ -105,6 +107,10 @@ export default class DataviewProperties extends Plugin {
 		}
 	}
 
+	private isIgnored(key: string): boolean {
+		return isIgnored(key, this.ignoredKeys, this.ignoredRegex, this.utils);
+	}
+
 	/**
 	 * Determines if frontmatter needs updating based on inline fields
 	 */
@@ -112,21 +118,14 @@ export default class DataviewProperties extends Plugin {
 		fields: Record<string, any>,
 		frontmatter?: FrontMatterCache
 	): boolean {
-		if (!fields || Object.keys(fields).length === 0) return false;
-
-		if (!frontmatter) return true;
-
 		this.utils.useConfig(UtilsConfig.Ignore);
-		return Object.entries(fields).some(([key, inlineValue]) => {
-			if (this.isIgnored(key)) return false;
-
-			const frontmatterKey = Object.keys(frontmatter).find(
-				(fmKey) => !this.isIgnored(fmKey) && this.utils.keysMatch(fmKey, key)
-			);
-			if (!frontmatterKey) return inlineValue != null;
-
-			return !this.utils.valuesEqual(inlineValue, frontmatter[frontmatterKey]);
-		});
+		return checkShouldBeUpdated(
+			fields,
+			frontmatter,
+			(key) => this.isIgnored(key),
+			(key1, key2) => this.utils.keysMatch(key1, key2),
+			(val1, val2) => this.utils.valuesEqual(val1, val2)
+		);
 	}
 
 	private async createIndex(): Promise<void> {
@@ -204,42 +203,6 @@ export default class DataviewProperties extends Plugin {
 	}
 
 	/**
-	 * Prepare ignored fields from settings
-	 */
-	private prepareIgnoredFields(): void {
-		this.ignoredKeys.clear();
-		this.ignoredRegex = [];
-		this.utils.useConfig(UtilsConfig.Ignore);
-
-		const ignoredFields = this.settings.ignoreFields.fields;
-		if (!ignoredFields.length) return;
-
-		for (const key of ignoredFields) {
-			const processedKey = this.utils.processString(key);
-			const regex = this.utils.recognizeRegex(key);
-			if (regex) this.ignoredRegex.push(regex);
-			else this.ignoredKeys.add(processedKey);
-		}
-	}
-
-	/**
-	 * Check if a key should be ignored
-	 */
-	private isIgnored(key: string): boolean {
-		if (!this.ignoredKeys.size && !this.ignoredRegex.length) return false;
-		this.utils.useConfig(UtilsConfig.Ignore);
-
-		const processedKey = this.utils.processString(key);
-
-		if (this.ignoredKeys.has(processedKey)) return true;
-
-		return this.ignoredRegex.some((regex) => {
-			regex.lastIndex = 0;
-			return regex.test(processedKey);
-		});
-	}
-
-	/**
 	 * Add inline fields to frontmatter
 	 */
 	async updateFrontmatter(
@@ -285,6 +248,12 @@ export default class DataviewProperties extends Plugin {
 		this.utils.setConfig(UtilsConfig.Cleanup, this.settings.cleanUpText);
 		this.utils.setConfig(UtilsConfig.Ignore, this.settings.ignoreFields);
 		this.utils.setConfig(UtilsConfig.Delete, this.settings.deleteFromFrontmatter);
+	}
+
+	private prepareIgnoredFields(): void {
+		const result = prepareIgnoredFields(this.settings.ignoreFields.fields, this.utils);
+		this.ignoredKeys = result.ignoredKeys;
+		this.ignoredRegex = result.ignoredRegex;
 	}
 
 	async loadSettings(): Promise<void> {

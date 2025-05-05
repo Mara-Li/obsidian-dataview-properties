@@ -1,35 +1,10 @@
-import { type TextOptions, UtilsConfig } from "./interfaces";
+import { UtilsConfig, type TextOptions } from "../interfaces";
+import { cleanUpValue } from "../fields/cleanup";
+import { isNumber } from "./number";
 
-// Regex patterns compiled once for better performance
-const NUMBER_REGEX = /^-?\d+e?\d*(\.\d+)?$/;
 const REGEX_RECOGNITION = /\/(?<regex>.*)\/(?<flag>[gmiyuvsd]*)/;
 const DUPLICATE_FLAG_REGEX = /(.)\1+/g;
-
-/**
- * Verify if a value is a number, even if it's a "number" string
- * @param {unknown} value The value to verify
- * @return {boolean} True if the value is a number or a string that can be converted to a number
- */
-export function isNumber(value: unknown): boolean {
-	if (value == null) return false;
-	if (typeof value === "number") return !Number.isNaN(value);
-	if (typeof value !== "string" || !value.trim()) return false;
-
-	return NUMBER_REGEX.test(value);
-}
-
-/**
- * Convert a value to number if possible
- * @param {unknown} value The value to convert
- * @return {number | unknown} The converted number or the original value
- */
-export function convertToNumber(value: unknown): number | unknown {
-	if (typeof value === "number") return value;
-	if (isNumber(value)) return Number(value);
-	return value;
-}
-
-export class Utils {
+export default class Utils {
 	private stringCache: Map<string, string> = new Map();
 	private regexCache: Map<string, RegExp | null> = new Map();
 	prefix: string = "[Dataview Properties]";
@@ -136,23 +111,11 @@ export class Utils {
 	 * @param fields The fields to remove
 	 * @returns The cleaned value or null if empty
 	 */
-	removeFromValue(value: string, fields: string[]): string | null {
+	removeFromValue(value: string, cleanupFields: string[]): string | null {
 		const options = this.getOptions();
-		if (!fields.length) return value;
-		let result = value;
-		const flags = options.lowerCase ? "i" : "";
-		for (const field of fields) {
-			const regex = this.recognizeRegex(field);
-			if (regex) result = result.replace(regex, "");
-			else {
-				let fieldPattern = field;
-				if (options.ignoreAccents) fieldPattern = fieldPattern.removeAccents();
-				fieldPattern = fieldPattern.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-				const fieldRegex = new RegExp(fieldPattern, flags);
-				result = result.replace(fieldRegex, "");
-			}
-		}
-		result = result.trim();
-		return result.length ? result : null;
+		return cleanUpValue(value, cleanupFields, (field) => this.recognizeRegex(field), {
+			lowerCase: options.lowerCase,
+			ignoreAccents: options.ignoreAccents,
+		});
 	}
 }
