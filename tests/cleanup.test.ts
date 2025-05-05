@@ -3,14 +3,14 @@ import { cleanUpValue } from "../src/fields";
 import Utils from "../src/utils/Utility";
 import "uniformize";
 
-describe("Tests de la fonction cleanUpValue", () => {
+describe("cleanUpValue tests", () => {
 	// Utiliser une instance réelle de Utils plutôt qu'un mock
 	const utils = new Utils({
 		ignoreAccents: true,
-		lowerCase: true
+		lowerCase: true,
 	});
 
-	test("devrait retourner la valeur originale si aucun champ n'est à nettoyer", () => {
+	test("should return original value if no fields to clean", () => {
 		const result = cleanUpValue(
 			"valeur de test",
 			[],
@@ -21,7 +21,7 @@ describe("Tests de la fonction cleanUpValue", () => {
 		expect(result).toBe("valeur de test");
 	});
 
-	test("devrait nettoyer les occurrences exactes", () => {
+	test("should clean up exact occurrences", () => {
 		const result = cleanUpValue(
 			"voici une valeur test",
 			["valeur", "une"],
@@ -32,7 +32,7 @@ describe("Tests de la fonction cleanUpValue", () => {
 		expect(result).toBe("voici test");
 	});
 
-	test("devrait prendre en compte l'option lowerCase", () => {
+	test("should consider the lowercase option", () => {
 		const result = cleanUpValue(
 			"Voici Une VALEUR",
 			["une", "valeur"],
@@ -43,7 +43,7 @@ describe("Tests de la fonction cleanUpValue", () => {
 		expect(result).toBe("Voici");
 	});
 
-	test("devrait prendre en compte l'option ignoreAccents", () => {
+	test("should consider the ignoreAccents option", () => {
 		const result = cleanUpValue(
 			"Voici une épreuve",
 			["epreuve"],
@@ -54,7 +54,7 @@ describe("Tests de la fonction cleanUpValue", () => {
 		expect(result).toBe("Voici une");
 	});
 
-	test("devrait appliquer les expressions régulières", () => {
+	test("should apply regex", () => {
 		const result = cleanUpValue(
 			"test123test",
 			["/test/gi", "/\\d+/g"],
@@ -65,7 +65,7 @@ describe("Tests de la fonction cleanUpValue", () => {
 		expect(result).toBe(null);
 	});
 
-	test("devrait retourner null pour une valeur vide après nettoyage", () => {
+	test("should return null for an empty value after cleanup", () => {
 		const result = cleanUpValue(
 			"test",
 			["test"],

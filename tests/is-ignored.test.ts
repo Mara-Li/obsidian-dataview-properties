@@ -1,15 +1,15 @@
 import { describe, expect, test } from "bun:test";
 import { Utils } from "../src/utils";
 import { isIgnored, prepareIgnoredFields } from "../src/fields";
-import "uniformize"
+import "uniformize";
 
-describe("Tests des fonctions de champs ignorés", () => {
+describe("IgnoredField test", () => {
 	const utils = new Utils({
 		ignoreAccents: true,
-		lowerCase: true
+		lowerCase: true,
 	});
 
-	test("prepareIgnoredFields devrait traiter correctement les champs ignorés", () => {
+	test("prepareIgnoredFields should handle ignored fields correctly", () => {
 		// Test avec champs simples et regex
 		const { ignoredKeys, ignoredRegex } = prepareIgnoredFields(
 			["test", "autre", "/regex.*/i"],
@@ -27,7 +27,7 @@ describe("Tests des fonctions de champs ignorés", () => {
 		expect(emptyResult.ignoredRegex.length).toBe(0);
 	});
 
-	test("isIgnored devrait détecter correctement les champs à ignorer", () => {
+	test("isIgnored should detect ignored fields correctly", () => {
 		const { ignoredKeys, ignoredRegex } = prepareIgnoredFields(
 			["test", "éTé", "/^prefix.*/i"],
 			utils
