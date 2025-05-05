@@ -65,6 +65,6 @@ describe("Test my plugin", function () {
 			}
 			return null;
 		});
-		expect(content).toContain("---\nfoo: bar\n---");
+		expect(content).toHaveText("foo: bar\n");
 	});
 });
