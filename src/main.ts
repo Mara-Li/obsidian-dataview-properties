@@ -23,6 +23,7 @@ import {
 	prepareIgnoredFields,
 	shouldBeUpdated as checkShouldBeUpdated,
 } from "./fields";
+import { cleanList } from "./fields/cleanup";
 
 export default class DataviewProperties extends Plugin {
 	settings!: DataviewPropertiesSettings;
@@ -179,16 +180,21 @@ export default class DataviewProperties extends Plugin {
 					if (!currentKeys.has(key)) removedKey.add(key);
 				});
 			}
-			console.debug(`${this.prefix} Previous keys:`, previousKeys);
-			console.debug(`${this.prefix} Actual fields:`, inline);
-
+			const cleanedInline = cleanList(
+				this.utils,
+				inline,
+				this.settings.cleanUpText.fields,
+				this.ignoredKeys,
+				removedKey,
+				this.ignoredRegex
+			);
 			const hasNewFields = this.shouldBeUpdated(inline, frontmatter);
 
 			if (inline && Object.keys(inline).length > 0)
 				this.previousDataviewFields.set(filePath, new Set(Object.keys(inline)));
 
 			if ((shouldCheckRemoved || hasNewFields) && frontmatter)
-				await this.updateFrontmatter(activeFile, inline || {}, removedKey);
+				await this.updateFrontmatter(activeFile, cleanedInline, removedKey);
 		} finally {
 			this.processingFiles.delete(filePath);
 		}
@@ -214,7 +220,17 @@ export default class DataviewProperties extends Plugin {
 		removedKey?: Set<string>
 	): Promise<void> {
 		if (!this.isDataviewEnabled()) return;
-		if (!inlineFields || Object.keys(inlineFields).length === 0) return;
+		//early return if everything is empty
+		if (
+			Object.keys(inlineFields).length === 0 &&
+			(!removedKey || removedKey.size === 0)
+		) {
+			console.debug(`${this.prefix} No inline fields to update for ${file.path}`);
+			return;
+		}
+		console.debug(`${this.prefix} Updating frontmatter for ${file.path}`);
+		console.debug(`${this.prefix} Inline fields:`, inlineFields);
+		console.debug(`${this.prefix} Removed keys:`, removedKey);
 
 		await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
 			if (removedKey && removedKey.size > 0) {
@@ -225,18 +241,13 @@ export default class DataviewProperties extends Plugin {
 					const frontmatterKey = Object.keys(frontmatter).find((fmKey) =>
 						this.utils.keysMatch(fmKey, key)
 					);
-					if (frontmatterKey) delete frontmatter[key];
+					if (frontmatterKey) delete frontmatter[frontmatterKey];
 				}
 			}
 			this.utils.useConfig(UtilsConfig.Cleanup);
 			for (const [key, value] of Object.entries(inlineFields)) {
-				if (this.isIgnored(key) || value === undefined) continue;
-
-				const correctedValue =
-					typeof value === "string"
-						? this.utils.removeFromValue(value, this.settings.cleanUpText.fields)
-						: value;
-				if (correctedValue != null) frontmatter[key] = correctedValue;
+				if (this.isIgnored(key) || value == undefined) continue;
+				frontmatter[key] = value;
 			}
 		});
 	}

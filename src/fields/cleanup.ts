@@ -1,3 +1,7 @@
+import { UtilsConfig } from "../interfaces";
+import type { Utils } from "../utils";
+import { isIgnored } from "./ignored-fields";
+
 export function cleanUpValue(
 	value: string,
 	cleanupFields: string[],
@@ -11,8 +15,6 @@ export function cleanUpValue(
 
 	for (const field of cleanupFields) {
 		const regex = recognizeRegexFn(field);
-		console.debug("Regex is:", regex);
-
 		if (regex) {
 			result = result.replace(regex, "").trim();
 			continue;
@@ -35,6 +37,7 @@ export function cleanUpValue(
 			let lastIndex = 0;
 			let output = "";
 
+			// biome-ignore lint/suspicious/noAssignInExpressions: useful for regex
 			while ((match = searchRegExp.exec(targetResult)) !== null) {
 				output += result.slice(lastIndex, match.index);
 				lastIndex = match.index + field.length;
@@ -48,4 +51,34 @@ export function cleanUpValue(
 
 	result = result.trim().replace(/\s+/g, " ");
 	return result.length ? result : null;
+}
+
+export function correctValue(value: unknown, utils: Utils, fields: string[]) {
+	return typeof value === "string" ? utils.removeFromValue(value, fields) : value;
+}
+
+export function cleanList(
+	utils: Utils,
+	inline: Record<string, any>,
+	fields: string[],
+	ignoredKeys: Set<string>,
+	removedKey: Set<string>,
+	ignoreRegex: RegExp[]
+) {
+	const result: Record<string, any> = {};
+	utils.useConfig(UtilsConfig.Cleanup);
+
+	for (const [key, value] of Object.entries(inline || {})) {
+		if (isIgnored(key, ignoredKeys, ignoreRegex, utils)) continue;
+
+		const correctedValue = correctValue(value, utils, fields);
+
+		if (correctedValue == null) {
+			removedKey.add(key);
+		} else {
+			result[key] = correctedValue;
+		}
+	}
+
+	return result;
 }

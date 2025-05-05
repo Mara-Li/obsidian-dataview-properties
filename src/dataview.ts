@@ -254,13 +254,13 @@ export async function getInlineFields(
 
 		if (key !== "file" && (!frontmatter || !(key in frontmatter))) {
 			const evaluated = await compiler.evaluateInline(pageData[key]);
-			if (evaluated != null) inlineFields[key] = evaluated;
+			inlineFields[key] = evaluated;
 		} else if (Array.isArray(pageData[key]) && pageData[key].length > 0) {
 			// Handle arrays by using the last value (most recent)
 			const arrayValue = pageData[key];
 			const valueToUse = arrayValue[arrayValue.length - 1];
 			const evaluated = await compiler.evaluateInline(valueToUse);
-			if (evaluated != null) inlineFields[key] = evaluated;
+			inlineFields[key] = evaluated;
 		}
 	}
 
