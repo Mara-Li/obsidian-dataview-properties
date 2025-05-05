@@ -18,8 +18,11 @@ import {
 } from "./interfaces";
 import { DataviewPropertiesSettingTab } from "./settings";
 import { Utils } from "./utils";
-import { isIgnored, prepareIgnoredFields } from "./fields/ignored-fields";
-import { shouldBeUpdated as checkShouldBeUpdated } from "./fields/update-checker";
+import {
+	isIgnored,
+	prepareIgnoredFields,
+	shouldBeUpdated as checkShouldBeUpdated,
+} from "./fields";
 
 export default class DataviewProperties extends Plugin {
 	settings!: DataviewPropertiesSettings;

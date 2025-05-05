@@ -10,7 +10,8 @@
 		"module": "ESNext",
 		"types": [
 			"obsidian-typings",
-			"uniformize"
+			"uniformize",
+			"bun"
 		],
 		"target": "ESNext",
 		"allowJs": true,
