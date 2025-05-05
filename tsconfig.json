@@ -11,7 +11,10 @@
 		"types": [
 			"obsidian-typings",
 			"uniformize",
-			"bun"
+			"bun",
+			"@wdio/globals/types",
+			"@wdio/mocha-framework",
+			"wdio-obsidian-service"
 		],
 		"target": "ESNext",
 		"allowJs": true,
@@ -33,6 +36,7 @@
 		]
 	},
 	"include": [
-		"**/*.ts"
+		"**/*.ts",
+		"wdio.conf.mts"
 	]
 }
