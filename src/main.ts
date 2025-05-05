@@ -199,7 +199,7 @@ export default class DataviewProperties extends Plugin {
 			if (inline && Object.keys(inline).length > 0)
 				this.previousDataviewFields.set(filePath, new Set(Object.keys(inline)));
 
-			if ((shouldCheckRemoved || hasNewFields) && frontmatter)
+			if (shouldCheckRemoved || hasNewFields)
 				await this.updateFrontmatter(activeFile, cleanedInline, removedKey);
 		} finally {
 			this.processingFiles.delete(filePath);
