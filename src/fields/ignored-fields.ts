@@ -1,4 +1,4 @@
-import type Utils from "../utils/Utility";
+import type Utils from "../utils/text_utils";
 
 export function prepareIgnoredFields(
 	ignoredFields: string[],

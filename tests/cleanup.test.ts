@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { cleanUpValue } from "../src/fields";
-import Utils from "../src/utils/Utility";
+import Utils from "../src/utils/text_utils";
 import "uniformize";
 
 describe("cleanUpValue tests", () => {

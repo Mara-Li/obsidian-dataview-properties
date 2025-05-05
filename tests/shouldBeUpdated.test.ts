@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { shouldBeUpdated } from "../src/fields";
-import Utils from "../src/utils/Utility";
+import Utils from "../src/utils/text_utils";
 import "uniformize";
 
 describe("shouldBeUpdated tests", () => {
@@ -98,6 +98,7 @@ describe("shouldBeUpdated tests", () => {
 
 	test("should works with insensitive keys", () => {
 		const fields = { key: "value" };
+		// biome-ignore lint/style/useNamingConvention: testing the case insensitivity for keynames
 		const frontmatter = { KEY: "value" };
 
 		expect(
@@ -112,6 +113,7 @@ describe("shouldBeUpdated tests", () => {
 	});
 
 	test("should works with accents", () => {
+		// biome-ignore lint/style/useNamingConvention: testing the case accents recognition for keynames
 		const fields = { été: "value" };
 		const frontmatter = { ete: "value" };
 
