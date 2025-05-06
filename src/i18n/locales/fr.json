@@ -38,6 +38,11 @@
     "title": "Insensitive"
   },
   "note": "Les champs avec valeur vide ne seront pas ajoutés!",
+  "prefix": {
+    "desc": "Ce préfixe sera ajouté pour discriminer la clé ajoutée en \"inline\" du frontmatter.\nCela empêche également la duplication des métadonnées analysées par Dataview.",
+    "invalid": "Le préfixe ne peut pas être vide!",
+    "title": "Préfixe"
+  },
   "warning": {
     "desc": "Seulement les queries dataview en ligne sont supportés par le plugin, puisque les bloc de code ne peuvent être mis pour eux.",
     "title": "Attention"

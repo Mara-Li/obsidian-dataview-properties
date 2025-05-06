@@ -38,6 +38,11 @@
     "title": "Insensitive"
   },
   "note": "Fields with empty value won't be added!",
+  "prefix": {
+    "desc": "This prefix will be added to discriminate added key from the inline to the frontmatter. It, also, prevent duplicate in the metadata parsed by Dataview.",
+    "invalid": "The prefix can't be empty!",
+    "title": "Prefix"
+  },
   "warning": {
     "desc": "Only inline dataview queries (DQL/DJS) are supported by the plugin, as code blocks can't be set for inline fields.",
     "title": "Warning"
