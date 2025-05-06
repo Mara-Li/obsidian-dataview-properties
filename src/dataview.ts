@@ -251,16 +251,19 @@ export async function getInlineFields(
 		const normalizedKey = key.toLowerCase();
 		if (processedKeys.has(normalizedKey)) continue;
 		processedKeys.add(normalizedKey);
+		console.debug("Dataview key:", key, "value:", pageData[key]);
 
-		if (key !== "file" && (!frontmatter || !(key in frontmatter))) {
-			const evaluated = await compiler.evaluateInline(pageData[key]);
-			inlineFields[key] = evaluated;
-		} else if (Array.isArray(pageData[key]) && pageData[key].length > 0) {
-			// Handle arrays by using the last value (most recent)
-			const arrayValue = pageData[key];
-			const valueToUse = arrayValue[arrayValue.length - 1];
-			const evaluated = await compiler.evaluateInline(valueToUse);
-			inlineFields[key] = evaluated;
+		if (!frontmatter || !(key in frontmatter)) {
+			if (!Array.isArray(pageData[key]) && pageData[key].length > 0) {
+				const evaluated = await compiler.evaluateInline(pageData[key]);
+				inlineFields[key] = evaluated;
+			} else {
+				// Handle arrays by using the last value (most recent)
+				const arrayValue = pageData[key];
+				const valueToUse = arrayValue[arrayValue.length - 1];
+				const evaluated = await compiler.evaluateInline(valueToUse);
+				inlineFields[key] = evaluated;
+			}
 		}
 	}
 
