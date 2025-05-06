@@ -175,4 +175,10 @@ describe("Dataview Properties Plugin E2E Tests", function () {
 		// Verify that value is cleaned up
 		expect(normalizeContent(content)).toEqual(getExceptedContent("cleanup_values.md"));
 	});
+
+	it("should not modify files without dataview properties", async function () {
+		const fileName = "no_properties.md";
+		const content = await runTestWithFixture("no_properties.md", "NoProperties.md");
+		expect(normalizeContent(content)).toEqual(getExceptedContent(fileName));
+	});
 });
