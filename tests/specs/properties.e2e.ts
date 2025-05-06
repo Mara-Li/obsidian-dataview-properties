@@ -3,6 +3,7 @@ import { obsidianPage } from "wdio-obsidian-service";
 import * as fs from "fs";
 import * as path from "path";
 import type DataviewProperties from "../../src/main";
+import { DEFAULT_SETTINGS, type DataviewPropertiesSettings } from "../../src/interfaces";
 
 const manifest = JSON.parse(
 	fs.readFileSync(`${path.resolve(__dirname, "..", "..", "manifest.json")}`, "utf-8")
@@ -17,6 +18,18 @@ const expected = path.resolve(folder, "expected");
 describe("Dataview Properties Plugin E2E Tests", function () {
 	beforeEach(async function () {
 		await obsidianPage.resetVault();
+		//reset the settings of the plugin
+		await browser.executeObsidian(
+			({ app }, pluginId, defaultSettings: DataviewPropertiesSettings) => {
+				const plugin = app.plugins.getPlugin(pluginId) as DataviewProperties;
+				if (plugin) {
+					plugin.settings = defaultSettings;
+					plugin.saveSettings();
+				}
+			},
+			manifest.id,
+			DEFAULT_SETTINGS
+		);
 	});
 
 	function normalizeContent(content: string): string {
@@ -76,6 +89,37 @@ describe("Dataview Properties Plugin E2E Tests", function () {
 
 		return content;
 	}
+
+	it("Should have default settings", async function () {
+		// Check if the plugin is loaded
+		const dvPluginT = await browser.executeObsidian(({ app }, pluginId) => {
+			const plug = app.plugins.getPlugin(pluginId) as DataviewProperties | undefined;
+			if (!plug) {
+				return null;
+			}
+			return plug.settings;
+		}, manifest.id);
+		expect(dvPluginT).not.toBeNull();
+		if (!dvPluginT) {
+			return;
+		}
+		expect(dvPluginT).toEqual(DEFAULT_SETTINGS);
+		expect(dvPluginT.prefix).toEqual("dv_");
+		console.log(dvPluginT.prefix);
+	});
+
+	it("Should have the same manifest version as the plugin", async function () {
+		const dvPluginT = await browser.executeObsidian(({ app }, pluginId) => {
+			const plug = app.plugins.getPlugin(pluginId) as DataviewProperties | undefined;
+			if (!plug) {
+				return null;
+			}
+			return plug.manifest.version;
+		}, manifest.id);
+		expect(dvPluginT).not.toBeNull();
+		expect(dvPluginT).toEqual(manifest.version);
+		console.log(dvPluginT);
+	});
 
 	it("should add properties to existing frontmatter", async function () {
 		const fileName = "existing_frontmatter.md";

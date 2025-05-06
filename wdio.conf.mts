@@ -42,7 +42,7 @@ export const config: WebdriverIO.Config = {
 		browserVersion: appVersion,
 		"wdio:obsidianOptions": {
 			installerVersion: installerVersion,
-			plugins: [".", { id: "dataview" }],
+			plugins: ["./dist", { id: "dataview" }],
 			// If you need to switch between multiple vaults, you can omit this and use
 			// `reloadObsidian` to open vaults during the test.
 			vault: process.env.VAULT,

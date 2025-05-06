@@ -15,7 +15,7 @@
     "predeploy": "bun run bump",
     "deploy": "bun run export",
     "lint": "bun biome format --write src/",
-    "pree2e": "bun run build --vault",
+    "pree2e": "bun run build",
     "e2e": "bun wdio run ./wdio.conf.mts"
   },
   "engines": {

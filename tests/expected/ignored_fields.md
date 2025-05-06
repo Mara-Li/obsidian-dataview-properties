@@ -1,6 +1,6 @@
 ---
 title: Test Ignored Fields
-normal: this should be added
+dv_normal: this should be added
 ---
 
 ignored:: this should not be added
