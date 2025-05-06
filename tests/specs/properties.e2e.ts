@@ -21,15 +21,9 @@ describe("Dataview Properties Plugin E2E Tests", function () {
 
 	function normalizeContent(content: string): string {
 		return content
+			.replace(/---\s+/g, "---")
+			.replace(/\s+---/g, "---")
 			.replace(/\s+/g, " ")
-			.replace(/--- /g, "---")
-			.replace(/ ---/g, "---")
-			.replace(/\[([^\]]+)\]/g, (_, p1) => {
-				return p1
-					.split(",")
-					.map((s: string) => s.trim())
-					.join(",");
-			})
 			.trim();
 	}
 
@@ -88,7 +82,7 @@ describe("Dataview Properties Plugin E2E Tests", function () {
 		const content = await runTestWithFixture(fileName, "ExistingFrontmatter.md");
 
 		// Compare frontmatter content (ignoring whitespace differences)
-		expect(content.replace(/\s+/g, " ").trim()).toEqual(getExceptedContent(fileName));
+		expect(normalizeContent(content)).toEqual(getExceptedContent(fileName));
 	});
 
 	it("should respect ignored fields configuration", async function () {

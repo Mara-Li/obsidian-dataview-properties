@@ -164,6 +164,12 @@ class Dataview {
 				console.warn(`${this.prefix}  Skipping null value`);
 				return;
 			}
+			if (Values.isArray(value)) {
+				const arrayValue = await Promise.all(
+					value.map((item) => this.evaluateInline(item))
+				);
+				return arrayValue;
+			}
 			return value;
 		} catch (error) {
 			console.error(`${this.prefix} Error evaluating inline value:`, error);
@@ -231,7 +237,8 @@ class Dataview {
 export async function getInlineFields(
 	path: string,
 	plugin: DataviewProperties,
-	frontmatter?: FrontMatterCache
+	frontmatter?: FrontMatterCache,
+	previousKeys?: Set<string>
 ): Promise<Record<string, any>> {
 	const { app } = plugin;
 	if (!plugin.isDataviewEnabled()) return {};
@@ -240,31 +247,34 @@ export async function getInlineFields(
 	if (!dvApi) return {};
 
 	const pageData = dvApi.page(path);
+
 	if (!pageData) return {};
 
 	const compiler = new Dataview(dvApi, path, plugin);
 	const inlineFields: Record<string, unknown> = {};
 
 	const processedKeys = new Set<string>();
+	console.warn(previousKeys);
+	delete pageData.file; // Remove the file key from the page data
 
 	for (const key in pageData) {
-		if (key === "file") continue; // Skip the file key
 		const normalizedKey = key.toLowerCase();
 		if (processedKeys.has(normalizedKey)) continue;
 		processedKeys.add(normalizedKey);
-		console.debug("Dataview key:", key, "value:", pageData[key]);
 
 		if (!frontmatter || !(key in frontmatter)) {
-			if (!Array.isArray(pageData[key]) && pageData[key].length > 0) {
-				const evaluated = await compiler.evaluateInline(pageData[key]);
-				inlineFields[key] = evaluated;
-			} else {
-				// Handle arrays by using the last value (most recent)
-				const arrayValue = pageData[key];
-				const valueToUse = arrayValue[arrayValue.length - 1];
-				const evaluated = await compiler.evaluateInline(valueToUse);
-				inlineFields[key] = evaluated;
-			}
+			const evaluated = await compiler.evaluateInline(pageData[key]);
+			inlineFields[key] = evaluated;
+		} else if (
+			Array.isArray(pageData[key]) &&
+			pageData[key].length > 0 &&
+			!frontmatter?.[key]
+		) {
+			// Handle arrays by using the last value (most recent)
+			const arrayValue = pageData[key];
+			const valueToUse = arrayValue[arrayValue.length - 1];
+			const evaluated = await compiler.evaluateInline(valueToUse);
+			inlineFields[key] = evaluated;
 		}
 	}
 

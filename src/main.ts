@@ -176,8 +176,9 @@ export default class DataviewProperties extends Plugin {
 		try {
 			this.processingFiles.add(filePath);
 			const frontmatter = this.app.metadataCache.getFileCache(activeFile)?.frontmatter;
-			const inline = await getInlineFields(filePath, this, frontmatter);
 			const previousKeys = this.previousDataviewFields.get(filePath);
+			const inline = await getInlineFields(filePath, this, frontmatter, previousKeys);
+
 			const shouldCheckRemoved = previousKeys && previousKeys.size > 0;
 			const removedKey = new Set<string>();
 			if (shouldCheckRemoved) {
@@ -245,15 +246,16 @@ export default class DataviewProperties extends Plugin {
 				for (const key of removedKey) {
 					if (this.isIgnored(key)) continue; //more efficient to check if the key is ignored as we don't need to process it
 					const frontmatterKey = Object.keys(frontmatter).find((fmKey) =>
-						this.utils.keysMatch(fmKey, key)
+						this.utils.keysMatch(fmKey, `${this.settings.prefix}${key}`)
 					);
+					console.error(frontmatterKey);
 					if (frontmatterKey) delete frontmatter[frontmatterKey];
 				}
 			}
 			this.utils.useConfig(UtilsConfig.Cleanup);
 			for (const [key, value] of Object.entries(inlineFields)) {
 				if (this.isIgnored(key) || value == undefined) continue;
-				frontmatter[key] = value;
+				frontmatter[`${this.settings.prefix}${key}`] = value;
 			}
 		});
 	}

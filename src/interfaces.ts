@@ -8,6 +8,7 @@ type AreaSettings = {
 } & TextOptions;
 
 export interface DataviewPropertiesSettings {
+	prefix: string;
 	dql: boolean;
 	djs: boolean;
 	/**
@@ -32,6 +33,7 @@ export enum UtilsConfig {
 }
 
 export const DEFAULT_SETTINGS: DataviewPropertiesSettings = {
+	prefix: "dv_",
 	dql: true,
 	djs: true,
 	ignoreFields: {
