@@ -248,6 +248,7 @@ export async function getInlineFields(
 	const processedKeys = new Set<string>();
 
 	for (const key in pageData) {
+		if (key === "file") continue; // Skip the file key
 		const normalizedKey = key.toLowerCase();
 		if (processedKeys.has(normalizedKey)) continue;
 		processedKeys.add(normalizedKey);
