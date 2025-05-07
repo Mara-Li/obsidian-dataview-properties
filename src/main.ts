@@ -18,6 +18,12 @@ import {
 } from "./interfaces";
 import { DataviewPropertiesSettingTab } from "./settings";
 import { Utils } from "./utils";
+import {
+	isIgnored,
+	prepareIgnoredFields,
+	shouldBeUpdated as checkShouldBeUpdated,
+} from "./fields";
+import { cleanList } from "./fields/cleanup";
 
 export default class DataviewProperties extends Plugin {
 	settings!: DataviewPropertiesSettings;
@@ -31,13 +37,19 @@ export default class DataviewProperties extends Plugin {
 
 	private updateDebouced(): void {
 		console.debug("[Dataview Properties] Debounce updated to", this.settings.interval);
-		this.debounced = debounce(
-			async (file: TFile) => {
-				await this.resolveDataview(file);
-			},
-			this.settings.interval,
-			true
-		);
+		if (this.settings.interval <= 0) {
+			console.debug("[Dataview Properties] Debounce disabled");
+			this.debounced = () => {
+				return;
+			};
+		} else
+			this.debounced = debounce(
+				async (file: TFile) => {
+					await this.resolveDataview(file);
+				},
+				this.settings.interval,
+				true
+			);
 	}
 
 	async onload() {
@@ -54,7 +66,7 @@ export default class DataviewProperties extends Plugin {
 		});
 
 		this.app.workspace.onLayoutReady(async () => {
-			this.checkDependencies()
+			this.checkDependencies();
 			await this.createIndex();
 		});
 
@@ -81,11 +93,11 @@ export default class DataviewProperties extends Plugin {
 				//@ts-ignore
 				"dataview:metadata-change",
 				async (eventName: string, file: TFile) => {
-					if (eventName === "delete") { //delete from the previousDataviewFields instead
+					if (eventName === "delete") {
+						//delete from the previousDataviewFields instead
 						this.previousDataviewFields.delete(file.path);
 						console.debug(`${this.prefix} File deleted from previous keys:`, file.path);
-					}
-					else this.debounced(file);
+					} else this.debounced(file);
 				}
 			)
 		);
@@ -105,6 +117,10 @@ export default class DataviewProperties extends Plugin {
 		}
 	}
 
+	private isIgnored(key: string): boolean {
+		return isIgnored(key, this.ignoredKeys, this.ignoredRegex, this.utils);
+	}
+
 	/**
 	 * Determines if frontmatter needs updating based on inline fields
 	 */
@@ -112,21 +128,14 @@ export default class DataviewProperties extends Plugin {
 		fields: Record<string, any>,
 		frontmatter?: FrontMatterCache
 	): boolean {
-		if (!fields || Object.keys(fields).length === 0) return false;
-
-		if (!frontmatter) return true;
-
 		this.utils.useConfig(UtilsConfig.Ignore);
-		return Object.entries(fields).some(([key, inlineValue]) => {
-			if (this.isIgnored(key)) return false;
-
-			const frontmatterKey = Object.keys(frontmatter).find(
-				(fmKey) => !this.isIgnored(fmKey) && this.utils.keysMatch(fmKey, key)
-			);
-			if (!frontmatterKey) return inlineValue != null;
-
-			return !this.utils.valuesEqual(inlineValue, frontmatter[frontmatterKey]);
-		});
+		return checkShouldBeUpdated(
+			fields,
+			frontmatter,
+			(key) => this.isIgnored(key),
+			(key1, key2) => this.utils.keysMatch(key1, key2),
+			(val1, val2) => this.utils.valuesEqual(val1, val2)
+		);
 	}
 
 	private async createIndex(): Promise<void> {
@@ -167,8 +176,9 @@ export default class DataviewProperties extends Plugin {
 		try {
 			this.processingFiles.add(filePath);
 			const frontmatter = this.app.metadataCache.getFileCache(activeFile)?.frontmatter;
-			const inline = await getInlineFields(filePath, this, frontmatter);
 			const previousKeys = this.previousDataviewFields.get(filePath);
+			const inline = await getInlineFields(filePath, this, frontmatter, previousKeys);
+
 			const shouldCheckRemoved = previousKeys && previousKeys.size > 0;
 			const removedKey = new Set<string>();
 			if (shouldCheckRemoved) {
@@ -177,16 +187,21 @@ export default class DataviewProperties extends Plugin {
 					if (!currentKeys.has(key)) removedKey.add(key);
 				});
 			}
-			console.debug(`${this.prefix} Previous keys:`, previousKeys);
-			console.debug(`${this.prefix} Actual fields:`, inline);
-
+			const cleanedInline = cleanList(
+				this.utils,
+				inline,
+				this.settings.cleanUpText.fields,
+				this.ignoredKeys,
+				removedKey,
+				this.ignoredRegex
+			);
 			const hasNewFields = this.shouldBeUpdated(inline, frontmatter);
 
 			if (inline && Object.keys(inline).length > 0)
 				this.previousDataviewFields.set(filePath, new Set(Object.keys(inline)));
 
-			if ((shouldCheckRemoved || hasNewFields) && frontmatter)
-				await this.updateFrontmatter(activeFile, inline || {}, removedKey);
+			if (shouldCheckRemoved || hasNewFields)
+				await this.updateFrontmatter(activeFile, cleanedInline, removedKey);
 		} finally {
 			this.processingFiles.delete(filePath);
 		}
@@ -204,42 +219,6 @@ export default class DataviewProperties extends Plugin {
 	}
 
 	/**
-	 * Prepare ignored fields from settings
-	 */
-	private prepareIgnoredFields(): void {
-		this.ignoredKeys.clear();
-		this.ignoredRegex = [];
-		this.utils.useConfig(UtilsConfig.Ignore);
-
-		const ignoredFields = this.settings.ignoreFields.fields;
-		if (!ignoredFields.length) return;
-
-		for (const key of ignoredFields) {
-			const processedKey = this.utils.processString(key);
-			const regex = this.utils.recognizeRegex(key);
-			if (regex) this.ignoredRegex.push(regex);
-			else this.ignoredKeys.add(processedKey);
-		}
-	}
-
-	/**
-	 * Check if a key should be ignored
-	 */
-	private isIgnored(key: string): boolean {
-		if (!this.ignoredKeys.size && !this.ignoredRegex.length) return false;
-		this.utils.useConfig(UtilsConfig.Ignore);
-
-		const processedKey = this.utils.processString(key);
-
-		if (this.ignoredKeys.has(processedKey)) return true;
-
-		return this.ignoredRegex.some((regex) => {
-			regex.lastIndex = 0;
-			return regex.test(processedKey);
-		});
-	}
-
-	/**
 	 * Add inline fields to frontmatter
 	 */
 	async updateFrontmatter(
@@ -248,7 +227,17 @@ export default class DataviewProperties extends Plugin {
 		removedKey?: Set<string>
 	): Promise<void> {
 		if (!this.isDataviewEnabled()) return;
-		if (!inlineFields || Object.keys(inlineFields).length === 0) return;
+		//early return if everything is empty
+		if (
+			Object.keys(inlineFields).length === 0 &&
+			(!removedKey || removedKey.size === 0)
+		) {
+			console.debug(`${this.prefix} No inline fields to update for ${file.path}`);
+			return;
+		}
+		console.debug(`${this.prefix} Updating frontmatter for ${file.path}`);
+		console.debug(`${this.prefix} Inline fields:`, inlineFields);
+		console.debug(`${this.prefix} Removed keys:`, removedKey);
 
 		await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
 			if (removedKey && removedKey.size > 0) {
@@ -257,20 +246,16 @@ export default class DataviewProperties extends Plugin {
 				for (const key of removedKey) {
 					if (this.isIgnored(key)) continue; //more efficient to check if the key is ignored as we don't need to process it
 					const frontmatterKey = Object.keys(frontmatter).find((fmKey) =>
-						this.utils.keysMatch(fmKey, key)
+						this.utils.keysMatch(fmKey, `${this.settings.prefix}${key}`)
 					);
-					if (frontmatterKey) delete frontmatter[key];
+					console.error(frontmatterKey);
+					if (frontmatterKey) delete frontmatter[frontmatterKey];
 				}
 			}
 			this.utils.useConfig(UtilsConfig.Cleanup);
 			for (const [key, value] of Object.entries(inlineFields)) {
-				if (this.isIgnored(key) || value === undefined) continue;
-
-				const correctedValue =
-					typeof value === "string"
-						? this.utils.removeFromValue(value, this.settings.cleanUpText.fields)
-						: value;
-				if (correctedValue != null) frontmatter[key] = correctedValue;
+				if (this.isIgnored(key) || value == undefined) continue;
+				frontmatter[`${this.settings.prefix}${key}`] = value;
 			}
 		});
 	}
@@ -285,6 +270,12 @@ export default class DataviewProperties extends Plugin {
 		this.utils.setConfig(UtilsConfig.Cleanup, this.settings.cleanUpText);
 		this.utils.setConfig(UtilsConfig.Ignore, this.settings.ignoreFields);
 		this.utils.setConfig(UtilsConfig.Delete, this.settings.deleteFromFrontmatter);
+	}
+
+	private prepareIgnoredFields(): void {
+		const result = prepareIgnoredFields(this.settings.ignoreFields.fields, this.utils);
+		this.ignoredKeys = result.ignoredKeys;
+		this.ignoredRegex = result.ignoredRegex;
 	}
 
 	async loadSettings(): Promise<void> {

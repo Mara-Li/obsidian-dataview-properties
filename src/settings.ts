@@ -10,7 +10,7 @@ import {
 	Notice,
 } from "obsidian";
 import type DataviewProperties from "./main";
-import { isNumber } from "./utils";
+import { isNumber } from "./utils/number";
 
 export class DataviewPropertiesSettingTab extends PluginSettingTab {
 	plugin: DataviewProperties;
@@ -54,6 +54,29 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 		containerEl.empty();
 
 		containerEl.addClass("obsidian-dataview-properties");
+
+		new Setting(containerEl)
+			.setName(i18next.t("prefix.title"))
+			.setDesc(i18next.t("prefix.desc"))
+			.addText((text) => {
+				text.setValue(this.plugin.settings.prefix).inputEl.onblur = async () => {
+					const value = text.getValue();
+					if (value.trim().length === 0) {
+						new Notice(
+							sanitizeHTMLToDom(
+								`<span class="notice-error">${i18next.t("prefix.invalid")}</span>`
+							)
+						);
+						text.inputEl.addClass("is-invalid");
+					} else {
+						this.plugin.settings.prefix = value.trim();
+						await this.plugin.saveSettings();
+						await this.display();
+					}
+				};
+			});
+
+		containerEl.createEl("hr");
 
 		new Setting(containerEl)
 			.setName(i18next.t("interval.title"))

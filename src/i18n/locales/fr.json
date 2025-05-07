@@ -1,45 +1,50 @@
 {
-	"addToFrontmatter": "Ajouter les champs Dataview au frontmatter",
-	"cleanUpText": {
-		"desc": "Quand la valeur sera ajouté au frontmatter, le(s) texte(s) suivant seront supprimé. Séparé les valeurs par une virgule ou un retour à la ligne. Pour utiliser une expression régulière, encadrer le texte avec",
-		"heading": "Supprimer des valeurs",
-		"title": "Supprimer du texte dans les valeurs"
-	},
-	"dataview": {
-		"title": "Activer les évaluations de DataView. Si une option est désactivée, la requête sera ajoutée « telle quelle » aux propriétés (frontmatter)."
-	},
-	"dataviewEnabled": "DataView doit être activé pour pouvoir utiliser ce module.",
-	"deleteFromFrontmatter": {
-		"desc": "Nettoyer le frontmatter quand un champ est supprimé.",
-		"title": "Nettoyage du frontmatter"
-	},
-	"ignore": "Valeur ignorée",
-	"ignoreAccents": {
-		"desc": "Les caractères accentués seront converti en leur valeur correspondante :",
-		"title": "Ignorer les accents"
-	},
-	"ignoredFields": {
-		"desc": "Les champs suivants ne seront pas ajouté au frontmatter. Séparez les valeurs par un retour à la ligne ou une virgule. Pour utiliser une expression régulière, encadré le texte avec",
-		"example": "par exemple :",
-		"placeholder": "champ1, champ-avec-text, autre champ",
-		"title": "Champs ignorés"
-	},
-	"interval": {
-		"desc": "pour vérifier les nouveaux champs en « inline » de Dataview, les évaluer et les ajouter aux propriétés (frontmatter)",
-		"info": "Intervalle en millisecondes",
-		"invalid": {
-			"negative": "Merci d'entrer un nombre positif.",
-			"number": "Merci d'entrer un nombre valide."
-		},
-		"title": "Intervalle"
-	},
-	"lowerCase": {
-		"desc": "Les majuscules seront reconnues comme minuscules.",
-		"title": "Insensitive"
-	},
-	"note": "Les champs avec valeur vide ne seront pas ajoutés!",
-	"warning": {
-		"desc": "Seulement les queries dataview en ligne sont supportés par le plugin, puisque les bloc de code ne peuvent être mis pour eux.",
-		"title": "Attention"
-	}
+  "addToFrontmatter": "Ajouter les champs Dataview au frontmatter",
+  "cleanUpText": {
+    "desc": "Quand la valeur sera ajouté au frontmatter, le(s) texte(s) suivant seront supprimé. Séparé les valeurs par une virgule ou un retour à la ligne. Pour utiliser une expression régulière, encadrer le texte avec",
+    "heading": "Supprimer des valeurs",
+    "title": "Supprimer du texte dans les valeurs"
+  },
+  "dataview": {
+    "title": "Activer les évaluations de DataView. Si une option est désactivée, la requête sera ajoutée « telle quelle » aux propriétés (frontmatter)."
+  },
+  "dataviewEnabled": "DataView doit être activé pour pouvoir utiliser ce module.",
+  "deleteFromFrontmatter": {
+    "desc": "Nettoyer le frontmatter quand un champ est supprimé.",
+    "title": "Nettoyage du frontmatter"
+  },
+  "ignore": "Valeur ignorée",
+  "ignoreAccents": {
+    "desc": "Les caractères accentués seront converti en leur valeur correspondante :",
+    "title": "Ignorer les accents"
+  },
+  "ignoredFields": {
+    "desc": "Les champs suivants ne seront pas ajouté au frontmatter. Séparez les valeurs par un retour à la ligne ou une virgule. Pour utiliser une expression régulière, encadré le texte avec",
+    "example": "par exemple :",
+    "placeholder": "champ1, champ-avec-text, autre champ",
+    "title": "Champs ignorés"
+  },
+  "interval": {
+    "desc": "pour vérifier les nouveaux champs en « inline » de Dataview, les évaluer et les ajouter aux propriétés (frontmatter). Utiliser 0 pour le désactiver.",
+    "info": "Intervalle en millisecondes",
+    "invalid": {
+      "negative": "Merci d'entrer un nombre positif.",
+      "number": "Merci d'entrer un nombre valide."
+    },
+    "title": "Intervalle"
+  },
+  "lowerCase": {
+    "desc": "Les majuscules seront reconnues comme minuscules.",
+    "title": "Insensitive"
+  },
+  "note": "Les champs avec valeur vide ne seront pas ajoutés!",
+  "prefix": {
+    "desc": "Ce préfixe sera ajouté pour discriminer la clé ajoutée en \"inline\" du frontmatter.\nCela empêche également la duplication des métadonnées analysées par Dataview.",
+    "invalid": "Le préfixe ne peut pas être vide!",
+    "title": "Préfixe"
+  },
+  "warning": {
+    "desc": "Seulement les queries dataview en ligne sont supportés par le plugin, puisque les bloc de code ne peuvent être mis pour eux.",
+    "title": "Attention"
+  }
 }

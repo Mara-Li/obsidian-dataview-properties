@@ -17,7 +17,9 @@ The plugin offers the following features:
 > The Dataview plugin must be installed and activated in your Obsidian vault.
 
 ## ⚙️ Configuration
-<screenshot>
+![Settings](./docs/settings_1.png)
+![Settings](./docs/settings_2.png)
+![Settings](./docs/settings_3.png)
 
 > [!TIP]
 > Both options (frontmatter cleanup, ignore and text removing) supports **insensitive** and **ignore accent** recognition:
@@ -36,6 +38,12 @@ The plugin offers the following features:
 > Only string/numbers/date are supported in the frontmatter. When the evaluated queries returns a html, it will converted to markdown. 
 
 ## 🛠️ Usage
+
+> [!TIP]
+> The keys are copied into the frontmatter with a prefix (that you can configure) to avoid conflicts with existing properties (and Dataview metadata). 
+> The default prefix is `dv_`. 
+> **An empty prefix is not supported.**
+
 ### Automatic synchronization
 
 By default, the plugin automatically synchronizes the Dataview queries within the frontmatter (proprieties) when the metadata are changed. This synchronization is triggered based on the configured interval (default: `1000ms`).
@@ -101,3 +109,9 @@ To add a translation:
     - Add `import * as <lang> from "./locales/<lang>.json";`
     - Edit the `ressource` part with adding : `<lang> : {translation: <lang>}`
 
+---
+## Special thanks & credits
+
+- [Jesse Hines for wdio obsidian service](https://github.com/jesse-r-s-hines/wdio-obsidian-service) that *finally* made me able to test the plugin in a real obsidian environment automatically. It mean a lot for a QA tester like me!
+- [Obsidian Dataview](https://github.com/blacksmithgu/obsidian-dataview) as a dependecies.
+- [Obsidian Digital Garden](https://github.com/oleeskild/obsidian-digital-garden) for the first version of the Dataview compiler/evaluator.
