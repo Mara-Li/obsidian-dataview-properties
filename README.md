@@ -36,6 +36,12 @@ The plugin offers the following features:
 > Only string/numbers/date are supported in the frontmatter. When the evaluated queries returns a html, it will converted to markdown. 
 
 ## 🛠️ Usage
+
+> [!TIP]
+> The keys are copied into the frontmatter with a prefix (that you can configure) to avoid conflicts with existing properties (and Dataview metadata). 
+> The default prefix is `dv_`. 
+> **An empty prefix is not supported.**
+
 ### Automatic synchronization
 
 By default, the plugin automatically synchronizes the Dataview queries within the frontmatter (proprieties) when the metadata are changed. This synchronization is triggered based on the configured interval (default: `1000ms`).
