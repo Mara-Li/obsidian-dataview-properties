@@ -33,6 +33,11 @@
     },
     "title": "Interval"
   },
+  "listFields": {
+    "desc": "Sometimes, an inline field can be recognized as a string instead of a list. You can use this options to \"force\" a recognition as a list. You can, also, use the suffix",
+    "example": "in the field name.",
+    "title": "Mark a field like a list"
+  },
   "lowerCase": {
     "desc": "Uppercase will be recognized as lowercase.",
     "title": "Insensitive"

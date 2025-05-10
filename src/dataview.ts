@@ -8,7 +8,7 @@ import {
 import dedent from "dedent";
 import { Component, type FrontMatterCache, htmlToMarkdown } from "obsidian";
 import type DataviewProperties from "./main";
-import { convertToNumber } from "./utils/number";
+import { convertToNumber } from "./utils";
 
 /**
  * Handles Dataview API interactions and query evaluation
@@ -139,14 +139,64 @@ class Dataview {
 	}
 
 	/**
+	 * Convert markdown link to wiki link format
+	 * @note This should transform to [[link]] only if:
+	 * - Not http(s)
+	 * - Not starting with `app://`
+	 * But transform if `/app://obsidian.md/` is present
+	 * @param {string} value
+	 */
+	toWikiLink(value: unknown): unknown {
+		const regex = /\[(?<display>.*)?\]\((?<link>.*)\)/g;
+		if (!Values.isString(value)) return value;
+		const match = regex.exec(value);
+		if (match) {
+			const { display, link } = match.groups!;
+			const displayLink = display && display.trim().length > 0 ? `|${display}` : "";
+			if (link.startsWith("http") || link.startsWith("/")) return value;
+			if (link.startsWith("app://")) {
+				if (link.startsWith("app://obsidian")) {
+					const newLink = link.replace("app://obsidian.md/", "").replace(/\.md$/, "");
+					return `[[${newLink.replace(/\.md$/, "")}${displayLink}]]`;
+				} else return value;
+			}
+			return `[[${link}${displayLink}]]`;
+		}
+		return value;
+	}
+
+	convertToDvArrayLinks(values: unknown[]): unknown[] {
+		const res: unknown[] = [];
+		for (const value of values) {
+			if (Values.isLink(value)) {
+				console.debug(`${this.prefix} Converting link:`, value);
+				const link = this.stringifyLink(value);
+				res.push(link);
+			}
+			res.push(this.toWikiLink(value));
+		}
+		return res;
+	}
+
+	/**
 	 * Evaluate and convert a dataview field value
 	 */
-	async evaluateInline(value: unknown): Promise<unknown | undefined> {
+	async evaluateInline(value: unknown, fieldName: string): Promise<unknown | undefined> {
 		if (value === "" || value === undefined) return;
-
 		try {
-			if (Values.isString(value))
-				return convertToNumber(await this.convertDataviewQueries(value));
+			if (Values.isString(value)) {
+				const res = convertToNumber(await this.convertDataviewQueries(value));
+				if (Values.isString(res)) {
+					if (
+						this.plugin.settings.listFields.includes(fieldName) ||
+						fieldName.endsWith("_list")
+					)
+						return this.convertToDvArrayLinks(
+							res.split(/, ?/).filter((x) => x.length > 0)
+						);
+					return res;
+				}
+			}
 
 			if (Values.isLink(value)) return this.stringifyLink(value);
 
@@ -165,10 +215,9 @@ class Dataview {
 				return;
 			}
 			if (Values.isArray(value)) {
-				const arrayValue = await Promise.all(
-					value.map((item) => this.evaluateInline(item))
+				return await Promise.all(
+					value.map((item) => this.evaluateInline(item, fieldName))
 				);
-				return arrayValue;
 			}
 			return value;
 		} catch (error) {
@@ -232,6 +281,7 @@ class Dataview {
  * @param path File path
  * @param plugin Plugin instance
  * @param frontmatter Existing frontmatter (optional)
+ * @param previousKeys
  * @returns Object containing field names and values
  */
 export async function getInlineFields(
@@ -254,7 +304,7 @@ export async function getInlineFields(
 	const inlineFields: Record<string, unknown> = {};
 
 	const processedKeys = new Set<string>();
-	console.warn(previousKeys);
+	console.debug(pageData);
 	delete pageData.file; // Remove the file key from the page data
 
 	for (const key in pageData) {
@@ -263,8 +313,7 @@ export async function getInlineFields(
 		processedKeys.add(normalizedKey);
 
 		if (!frontmatter || !(key in frontmatter)) {
-			const evaluated = await compiler.evaluateInline(pageData[key]);
-			inlineFields[key] = evaluated;
+			inlineFields[key] = await compiler.evaluateInline(pageData[key], key);
 		} else if (
 			Array.isArray(pageData[key]) &&
 			pageData[key].length > 0 &&
@@ -273,8 +322,7 @@ export async function getInlineFields(
 			// Handle arrays by using the last value (most recent)
 			const arrayValue = pageData[key];
 			const valueToUse = arrayValue[arrayValue.length - 1];
-			const evaluated = await compiler.evaluateInline(valueToUse);
-			inlineFields[key] = evaluated;
+			inlineFields[key] = await compiler.evaluateInline(valueToUse, key);
 		}
 	}
 

@@ -12,6 +12,11 @@ export interface DataviewPropertiesSettings {
 	dql: boolean;
 	djs: boolean;
 	/**
+	 * Mark some field name as a list, as sometimes they are not recognized as a list but as a string by DV.
+	 * Also, the suffix `_list` can be added for the same purpose, without registering the field as a list.
+	 */
+	listFields: string[];
+	/**
 	 * Ignore the following fields
 	 */
 	ignoreFields: AreaSettings;
@@ -36,6 +41,7 @@ export const DEFAULT_SETTINGS: DataviewPropertiesSettings = {
 	prefix: "dv_",
 	dql: true,
 	djs: true,
+	listFields: [],
 	ignoreFields: {
 		fields: [],
 		lowerCase: true,

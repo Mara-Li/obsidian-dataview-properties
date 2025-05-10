@@ -114,6 +114,25 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 		containerEl.createEl("hr");
 
 		new Setting(containerEl)
+			.setName(i18next.t("listFields.title"))
+			.setDesc(
+				sanitizeHTMLToDom(
+					`${i18next.t("listFields.desc")} <code>_list</code> ${i18next.t("listFields.example")}`
+				)
+			)
+			.setClass("textarea")
+			.addTextArea((text) => {
+				text.setValue(this.plugin.settings.listFields.join(", ")).inputEl.onblur =
+					async () => {
+						this.plugin.settings.listFields = this.textAreaSettings(text);
+						await this.plugin.saveSettings();
+						await this.display();
+					};
+			});
+
+		containerEl.createEl("hr");
+
+		new Setting(containerEl)
 			.setHeading()
 			.setName(i18next.t("deleteFromFrontmatter.title"))
 			.setDesc(i18next.t("deleteFromFrontmatter.desc"))

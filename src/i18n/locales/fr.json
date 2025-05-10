@@ -33,6 +33,11 @@
     },
     "title": "Intervalle"
   },
+  "listFields": {
+    "desc": "Parfois, un champ inline peut être reconnu comme une chaîne de caractère au lieu d'une liste. Vous pouvez utiliser cette option pour \"forcer\" la reconnaissance en tant que tel. Vous pouvez également utiliser le suffixe",
+    "example": "dans le nom du champ.",
+    "title": "Marquer un champ comme une liste"
+  },
   "lowerCase": {
     "desc": "Les majuscules seront reconnues comme minuscules.",
     "title": "Insensitive"
