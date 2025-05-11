@@ -14,7 +14,8 @@
 			"bun",
 			"@wdio/globals/types",
 			"@wdio/mocha-framework",
-			"wdio-obsidian-service"
+			"wdio-obsidian-service",
+			"mocha"
 		],
 		"target": "ESNext",
 		"allowJs": true,
@@ -24,19 +25,7 @@
 		"isolatedModules": true,
 		"resolveJsonModule": true,
 		"strictNullChecks": true,
-		"lib": [
-			"DOM",
-			"ES5",
-			"ES6",
-			"ES7",
-			"ES2015",
-			"ES2021",
-			"ES2022",
-			"DOM.Iterable"
-		]
+		"lib": ["DOM", "ES5", "ES6", "ES7", "ES2015", "ES2021", "ES2022", "DOM.Iterable"]
 	},
-	"include": [
-		"**/*.ts",
-		"wdio.conf.mts"
-	]
+	"include": ["**/*.ts", "wdio.conf.mts"]
 }
