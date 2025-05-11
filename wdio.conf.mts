@@ -1,8 +1,12 @@
-import * as path from "path";
-import * as os from "os";
+import * as path from "node:path";
+import * as os from "node:os";
+import dotenv from "dotenv";
 import { obsidianBetaAvailable, resolveObsidianVersions } from "wdio-obsidian-service";
-
 const cacheDir = path.resolve(os.tmpdir(), ".obsidian-cache");
+dotenv.config();
+
+console.log(`Using obsidian vault: ${process.env.VAULT}`);
+console.log(`Using obsidian cache dir: ${cacheDir}`);
 
 let versions: [string, string][]; // [appVersion, installerVersion][]
 if (process.env.OBSIDIAN_VERSIONS) {

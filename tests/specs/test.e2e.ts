@@ -7,7 +7,9 @@ const manifest = JSON.parse(
 	fs.readFileSync(`${path.resolve(__dirname, "..", "..", "manifest.json")}`, "utf-8")
 ) as { id: string; name: string; version: string };
 
-console.log(`Running tests for ${manifest.name} v${manifest.version}`);
+console.log(
+	`Running tests for ${manifest.name} v${manifest.version} in ${process.env.VAULT}`
+);
 
 const folder = path.resolve(__dirname, "..");
 const fixtures = path.resolve(folder, "fixtures");
@@ -35,7 +37,8 @@ describe("Test my plugin", function () {
 		const files = await browser.executeObsidian(({ app }) => {
 			return app.vault.getMarkdownFiles().map((file) => file.path);
 		});
-		expect(files).toContain("Bienvenue.md");
+		console.warn(`Files in the vault: ${files}`);
+		expect(files.some((file) => file.match(/(welcome|bienvenue)\.md$/i))).toBe(true);
 	});
 
 	it("should add the keys to an empty frontmatter", async function () {
