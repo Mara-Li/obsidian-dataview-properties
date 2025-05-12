@@ -180,9 +180,19 @@ describe("Dataview Properties Plugin E2E Tests", function () {
 		expect(normalizeContent(content)).toEqual(getExceptedContent(fileName));
 	});
 
-	it("Should be a list in properties", async function () {
-		const fileName = "lists.md";
-		const content = await runTestWithFixture("lists.md", "lists.md");
-		expect(normalizeContent(content)).toEqual(getExceptedContent(fileName));
+	describe("List properties", function () {
+		it("Should be a list in properties", async function () {
+			const fileName = "lists.md";
+			const content = await runTestWithFixture("lists.md", "lists.md");
+			expect(normalizeContent(content)).toEqual(getExceptedContent(fileName));
+		});
+		it("Should markdownify lists in properties", async function () {
+			const fileName = "markdownify_lists.md";
+			const content = await runTestWithFixture(
+				"markdownify_lists.md",
+				"MarkdownifyLists.md"
+			);
+			expect(normalizeContent(content)).toEqual(getExceptedContent(fileName));
+		});
 	});
 });
