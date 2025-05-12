@@ -120,9 +120,9 @@ export default class Utils {
 	}
 }
 
-export function parseMarkdownList(markdown: string): (string | number)[] {
-	const lines = markdown.split("\n");
-	const result: (string | number)[] = [];
+export function parseMarkdownList(markdown: string): string[] {
+	const lines = markdown.split(/[\n,]+ ?/);
+	const result: string[] = [];
 	for (const line of lines) {
 		const trimmed = line.trim();
 		if (trimmed.length === 0) continue;
@@ -137,5 +137,6 @@ export function parseMarkdownList(markdown: string): (string | number)[] {
 			continue;
 		}
 	}
+	if (result.length === 0) return markdown.split(/, ?/).filter((x) => x.length > 0);
 	return result;
 }
