@@ -9,6 +9,7 @@ import dedent from "dedent";
 import { Component, type FrontMatterCache, htmlToMarkdown } from "obsidian";
 import type DataviewProperties from "./main";
 import { convertToNumber } from "./utils";
+import { parseMarkdownList } from "./utils/text_utils";
 
 /**
  * Handles Dataview API interactions and query evaluation
@@ -178,29 +179,39 @@ class Dataview {
 		return res;
 	}
 
+	isHtml(value: unknown): boolean {
+		if (Values.isString(value)) {
+			const regex = /<[^>]+>/g;
+			return regex.test(value as string);
+		}
+		return false;
+	}
+
 	/**
 	 * Evaluate and convert a dataview field value
 	 */
 	async evaluateInline(value: unknown, fieldName: string): Promise<unknown | undefined> {
 		if (value === "" || value === undefined) return;
+
 		try {
 			if (Values.isString(value)) {
-				const res = convertToNumber(await this.convertDataviewQueries(value));
+				console.warn(`${this.prefix} Converting string:`, value);
+				let res = convertToNumber(await this.convertDataviewQueries(value));
 				if (Values.isString(res)) {
+					if (this.isHtml(res)) res = htmlToMarkdown(res);
+
 					if (
 						this.plugin.settings.listFields.includes(fieldName) ||
 						fieldName.endsWith("_list")
 					)
-						return this.convertToDvArrayLinks(
-							res.split(/, ?/).filter((x) => x.length > 0)
-						);
+						return this.convertToDvArrayLinks(parseMarkdownList(res as string));
 					return res;
 				}
 			}
 
 			if (Values.isLink(value)) return this.stringifyLink(value);
 
-			if (Values.isHtml(value)) return Values.toString(value);
+			if (Values.isHtml(value)) return htmlToMarkdown(value);
 
 			if (Values.isWidget(value)) {
 				console.warn(`${this.prefix} Skipping widget value: ${value}`);

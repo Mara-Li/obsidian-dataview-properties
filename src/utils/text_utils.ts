@@ -119,3 +119,23 @@ export default class Utils {
 		});
 	}
 }
+
+export function parseMarkdownList(markdown: string): (string | number)[] {
+	const lines = markdown.split("\n");
+	const result: (string | number)[] = [];
+	for (const line of lines) {
+		const trimmed = line.trim();
+		if (trimmed.length === 0) continue;
+		const unorderedMatch = trimmed.match(/^[-*+]\s+(.*)$/);
+		if (unorderedMatch) {
+			result.push(unorderedMatch[1]);
+			continue;
+		}
+		const orderedMatch = trimmed.match(/^\d+\.\s+(.*)$/);
+		if (orderedMatch) {
+			result.push(orderedMatch[1]);
+			continue;
+		}
+	}
+	return result;
+}
