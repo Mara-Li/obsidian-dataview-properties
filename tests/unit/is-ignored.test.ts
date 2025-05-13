@@ -1,7 +1,8 @@
 import { describe, expect, test } from "bun:test";
-import { Utils } from "../../src/utils";
 import { isRecognized, prepareFields } from "../../src/fields";
+import { Utils } from "../../src/utils";
 import "uniformize";
+import type {PreparedFields} from "../../src/interfaces";
 
 describe("IgnoredField test", () => {
 	const utils = new Utils({
@@ -32,24 +33,32 @@ describe("IgnoredField test", () => {
 			["test", "éTé", "/^prefix.*/i"],
 			utils
 		);
+		
+		const preparedFields: PreparedFields = {
+			keys: ignoredKeys,
+			regex: ignoredRegex,
+		}
 
 		// Test sensibilité à la casse
-		expect(isRecognized("TEST", ignoredKeys, ignoredRegex, utils)).toBe(true);
-		expect(isRecognized("test", ignoredKeys, ignoredRegex, utils)).toBe(true);
+		expect(isRecognized("TEST", preparedFields, utils)).toBe(true);
+		expect(isRecognized("test", preparedFields, utils)).toBe(true);
 
 		// Test sensibilité aux accents
-		expect(isRecognized("ete", ignoredKeys, ignoredRegex, utils)).toBe(true);
-		expect(isRecognized("été", ignoredKeys, ignoredRegex, utils)).toBe(true);
+		expect(isRecognized("ete", preparedFields, utils)).toBe(true);
+		expect(isRecognized("été", preparedFields, utils)).toBe(true);
 
 		// Test avec regex
-		expect(isRecognized("prefixSomething", ignoredKeys, ignoredRegex, utils)).toBe(true);
-		expect(isRecognized("PREFIX123", ignoredKeys, ignoredRegex, utils)).toBe(true);
-		expect(isRecognized("notprefix", ignoredKeys, ignoredRegex, utils)).toBe(false);
+		expect(isRecognized("prefixSomething", preparedFields, utils)).toBe(true);
+		expect(isRecognized("PREFIX123", preparedFields, utils)).toBe(true);
+		expect(isRecognized("notprefix", preparedFields, utils)).toBe(false);
 
 		// Test champ non ignoré
-		expect(isRecognized("valid", ignoredKeys, ignoredRegex, utils)).toBe(false);
+		expect(isRecognized("valid", preparedFields, utils)).toBe(false);
 
 		// Test avec ignoredKeys et ignoredRegex vides
-		expect(isRecognized("anything", new Set(), [], utils)).toBe(false);
+		expect(isRecognized("anything", {
+			keys: new Set(),
+			regex: []
+		}, utils)).toBe(false);
 	});
 });
