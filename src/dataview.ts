@@ -10,6 +10,7 @@ import { Component, type FrontMatterCache, htmlToMarkdown } from "obsidian";
 import type DataviewProperties from "./main";
 import { convertToNumber } from "./utils";
 import { parseMarkdownList } from "./utils/text_utils";
+import { isRecognized } from "./fields";
 
 /**
  * Handles Dataview API interactions and query evaluation
@@ -201,7 +202,7 @@ class Dataview {
 					if (this.isHtml(res)) res = htmlToMarkdown(res);
 
 					if (
-						this.plugin.settings.listFields.includes(fieldName) ||
+						isRecognized(fieldName, this.plugin.listFields, this.plugin.utils) ||
 						fieldName.endsWith("_list")
 					)
 						return this.convertToDvArrayLinks(parseMarkdownList(res as string));

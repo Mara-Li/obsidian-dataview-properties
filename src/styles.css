@@ -54,3 +54,7 @@
 .obsidian-dataview-properties hr {
 	--hr-thickness: 1px;
 }
+
+.obsidian-dataview-properties hr.sub-heading {
+	border-style: dotted;
+}
