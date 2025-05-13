@@ -51,10 +51,10 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 	// helper to render lowerCase & ignoreAccents toggles for any group with .fields
 	private addFieldToggles(
 		containerEl: HTMLElement,
-		group: { fields: string[]; lowerCase: boolean; ignoreAccents: boolean },
+		group: { fields?: string[]; lowerCase: boolean; ignoreAccents: boolean, enabled?: boolean },
 		addHr: boolean = true
 	) {
-		if (group.fields.length > 0) {
+		if (group.fields && group.fields.length > 0 || group.enabled) {
 			new Setting(containerEl)
 				.setName(i18next.t("lowerCase.title"))
 				.setDesc(i18next.t("lowerCase.desc"))
@@ -79,13 +79,10 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 		}
 	}
 
-	// helper for deleteFromFrontmatter toggles (no .fields here)
 	private addDeleteFieldToggles(containerEl: HTMLElement) {
 		const grp = this.plugin.settings.deleteFromFrontmatter;
-		if (grp.enabled) {
-			this.addFieldToggles(containerEl, grp, false);
-			containerEl.createEl("hr");
-		}
+		this.addFieldToggles(containerEl, grp, false);
+		containerEl.createEl("hr");
 	}
 
 	async display(): Promise<void> {
@@ -175,7 +172,7 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 						await this.display();
 					};
 			});
-		this.addFieldToggles(containerEl, this.plugin.settings.listFields);
+		this.addFieldToggles(containerEl, this.plugin.settings.listFields, false);
 
 		containerEl.createEl("hr", { cls: "sub-heading" });
 
@@ -197,7 +194,7 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 					await this.display();
 				};
 			});
-		this.addFieldToggles(containerEl, this.plugin.settings.ignoreFields);
+		this.addFieldToggles(containerEl, this.plugin.settings.ignoreFields, false);
 
 		containerEl.createEl("hr");
 
