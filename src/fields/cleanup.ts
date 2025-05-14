@@ -1,6 +1,6 @@
-import { UtilsConfig } from "../interfaces";
+import { UtilsConfig, type PreparedFields } from "../interfaces";
 import type { Utils } from "../utils";
-import { isIgnored } from "./ignored-fields";
+import { isRecognized } from "./fields_prepare";
 
 export function cleanUpValue(
 	value: string,
@@ -61,15 +61,14 @@ export function cleanList(
 	utils: Utils,
 	inline: Record<string, any>,
 	fields: string[],
-	ignoredKeys: Set<string>,
-	removedKey: Set<string>,
-	ignoreRegex: RegExp[]
+	ignored: PreparedFields,
+	removedKey: Set<string>
 ) {
 	const result: Record<string, any> = {};
 	utils.useConfig(UtilsConfig.Cleanup);
 
 	for (const [key, value] of Object.entries(inline || {})) {
-		if (isIgnored(key, ignoredKeys, ignoreRegex, utils)) continue;
+		if (isRecognized(key, ignored, utils)) continue;
 
 		const correctedValue = correctValue(value, utils, fields);
 

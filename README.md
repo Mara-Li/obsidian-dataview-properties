@@ -12,6 +12,7 @@ The plugin offers the following features:
 - Evaluation of calculated values before insertion into frontmatter
 - Automatic cleanup of the frontmatter when the Dataview field is removed (optional)
 - Lowercase & ignore accents for values and fields recognition
+- Granular options to convert to properties list. 
 
 > [!WARNING]
 > The Dataview plugin must be installed and activated in your Obsidian vault.
@@ -26,7 +27,9 @@ The plugin offers the following features:
 > - **Insensitive** : The plugin will ignore the case of the field names when checking for matches. For example, if you have a field named "Name" and you set "name", both value will be recognized as the same.
 > - **Ignore accent** : The accented characters will be converted to their non-accented counterparts. For example, if you have a field named "école" and you set "ecole", both value will be recognized as the same.
 
+- **Prefix**: The prefix to add to the frontmatter properties. This is useful to avoid conflicts with existing properties (and Dataview metadata). The default value is `dv_`. **An empty prefix is not supported.**
 - **Interval**: The time interval (in milliseconds) at which the plugin will check for changes in the Dataview queries and update the frontmatter properties accordingly. The default value is 1000ms (1 second).
+- **Mark a field as a list**: A textarea to define fields that must be converted to a list. Separate the fields with a comma or a new line. To use regex, encapsulate with `/` (ex: `/^name$/i`).
 - **Frontmatter cleanup** : Automatically remove the frontmatter properties when the corresponding Dataview field is removed. Enabled by default.
 - **Ignored fields** : A list (of string) of fields to ignore (aka that won't be copied). Separate the fields with a comma or a new line. To use regex, encapsulate with `/` (ex: `/^name$/i`). 
 - **Text removing** : Remove pattern or value from the field **value** when adding it to the frontmatter. Useful to remove some unwanted characters like `%%`. Like **ignored fields**, you can use regex by encapsulating the pattern with `/` (ex: `/^name$/i`).
@@ -70,7 +73,7 @@ You can also trigger the synchronization manually by using the command palette (
 > name: "name"
 > force: 12
 > agility: 5
-> Vitality: 17
+> dv_Vitality: 17
 > ---
 >
 > # Hello world

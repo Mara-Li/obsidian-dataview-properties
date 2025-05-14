@@ -1,6 +1,6 @@
 import { shouldBeUpdated } from "./update-checker";
 export { shouldBeUpdated };
-import { isIgnored, prepareIgnoredFields } from "./ignored-fields";
-export { isIgnored, prepareIgnoredFields };
+import { isRecognized, prepareFields } from "./fields_prepare";
+export { isRecognized, prepareFields };
 import { cleanUpValue } from "./cleanup";
 export { cleanUpValue };

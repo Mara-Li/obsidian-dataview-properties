@@ -48,6 +48,52 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 		return result;
 	}
 
+	// helper to render lowerCase & ignoreAccents toggles for any group with .fields
+	private addFieldToggles(
+		containerEl: HTMLElement,
+		group: {
+			fields?: string[];
+			lowerCase: boolean;
+			ignoreAccents: boolean;
+			enabled?: boolean;
+		},
+		addHr: boolean = true
+	) {
+		if ((group.fields && group.fields.length > 0) || group.enabled) {
+			new Setting(containerEl)
+				.setName(i18next.t("lowerCase.title"))
+				.setDesc(i18next.t("lowerCase.desc"))
+				.setClass("li")
+				.addToggle((t) =>
+					t.setValue(group.lowerCase).onChange(async (v) => {
+						group.lowerCase = v;
+						await this.plugin.saveSettings();
+					})
+				);
+			new Setting(containerEl)
+				.setName(i18next.t("ignoreAccents.title"))
+				.setDesc(
+					sanitizeHTMLToDom(
+						`${i18next.t("ignoreAccents.desc")} <code>é</code> → <code>e</code>`
+					)
+				)
+				.setClass("li")
+				.addToggle((t) =>
+					t.setValue(group.ignoreAccents).onChange(async (v) => {
+						group.ignoreAccents = v;
+						await this.plugin.saveSettings();
+					})
+				);
+			if (addHr) containerEl.createEl("hr");
+		}
+	}
+
+	private addDeleteFieldToggles(containerEl: HTMLElement) {
+		const grp = this.plugin.settings.deleteFromFrontmatter;
+		this.addFieldToggles(containerEl, grp, false);
+		containerEl.createEl("hr");
+	}
+
 	async display(): Promise<void> {
 		const { containerEl } = this;
 
@@ -114,6 +160,54 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 		containerEl.createEl("hr");
 
 		new Setting(containerEl)
+			.setName("Fields name")
+			.setDesc("Change the behavior of the plugin for some specific fields.")
+			.setHeading()
+			.setClass("h1");
+
+		new Setting(containerEl)
+			.setName(i18next.t("listFields.title"))
+			.setDesc(
+				sanitizeHTMLToDom(
+					`${i18next.t("listFields.desc")} <code>_list</code> ${i18next.t("listFields.example")}`
+				)
+			)
+			.setClass("textarea")
+			.addTextArea((text) => {
+				text.setValue(this.plugin.settings.listFields.fields.join(", ")).inputEl.onblur =
+					async () => {
+						this.plugin.settings.listFields.fields = this.textAreaSettings(text);
+						await this.plugin.saveSettings();
+						await this.display();
+					};
+			});
+		this.addFieldToggles(containerEl, this.plugin.settings.listFields, false);
+
+		containerEl.createEl("hr", { cls: "sub-heading" });
+
+		new Setting(containerEl)
+			.setHeading()
+			.setName(i18next.t("ignoredFields.title"))
+			.setDesc(
+				sanitizeHTMLToDom(
+					`${i18next.t("ignoredFields.desc")} <code>/</code> ${i18next.t("ignoredFields.example")} <code>/myRegex/gi</code>`
+				)
+			)
+			.setClass("textarea")
+			.addTextArea((text) => {
+				text.setValue(
+					this.plugin.settings.ignoreFields.fields.join(", ")
+				).inputEl.onblur = async () => {
+					this.plugin.settings.ignoreFields.fields = this.textAreaSettings(text);
+					await this.plugin.saveSettings();
+					await this.display();
+				};
+			});
+		this.addFieldToggles(containerEl, this.plugin.settings.ignoreFields, false);
+
+		containerEl.createEl("hr");
+
+		new Setting(containerEl)
 			.setHeading()
 			.setName(i18next.t("deleteFromFrontmatter.title"))
 			.setDesc(i18next.t("deleteFromFrontmatter.desc"))
@@ -126,39 +220,7 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 						await this.display();
 					})
 			);
-
-		if (this.plugin.settings.deleteFromFrontmatter.enabled) {
-			new Setting(containerEl)
-				.setClass("li")
-				.setName(i18next.t("lowerCase.title"))
-				.setDesc(i18next.t("lowerCase.desc"))
-				.addToggle((toggle) =>
-					toggle
-						.setValue(this.plugin.settings.deleteFromFrontmatter.lowerCase)
-						.onChange(async (value) => {
-							this.plugin.settings.deleteFromFrontmatter.lowerCase = value;
-							await this.plugin.saveSettings();
-						})
-				);
-
-			new Setting(containerEl)
-				.setName(i18next.t("ignoreAccents.title"))
-				.setClass("li")
-				.setDesc(
-					sanitizeHTMLToDom(
-						`${i18next.t("ignoreAccents.desc")} <code>é</code> → <code>e</code>`
-					)
-				)
-				.addToggle((toggle) =>
-					toggle
-						.setValue(this.plugin.settings.deleteFromFrontmatter.ignoreAccents)
-						.onChange(async (value) => {
-							this.plugin.settings.deleteFromFrontmatter.ignoreAccents = value;
-							await this.plugin.saveSettings();
-						})
-				);
-			containerEl.createEl("hr");
-		}
+		this.addDeleteFieldToggles(containerEl);
 
 		const set = new Setting(containerEl)
 			.setName(i18next.t("cleanUpText.title"))
@@ -187,88 +249,8 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 			"",
 			this.plugin
 		);
+		this.addFieldToggles(containerEl, this.plugin.settings.cleanUpText);
 
-		if (this.plugin.settings.cleanUpText.fields.length > 0) {
-			new Setting(containerEl)
-				.setName(i18next.t("lowerCase.title"))
-				.setDesc(i18next.t("lowerCase.desc"))
-				.addToggle((toggle) =>
-					toggle
-						.setValue(this.plugin.settings.cleanUpText.lowerCase)
-						.onChange(async (value) => {
-							this.plugin.settings.cleanUpText.lowerCase = value;
-							await this.plugin.saveSettings();
-						})
-				);
-
-			new Setting(containerEl)
-				.setName(i18next.t("ignoreAccents.title"))
-				.setDesc(
-					sanitizeHTMLToDom(
-						`${i18next.t("ignoreAccents.desc")} <code>é</code> → <code>e</code>`
-					)
-				)
-				.addToggle((toggle) =>
-					toggle
-						.setValue(this.plugin.settings.cleanUpText.ignoreAccents)
-						.onChange(async (value) => {
-							this.plugin.settings.cleanUpText.ignoreAccents = value;
-							await this.plugin.saveSettings();
-						})
-				);
-			this.containerEl.createEl("hr");
-		}
-
-		new Setting(containerEl)
-			.setHeading()
-			.setClass("h1")
-			.setName(i18next.t("ignoredFields.title"))
-			.setDesc(
-				sanitizeHTMLToDom(
-					`${i18next.t("ignoredFields.desc")} <code>/</code> ${i18next.t("ignoredFields.example")} <code>/myRegex/gi</code>`
-				)
-			)
-			.setClass("textarea")
-			.addTextArea((text) => {
-				text.setValue(
-					this.plugin.settings.ignoreFields.fields.join(", ")
-				).inputEl.onblur = async () => {
-					this.plugin.settings.ignoreFields.fields = this.textAreaSettings(text);
-					await this.plugin.saveSettings();
-					await this.display();
-				};
-			});
-		if (this.plugin.settings.ignoreFields.fields.length > 0) {
-			new Setting(containerEl)
-				.setName(i18next.t("lowerCase.title"))
-				.setDesc(i18next.t("lowerCase.desc"))
-				.addToggle((toggle) =>
-					toggle
-						.setValue(this.plugin.settings.ignoreFields.lowerCase)
-						.onChange(async (value) => {
-							this.plugin.settings.ignoreFields.lowerCase = value;
-							await this.plugin.saveSettings();
-						})
-				);
-
-			new Setting(containerEl)
-				.setName(i18next.t("ignoreAccents.title"))
-				.setDesc(
-					sanitizeHTMLToDom(
-						`${i18next.t("ignoreAccents.desc")} <code>é</code> → <code>e</code>`
-					)
-				)
-				.addToggle((toggle) =>
-					toggle
-						.setValue(this.plugin.settings.ignoreFields.ignoreAccents)
-						.onChange(async (value) => {
-							this.plugin.settings.ignoreFields.ignoreAccents = value;
-							await this.plugin.saveSettings();
-						})
-				);
-
-			containerEl.createEl("hr");
-		}
 		new Setting(containerEl)
 			.setName("Dataview")
 			.setDesc(i18next.t("dataview.title"))

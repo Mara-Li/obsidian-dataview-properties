@@ -119,3 +119,24 @@ export default class Utils {
 		});
 	}
 }
+
+export function parseMarkdownList(markdown: string): string[] {
+	const lines = markdown.split(/[\n,]+ ?/);
+	const result: string[] = [];
+	for (const line of lines) {
+		const trimmed = line.trim();
+		if (trimmed.length === 0) continue;
+		const unorderedMatch = trimmed.match(/^[-*+]\s+(.*)$/);
+		if (unorderedMatch) {
+			result.push(unorderedMatch[1]);
+			continue;
+		}
+		const orderedMatch = trimmed.match(/^\d+\.\s+(.*)$/);
+		if (orderedMatch) {
+			result.push(orderedMatch[1]);
+			continue;
+		}
+	}
+	if (result.length === 0) return markdown.split(/, ?/).filter((x) => x.length > 0);
+	return result;
+}

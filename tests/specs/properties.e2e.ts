@@ -3,7 +3,7 @@ import { obsidianPage } from "wdio-obsidian-service";
 import * as fs from "fs";
 import * as path from "path";
 import type DataviewProperties from "../../src/main";
-import { DEFAULT_SETTINGS, type DataviewPropertiesSettings } from "../../src/interfaces";
+import { type DataviewPropertiesSettings, DEFAULT_SETTINGS } from "../../src/interfaces";
 
 const manifest = JSON.parse(
 	fs.readFileSync(`${path.resolve(__dirname, "..", "..", "manifest.json")}`, "utf-8")
@@ -79,15 +79,13 @@ describe("Dataview Properties Plugin E2E Tests", function () {
 		await browser.executeObsidianCommand(`${manifest.id}:dataview-to-frontmatter`);
 
 		// Get the updated content
-		const content = await browser.executeObsidian(({ app, obsidian }, fileName) => {
+		return await browser.executeObsidian(({ app, obsidian }, fileName) => {
 			const file = app.vault.getAbstractFileByPath(fileName);
 			if (file && file instanceof obsidian.TFile) {
 				return app.vault.read(file);
 			}
 			return "";
 		}, fileName);
-
-		return content;
 	}
 
 	it("Should have default settings", async function () {
@@ -180,5 +178,21 @@ describe("Dataview Properties Plugin E2E Tests", function () {
 		const fileName = "no_properties.md";
 		const content = await runTestWithFixture("no_properties.md", "NoProperties.md");
 		expect(normalizeContent(content)).toEqual(getExceptedContent(fileName));
+	});
+
+	describe("List properties", function () {
+		it("Should be a list in properties", async function () {
+			const fileName = "lists.md";
+			const content = await runTestWithFixture("lists.md", "lists.md");
+			expect(normalizeContent(content)).toEqual(getExceptedContent(fileName));
+		});
+		it("Should markdownify lists in properties", async function () {
+			const fileName = "markdownify_lists.md";
+			const content = await runTestWithFixture(
+				"markdownify_lists.md",
+				"MarkdownifyLists.md"
+			);
+			expect(normalizeContent(content)).toEqual(getExceptedContent(fileName));
+		});
 	});
 });

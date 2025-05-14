@@ -14,26 +14,33 @@ import { resources, translationLanguage } from "./i18n";
 import {
 	type DataviewPropertiesSettings,
 	DEFAULT_SETTINGS,
+	type PreparedFields,
 	UtilsConfig,
 } from "./interfaces";
 import { DataviewPropertiesSettingTab } from "./settings";
 import { Utils } from "./utils";
 import {
-	isIgnored,
-	prepareIgnoredFields,
+	isRecognized,
+	prepareFields,
 	shouldBeUpdated as checkShouldBeUpdated,
 } from "./fields";
 import { cleanList } from "./fields/cleanup";
 
 export default class DataviewProperties extends Plugin {
 	settings!: DataviewPropertiesSettings;
-	private ignoredKeys: Set<string> = new Set();
-	private ignoredRegex: RegExp[] = [];
+	private ignoredFields: PreparedFields = {
+		keys: new Set<string>(),
+		regex: [],
+	};
+	listFields: PreparedFields = {
+		keys: new Set<string>(),
+		regex: [],
+	};
 	private processingFiles: Set<string> = new Set();
 	private debounced!: (file: TFile) => void;
 	prefix: string = "obsidian-dataview-properties";
 	private previousDataviewFields: Map<string, Set<string>> = new Map();
-	private utils!: Utils;
+	utils!: Utils;
 
 	private updateDebouced(): void {
 		console.debug("[Dataview Properties] Debounce updated to", this.settings.interval);
@@ -118,7 +125,7 @@ export default class DataviewProperties extends Plugin {
 	}
 
 	private isIgnored(key: string): boolean {
-		return isIgnored(key, this.ignoredKeys, this.ignoredRegex, this.utils);
+		return isRecognized(key, this.ignoredFields, this.utils);
 	}
 
 	/**
@@ -191,9 +198,8 @@ export default class DataviewProperties extends Plugin {
 				this.utils,
 				inline,
 				this.settings.cleanUpText.fields,
-				this.ignoredKeys,
-				removedKey,
-				this.ignoredRegex
+				this.ignoredFields,
+				removedKey
 			);
 			const hasNewFields = this.shouldBeUpdated(inline, frontmatter);
 
@@ -270,18 +276,28 @@ export default class DataviewProperties extends Plugin {
 		this.utils.setConfig(UtilsConfig.Cleanup, this.settings.cleanUpText);
 		this.utils.setConfig(UtilsConfig.Ignore, this.settings.ignoreFields);
 		this.utils.setConfig(UtilsConfig.Delete, this.settings.deleteFromFrontmatter);
+		this.utils.setConfig(UtilsConfig.Lists, this.settings.listFields);
 	}
 
 	private prepareIgnoredFields(): void {
-		const result = prepareIgnoredFields(this.settings.ignoreFields.fields, this.utils);
-		this.ignoredKeys = result.ignoredKeys;
-		this.ignoredRegex = result.ignoredRegex;
+		this.utils.useConfig(UtilsConfig.Ignore);
+		const result = prepareFields(this.settings.ignoreFields.fields, this.utils);
+		this.ignoredFields.keys = result.keys;
+		this.ignoredFields.regex = result.regex;
+	}
+
+	private prepareListFields(): void {
+		this.utils.useConfig(UtilsConfig.Lists);
+		const result = prepareFields(this.settings.listFields.fields, this.utils);
+		this.listFields.keys = result.keys;
+		this.listFields.regex = result.regex;
 	}
 
 	async loadSettings(): Promise<void> {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
 		this.loadUtils();
 		this.prepareIgnoredFields();
+		this.prepareListFields();
 		this.updateDebouced();
 	}
 
@@ -289,6 +305,7 @@ export default class DataviewProperties extends Plugin {
 		await this.saveData(this.settings);
 		this.loadUtils();
 		this.prepareIgnoredFields();
+		this.prepareListFields();
 		this.updateDebouced();
 	}
 }

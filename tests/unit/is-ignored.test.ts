@@ -1,7 +1,8 @@
 import { describe, expect, test } from "bun:test";
+import { isRecognized, prepareFields } from "../../src/fields";
 import { Utils } from "../../src/utils";
-import { isIgnored, prepareIgnoredFields } from "../../src/fields";
 import "uniformize";
+import type {PreparedFields} from "../../src/interfaces";
 
 describe("IgnoredField test", () => {
 	const utils = new Utils({
@@ -11,7 +12,7 @@ describe("IgnoredField test", () => {
 
 	test("prepareIgnoredFields should handle ignored fields correctly", () => {
 		// Test avec champs simples et regex
-		const { ignoredKeys, ignoredRegex } = prepareIgnoredFields(
+		const { keys: ignoredKeys, regex: ignoredRegex } = prepareFields(
 			["test", "autre", "/regex.*/i"],
 			utils
 		);
@@ -22,34 +23,42 @@ describe("IgnoredField test", () => {
 		expect(ignoredRegex.length).toBe(1);
 
 		// Test champ vide
-		const emptyResult = prepareIgnoredFields([], utils);
-		expect(emptyResult.ignoredKeys.size).toBe(0);
-		expect(emptyResult.ignoredRegex.length).toBe(0);
+		const emptyResult = prepareFields([], utils);
+		expect(emptyResult.keys.size).toBe(0);
+		expect(emptyResult.regex.length).toBe(0);
 	});
 
 	test("isIgnored should detect ignored fields correctly", () => {
-		const { ignoredKeys, ignoredRegex } = prepareIgnoredFields(
+		const { keys: ignoredKeys, regex: ignoredRegex } = prepareFields(
 			["test", "éTé", "/^prefix.*/i"],
 			utils
 		);
+		
+		const preparedFields: PreparedFields = {
+			keys: ignoredKeys,
+			regex: ignoredRegex,
+		}
 
 		// Test sensibilité à la casse
-		expect(isIgnored("TEST", ignoredKeys, ignoredRegex, utils)).toBe(true);
-		expect(isIgnored("test", ignoredKeys, ignoredRegex, utils)).toBe(true);
+		expect(isRecognized("TEST", preparedFields, utils)).toBe(true);
+		expect(isRecognized("test", preparedFields, utils)).toBe(true);
 
 		// Test sensibilité aux accents
-		expect(isIgnored("ete", ignoredKeys, ignoredRegex, utils)).toBe(true);
-		expect(isIgnored("été", ignoredKeys, ignoredRegex, utils)).toBe(true);
+		expect(isRecognized("ete", preparedFields, utils)).toBe(true);
+		expect(isRecognized("été", preparedFields, utils)).toBe(true);
 
 		// Test avec regex
-		expect(isIgnored("prefixSomething", ignoredKeys, ignoredRegex, utils)).toBe(true);
-		expect(isIgnored("PREFIX123", ignoredKeys, ignoredRegex, utils)).toBe(true);
-		expect(isIgnored("notprefix", ignoredKeys, ignoredRegex, utils)).toBe(false);
+		expect(isRecognized("prefixSomething", preparedFields, utils)).toBe(true);
+		expect(isRecognized("PREFIX123", preparedFields, utils)).toBe(true);
+		expect(isRecognized("notprefix", preparedFields, utils)).toBe(false);
 
 		// Test champ non ignoré
-		expect(isIgnored("valid", ignoredKeys, ignoredRegex, utils)).toBe(false);
+		expect(isRecognized("valid", preparedFields, utils)).toBe(false);
 
 		// Test avec ignoredKeys et ignoredRegex vides
-		expect(isIgnored("anything", new Set(), [], utils)).toBe(false);
+		expect(isRecognized("anything", {
+			keys: new Set(),
+			regex: []
+		}, utils)).toBe(false);
 	});
 });
