@@ -1,3 +1,8 @@
+## [0.0.8](https://github.com/Mara-Li/obsidian-dataview-properties/compare/0.0.7...0.0.8) (2025-05-14)
+### Features
+
+* better supports for list ([#4](https://github.com/Mara-Li/obsidian-dataview-properties/issues/4)) ([329e206](https://github.com/Mara-Li/obsidian-dataview-properties/commit/329e20600a31993fde6295997f892c92c3cf918b))
+
 ## [0.0.7](https://github.com/Mara-Li/obsidian-dataview-properties/compare/0.0.6...0.0.7) (2025-05-07)
 ### Bug Fixes
 
