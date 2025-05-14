@@ -1,9 +1,9 @@
-import * as fs from "fs";
-import * as path from "path";
 import builtins from "builtin-modules";
 import { Command } from "commander";
 import dotenv from "dotenv";
 import esbuild from "esbuild";
+import * as fs from "fs";
+import * as path from "path";
 import manifest from "./manifest.json" with { type: "json" };
 import packageJson from "./package.json" with { type: "json" };
 

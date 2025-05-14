@@ -292,7 +292,6 @@ class Dataview {
  * @param path File path
  * @param plugin Plugin instance
  * @param frontmatter Existing frontmatter (optional)
- * @param previousKeys
  * @returns Object containing field names and values
  */
 export async function getInlineFields(
@@ -314,8 +313,8 @@ export async function getInlineFields(
 	const inlineFields: Record<string, unknown> = {};
 
 	const processedKeys = new Set<string>();
-	console.debug("Keys in pageData:", Object.keys(pageData));
 	delete pageData.file; // Remove the file key from the page data
+	console.debug(`${plugin.prefix} Processing inline fields for ${path}:`, pageData);
 
 	for (const key in pageData) {
 		const normalizedKey = key.toLowerCase();

@@ -254,7 +254,6 @@ export default class DataviewProperties extends Plugin {
 					const frontmatterKey = Object.keys(frontmatter).find((fmKey) =>
 						this.utils.keysMatch(fmKey, `${this.settings.prefix}${key}`)
 					);
-					console.error(frontmatterKey);
 					if (frontmatterKey) delete frontmatter[frontmatterKey];
 				}
 			}

@@ -17,8 +17,6 @@ export function shouldBeUpdated(
 		);
 		if (!frontmatterKey) return inlineValue != null;
 		if (inlineValue == null) return true;
-		console.debug(`${key} : ${inlineValue} != ${frontmatter[frontmatterKey]}`);
-
 		return !valuesEqualFn(inlineValue, frontmatter[frontmatterKey]);
 	});
 }
