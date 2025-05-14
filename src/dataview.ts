@@ -174,8 +174,7 @@ class Dataview {
 				console.debug(`${this.prefix} Converting link:`, value);
 				const link = this.stringifyLink(value);
 				res.push(link);
-			}
-			res.push(this.toWikiLink(value));
+			} else res.push(this.toWikiLink(value));
 		}
 		return res;
 	}
