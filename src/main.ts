@@ -184,7 +184,7 @@ export default class DataviewProperties extends Plugin {
 			this.processingFiles.add(filePath);
 			const frontmatter = this.app.metadataCache.getFileCache(activeFile)?.frontmatter;
 			const previousKeys = this.previousDataviewFields.get(filePath);
-			const inline = await getInlineFields(filePath, this, frontmatter, previousKeys);
+			const inline = await getInlineFields(filePath, this, frontmatter);
 
 			const shouldCheckRemoved = previousKeys && previousKeys.size > 0;
 			const removedKey = new Set<string>();

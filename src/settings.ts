@@ -10,7 +10,7 @@ import {
 	Notice,
 } from "obsidian";
 import type DataviewProperties from "./main";
-import { isNumber } from "./utils/number";
+import { isNumber } from "./utils";
 
 export class DataviewPropertiesSettingTab extends PluginSettingTab {
 	plugin: DataviewProperties;

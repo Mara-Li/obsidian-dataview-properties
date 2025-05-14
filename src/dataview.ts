@@ -7,10 +7,10 @@ import {
 } from "@enveloppe/obsidian-dataview";
 import dedent from "dedent";
 import { Component, type FrontMatterCache, htmlToMarkdown } from "obsidian";
+import { isRecognized } from "./fields";
 import type DataviewProperties from "./main";
 import { convertToNumber } from "./utils";
 import { parseMarkdownList } from "./utils/text_utils";
-import { isRecognized } from "./fields";
 
 /**
  * Handles Dataview API interactions and query evaluation
@@ -298,8 +298,7 @@ class Dataview {
 export async function getInlineFields(
 	path: string,
 	plugin: DataviewProperties,
-	frontmatter?: FrontMatterCache,
-	previousKeys?: Set<string>
+	frontmatter?: FrontMatterCache
 ): Promise<Record<string, any>> {
 	const { app } = plugin;
 	if (!plugin.isDataviewEnabled()) return {};
