@@ -196,7 +196,7 @@ class Dataview {
 
 		try {
 			if (Values.isString(value)) {
-				console.warn(`${this.prefix} Converting string:`, value);
+				console.debug(`${this.prefix} Converting string:`, value);
 				let res = convertToNumber(await this.convertDataviewQueries(value));
 				if (Values.isString(res)) {
 					if (this.isHtml(res)) res = htmlToMarkdown(res);
@@ -316,7 +316,7 @@ export async function getInlineFields(
 	const inlineFields: Record<string, unknown> = {};
 
 	const processedKeys = new Set<string>();
-	console.debug(pageData);
+	console.debug("Keys in pageData:", Object.keys(pageData));
 	delete pageData.file; // Remove the file key from the page data
 
 	for (const key in pageData) {
