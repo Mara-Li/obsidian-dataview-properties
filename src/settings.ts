@@ -51,26 +51,35 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 	// helper to render lowerCase & ignoreAccents toggles for any group with .fields
 	private addFieldToggles(
 		containerEl: HTMLElement,
-		group: { fields?: string[]; lowerCase: boolean; ignoreAccents: boolean, enabled?: boolean },
+		group: {
+			fields?: string[];
+			lowerCase: boolean;
+			ignoreAccents: boolean;
+			enabled?: boolean;
+		},
 		addHr: boolean = true
 	) {
-		if (group.fields && group.fields.length > 0 || group.enabled) {
+		if ((group.fields && group.fields.length > 0) || group.enabled) {
 			new Setting(containerEl)
 				.setName(i18next.t("lowerCase.title"))
 				.setDesc(i18next.t("lowerCase.desc"))
 				.setClass("li")
-				.addToggle(t =>
-					t.setValue(group.lowerCase).onChange(async v => {
+				.addToggle((t) =>
+					t.setValue(group.lowerCase).onChange(async (v) => {
 						group.lowerCase = v;
 						await this.plugin.saveSettings();
 					})
 				);
 			new Setting(containerEl)
 				.setName(i18next.t("ignoreAccents.title"))
-				.setDesc(sanitizeHTMLToDom(`${i18next.t("ignoreAccents.desc")} <code>é</code> → <code>e</code>`))
+				.setDesc(
+					sanitizeHTMLToDom(
+						`${i18next.t("ignoreAccents.desc")} <code>é</code> → <code>e</code>`
+					)
+				)
 				.setClass("li")
-				.addToggle(t =>
-					t.setValue(group.ignoreAccents).onChange(async v => {
+				.addToggle((t) =>
+					t.setValue(group.ignoreAccents).onChange(async (v) => {
 						group.ignoreAccents = v;
 						await this.plugin.saveSettings();
 					})
