@@ -1,3 +1,8 @@
+## [0.0.9](https://github.com/Mara-Li/obsidian-dataview-properties/compare/0.0.8...0.0.9) (2025-05-24)
+### Bug Fixes
+
+* number are not returned ([21c9520](https://github.com/Mara-Li/obsidian-dataview-properties/commit/21c9520d4d4d4b55f86a44ed02f6ad58b71abedb)), closes [#5](https://github.com/Mara-Li/obsidian-dataview-properties/issues/5)
+
 ## [0.0.8](https://github.com/Mara-Li/obsidian-dataview-properties/compare/0.0.7...0.0.8) (2025-05-14)
 ### Features
 
