@@ -194,5 +194,10 @@ describe("Dataview Properties Plugin E2E Tests", function () {
 			);
 			expect(normalizeContent(content)).toEqual(getExceptedContent(fileName));
 		});
+		it("Should add the calculated field to the frontmatter", async function () {
+			const fileName = "calc.md";
+			const content = await runTestWithFixture("calc.md", "Calc.md");
+			expect(normalizeContent(content)).toEqual(getExceptedContent(fileName));
+		});
 	});
 });
