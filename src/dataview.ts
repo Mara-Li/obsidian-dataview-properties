@@ -207,6 +207,7 @@ class Dataview {
 						return this.convertToDvArrayLinks(parseMarkdownList(res as string));
 					return res;
 				}
+				return res;
 			}
 
 			if (Values.isLink(value)) return this.stringifyLink(value);
