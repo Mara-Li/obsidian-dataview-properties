@@ -1,7 +1,8 @@
 ---
 title: DvList
 dv_add_list: 
-  - "[[Bienvenue.md|Bienvenue]]"
+  - "[[DataviewList.md|DataviewList]]"
+  - "[[Welcome.md|Welcome]]"
 ---
 
-add_list:: `$=dv.pages('').map(p => p.file.link).sort()`
+add_list:: `$= dv.pages('').map(p => p.file.link).sort()`

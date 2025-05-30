@@ -4,6 +4,7 @@ import * as fs from "fs";
 import * as path from "path";
 import type DataviewProperties from "../../src/main";
 import { type DataviewPropertiesSettings, DEFAULT_SETTINGS } from "../../src/interfaces";
+import type DataviewPlugin from "@enveloppe/obsidian-dataview/lib/main";
 
 const manifest = JSON.parse(
 	fs.readFileSync(`${path.resolve(__dirname, "..", "..", "manifest.json")}`, "utf-8")
@@ -77,6 +78,8 @@ describe("Dataview Properties Plugin E2E Tests", function () {
 
 		// Run the command to add keys to the frontmatter
 		await browser.executeObsidianCommand(`${manifest.id}:dataview-to-frontmatter`);
+		//wait for the command to finish
+		await browser.pause(500);
 
 		// Get the updated content
 		return await browser.executeObsidian(({ app, obsidian }, fileName) => {
@@ -198,6 +201,14 @@ describe("Dataview Properties Plugin E2E Tests", function () {
 		});
 		it("Should populate with a list from dataviewjs", async function () {
 			const fileName = "dv_list.md";
+			//enable dataviewjs
+			await browser.executeObsidian(({ app }, pluginId) => {
+				const plugin = app.plugins.getPlugin(pluginId) as DataviewPlugin;
+				if (plugin) {
+					plugin.settings.enableDataviewJs = true;
+					plugin.updateSettings(plugin.settings);
+				}
+			}, "dataview");
 			const content = await runTestWithFixture(fileName, "DataviewList.md");
 			expect(normalizeContent(content)).toEqual(getExceptedContent(fileName));
 		});

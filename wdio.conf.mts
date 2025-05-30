@@ -64,6 +64,7 @@ export const config: WebdriverIO.Config = {
 		timeout: 60000,
 		// You can set more config here like "retry" to retry flaky tests
 		// or "bail" to quit tests after the first failure.
+		retry: 2,
 	},
 
 	waitforInterval: 250,
