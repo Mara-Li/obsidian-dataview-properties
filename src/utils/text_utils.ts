@@ -1,5 +1,5 @@
-import { UtilsConfig, type TextOptions } from "../interfaces";
-import { cleanUpValue } from "../fields/cleanup";
+import { cleanUpValue } from "../fields";
+import { type TextOptions, UtilsConfig } from "../interfaces";
 import { isNumber } from "./number";
 
 const REGEX_RECOGNITION = /\/(?<regex>.*)\/(?<flag>[gmiyuvsd]*)/;
@@ -108,7 +108,7 @@ export default class Utils {
 	/**
 	 * Remove specified text patterns from a value
 	 * @param value The value to clean
-	 * @param fields The fields to remove
+	 * @param cleanupFields
 	 * @returns The cleaned value or null if empty
 	 */
 	removeFromValue(value: string, cleanupFields: string[]): string | null {
@@ -132,10 +132,7 @@ export function parseMarkdownList(markdown: string): string[] {
 			continue;
 		}
 		const orderedMatch = trimmed.match(/^\d+\.\s+(.*)$/);
-		if (orderedMatch) {
-			result.push(orderedMatch[1]);
-			continue;
-		}
+		if (orderedMatch) result.push(orderedMatch[1]);
 	}
 	if (result.length === 0) return markdown.split(/, ?/).filter((x) => x.length > 0);
 	return result;
