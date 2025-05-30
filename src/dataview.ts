@@ -107,6 +107,12 @@ class Dataview {
 		}
 	}
 
+	private delay(ms: number): Promise<void> {
+		return new Promise((resolve, _) => {
+			setTimeout(resolve, ms);
+		});
+	}
+
 	/**
 	 * Process inline DataviewJS queries
 	 * @param query The JavaScript query to evaluate
@@ -115,23 +121,30 @@ class Dataview {
 	async inlineDataviewJS(query: string): Promise<string> {
 		const cacheKey = `djs:${query}:${this.path}`;
 		if (this.queryCache.has(cacheKey)) return this.queryCache.get(cacheKey)!;
-
 		try {
 			// biome-ignore lint/correctness/noUndeclaredVariables: createEl is a global function from Obsidian
 			const div = createEl("div");
 			const component = new Component();
+			component.load();
 			const evaluateQuery = dedent(`
 				try {
 					const query = ${query};
-					dv.paragraph(query);
+					dv.el("div", query);
 				} catch(e) {
 					dv.paragraph("Evaluation Error: " + e.message);
 				}
 			`);
-
+			/**
+			 * @credit saberzero1 with Quartz Syncer
+			 */
 			await this.dvApi.executeJs(evaluateQuery, div, component, this.path);
-			component.load();
-			const result = this.removeDataviewQueries(htmlToMarkdown(div.innerHTML));
+			let counter = 0;
+			while (!div.querySelector("[data-tag-name]") && counter < 50) {
+				await this.delay(5);
+				counter++;
+			}
+
+			const result = this.removeDataviewQueries(htmlToMarkdown(div));
 			this.queryCache.set(cacheKey, result);
 			return result;
 		} catch (error) {
@@ -174,7 +187,7 @@ class Dataview {
 				console.debug(`${this.prefix} Converting link:`, value);
 				const link = this.stringifyLink(value);
 				res.push(link);
-			} else res.push(this.toWikiLink(value));
+			} else res.push(this.toWikiLink(decodeURI(value as string)));
 		}
 		return res;
 	}
@@ -203,8 +216,10 @@ class Dataview {
 					if (
 						isRecognized(fieldName, this.plugin.listFields, this.plugin.utils) ||
 						fieldName.endsWith("_list")
-					)
+					) {
+						console.debug(`${this.prefix} Converting list:`, res);
 						return this.convertToDvArrayLinks(parseMarkdownList(res as string));
+					}
 					return res;
 				}
 				return res;
@@ -242,7 +257,7 @@ class Dataview {
 	 * Convert a Dataview Link object to markdown link format
 	 */
 	private stringifyLink(fieldValue: Link): string {
-		let path = fieldValue.path;
+		let path = decodeURI(fieldValue.path);
 		if (fieldValue.subpath) path += `#${fieldValue.subpath}`;
 		if (fieldValue.display) return `[[${path}|${fieldValue.display}]]`;
 		return `[[${path}]]`;
@@ -283,7 +298,6 @@ class Dataview {
 				}
 			}
 		}
-
 		return replacedText;
 	}
 }
@@ -321,7 +335,6 @@ export async function getInlineFields(
 		const normalizedKey = key.toLowerCase();
 		if (processedKeys.has(normalizedKey)) continue;
 		processedKeys.add(normalizedKey);
-
 		if (!frontmatter || !(key in frontmatter)) {
 			inlineFields[key] = await compiler.evaluateInline(pageData[key], key);
 		} else if (
