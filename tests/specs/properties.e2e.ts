@@ -103,7 +103,6 @@ describe("Dataview Properties Plugin E2E Tests", function () {
 		}
 		expect(dvPluginT).toEqual(DEFAULT_SETTINGS);
 		expect(dvPluginT.prefix).toEqual("dv_");
-		console.log(dvPluginT.prefix);
 	});
 
 	it("Should have the same manifest version as the plugin", async function () {
@@ -176,27 +175,30 @@ describe("Dataview Properties Plugin E2E Tests", function () {
 
 	it("should not modify files without dataview properties", async function () {
 		const fileName = "no_properties.md";
-		const content = await runTestWithFixture("no_properties.md", "NoProperties.md");
+		const content = await runTestWithFixture(fileName, "NoProperties.md");
+		expect(normalizeContent(content)).toEqual(getExceptedContent(fileName));
+	});
+
+	it("Should add the calculated field to the frontmatter", async function () {
+		const fileName = "calc.md";
+		const content = await runTestWithFixture(fileName, "Calc.md");
 		expect(normalizeContent(content)).toEqual(getExceptedContent(fileName));
 	});
 
 	describe("List properties", function () {
 		it("Should be a list in properties", async function () {
 			const fileName = "lists.md";
-			const content = await runTestWithFixture("lists.md", "lists.md");
+			const content = await runTestWithFixture(fileName, "Lists.md");
 			expect(normalizeContent(content)).toEqual(getExceptedContent(fileName));
 		});
 		it("Should markdownify lists in properties", async function () {
 			const fileName = "markdownify_lists.md";
-			const content = await runTestWithFixture(
-				"markdownify_lists.md",
-				"MarkdownifyLists.md"
-			);
+			const content = await runTestWithFixture(fileName, "MarkdownifyLists.md");
 			expect(normalizeContent(content)).toEqual(getExceptedContent(fileName));
 		});
-		it("Should add the calculated field to the frontmatter", async function () {
-			const fileName = "calc.md";
-			const content = await runTestWithFixture("calc.md", "Calc.md");
+		it("Should populate with a list from dataviewjs", async function () {
+			const fileName = "dv_list.md";
+			const content = await runTestWithFixture(fileName, "DataviewList.md");
 			expect(normalizeContent(content)).toEqual(getExceptedContent(fileName));
 		});
 	});
