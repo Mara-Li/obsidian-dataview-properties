@@ -1,3 +1,8 @@
+## [0.0.10](https://github.com/Mara-Li/obsidian-dataview-properties/compare/0.0.9...0.0.10) (2025-05-30)
+### Bug Fixes
+
+* dataview list with executeJs ([b138a4f](https://github.com/Mara-Li/obsidian-dataview-properties/commit/b138a4f4fd726b13a7b879b648e4a303c161183a)), closes [#3](https://github.com/Mara-Li/obsidian-dataview-properties/issues/3)
+
 ## [0.0.9](https://github.com/Mara-Li/obsidian-dataview-properties/compare/0.0.8...0.0.9) (2025-05-24)
 ### Bug Fixes
 
