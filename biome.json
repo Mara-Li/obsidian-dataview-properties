@@ -14,8 +14,7 @@
 			"complexity": {
 				"noExtraBooleanCast": "error",
 				"noAdjacentSpacesInRegex": "error",
-				"noUselessCatch": "error",
-				"noWith": "error"
+				"noUselessCatch": "error"
 			},
 			"correctness": {
 				"noConstAssign": "error",
@@ -43,7 +42,8 @@
 				"noUnusedImports": "warn",
 				"useIsNan": "error",
 				"useValidForDirection": "error",
-				"useYield": "error"
+				"useYield": "error",
+				"useValidTypeof": "error"
 			},
 			"suspicious": {
 				"noAssignInExpressions": "error",
@@ -68,8 +68,8 @@
 				"noShadowRestrictedNames": "error",
 				"noUnsafeNegation": "error",
 				"useGetterReturn": "error",
-				"useValidTypeof": "error",
-				"noVar": "error"
+				"noVar": "error",
+				"noWith": "error"
 			},
 			"style": {
 				"useFilenamingConvention": "error",
