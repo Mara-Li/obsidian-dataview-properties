@@ -1,5 +1,5 @@
-import { UtilsConfig, type PreparedFields } from "../interfaces";
-import type { Utils } from "../utils";
+import { type PreparedFields, UtilsConfig } from "../interfaces";
+import { convertToNumber, type Utils } from "../utils";
 import { isRecognized } from "./fields_prepare";
 
 export function cleanUpValue(
@@ -55,6 +55,9 @@ export function cleanUpValue(
 
 export function correctValue(value: unknown, utils: Utils, fields: string[]) {
 	return typeof value === "string" ? utils.removeFromValue(value, fields) : value;
+	const result =
+		typeof toClean === "string" ? utils.removeFromValue(toClean, fields) : toClean;
+	return convertToNumber(result);
 }
 
 export function cleanList(
