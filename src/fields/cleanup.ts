@@ -54,7 +54,7 @@ export function cleanUpValue(
 }
 
 export function correctValue(value: unknown, utils: Utils, fields: string[]) {
-	return typeof value === "string" ? utils.removeFromValue(value, fields) : value;
+	const toClean = typeof value === "number" ? value.toString() : value;
 	const result =
 		typeof toClean === "string" ? utils.removeFromValue(toClean, fields) : toClean;
 	return convertToNumber(result);
