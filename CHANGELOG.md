@@ -1,3 +1,9 @@
+## [0.0.11](https://github.com/Mara-Li/obsidian-dataview-properties/compare/0.0.10...0.0.11) (2025-06-12)
+### Bug Fixes
+
+* **clean:** allow number to be removed ([5b64bf3](https://github.com/Mara-Li/obsidian-dataview-properties/commit/5b64bf3f0d1c2a7e8b899f15a4b12043d7483c3a))
+* **clean:** convert to number after removing the text ([af3d8b0](https://github.com/Mara-Li/obsidian-dataview-properties/commit/af3d8b048a3f46ff8757c6d5553f19ea26913335))
+
 ## [0.0.10](https://github.com/Mara-Li/obsidian-dataview-properties/compare/0.0.9...0.0.10) (2025-05-30)
 ### Bug Fixes
 
