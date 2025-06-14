@@ -10,6 +10,12 @@ import "uniformize";
 import { isPluginEnabled } from "@enveloppe/obsidian-dataview";
 import i18next from "i18next";
 import { getInlineFields } from "./dataview";
+import {
+	shouldBeUpdated as checkShouldBeUpdated,
+	isRecognized,
+	prepareFields,
+} from "./fields";
+import { cleanList } from "./fields/cleanup";
 import { resources, translationLanguage } from "./i18n";
 import {
 	type DataviewPropertiesSettings,
@@ -19,12 +25,6 @@ import {
 } from "./interfaces";
 import { DataviewPropertiesSettingTab } from "./settings";
 import { Utils } from "./utils";
-import {
-	isRecognized,
-	prepareFields,
-	shouldBeUpdated as checkShouldBeUpdated,
-} from "./fields";
-import { cleanList } from "./fields/cleanup";
 
 export default class DataviewProperties extends Plugin {
 	settings!: DataviewPropertiesSettings;
