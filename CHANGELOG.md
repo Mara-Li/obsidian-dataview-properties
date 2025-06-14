@@ -1,3 +1,8 @@
+## [0.0.12](https://github.com/Mara-Li/obsidian-dataview-properties/compare/0.0.11...0.0.12) (2025-06-14)
+### Bug Fixes
+
+* **number:** should return 0 when the value is ... 0, not empty string ([0816764](https://github.com/Mara-Li/obsidian-dataview-properties/commit/0816764cfe5329f6b34e1261e7ea5e90ddd754ab))
+
 ## [0.0.11](https://github.com/Mara-Li/obsidian-dataview-properties/compare/0.0.10...0.0.11) (2025-06-12)
 ### Bug Fixes
 
