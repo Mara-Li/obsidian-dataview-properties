@@ -76,7 +76,7 @@ class Dataview {
 	 * Clean and sanitize dataview results
 	 */
 	private removeDataviewQueries(dataviewMarkdown: Literal): string {
-		if (!dataviewMarkdown) return "";
+		if (dataviewMarkdown == null) return "";
 		const toStr = dataviewMarkdown?.toString();
 		return toStr || "";
 	}
@@ -210,6 +210,7 @@ class Dataview {
 			if (Values.isString(value)) {
 				console.debug(`${this.prefix} Converting string:`, value);
 				let res = convertToNumber(await this.convertDataviewQueries(value));
+
 				if (Values.isString(res)) {
 					if (this.isHtml(res)) res = htmlToMarkdown(res);
 
