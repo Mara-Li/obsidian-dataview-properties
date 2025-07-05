@@ -8,6 +8,7 @@ import {
 	sanitizeHTMLToDom,
 	type TextAreaComponent,
 	Notice,
+    Component,
 } from "obsidian";
 import type DataviewProperties from "./main";
 import { isNumber } from "./utils";
@@ -183,7 +184,7 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 			});
 		this.addFieldToggles(containerEl, this.plugin.settings.listFields, false);
 
-		containerEl.createEl("hr", { cls: "sub-heading" });
+		containerEl.createEl("hr");
 
 		new Setting(containerEl)
 			.setHeading()
@@ -240,6 +241,11 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 						await this.display();
 					};
 			});
+		
+		this.containerEl.createEl("hr")
+		
+		const components = new Component()
+		components.load();
 		await MarkdownRenderer.render(
 			this.app,
 			dedent(`
@@ -247,7 +253,7 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 			`),
 			set.descEl,
 			"",
-			this.plugin
+			components
 		);
 		this.addFieldToggles(containerEl, this.plugin.settings.cleanUpText);
 
@@ -265,7 +271,7 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 			`),
 			containerEl,
 			"",
-			this.plugin
+			components
 		);
 
 		new Setting(containerEl).setName("Query language (DQL)").addToggle((toggle) =>
