@@ -118,3 +118,4 @@ To add a translation:
 - [Jesse Hines for wdio obsidian service](https://github.com/jesse-r-s-hines/wdio-obsidian-service) that *finally* made me able to test the plugin in a real obsidian environment automatically. It mean a lot for a QA tester like me!
 - [Obsidian Dataview](https://github.com/blacksmithgu/obsidian-dataview) as a dependecies.
 - [Obsidian Digital Garden](https://github.com/oleeskild/obsidian-digital-garden) for the first version of the Dataview compiler/evaluator.
+<!--- ---->
