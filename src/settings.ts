@@ -85,14 +85,14 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					})
 				);
-			if (addHr) containerEl.createEl("hr");
+			//if (addHr) containerEl.createEl("hr");
 		}
 	}
 
 	private addDeleteFieldToggles(containerEl: HTMLElement) {
 		const grp = this.plugin.settings.deleteFromFrontmatter;
 		this.addFieldToggles(containerEl, grp, false);
-		containerEl.createEl("hr");
+		//containerEl.createEl("hr");
 	}
 
 	async display(): Promise<void> {
@@ -105,6 +105,7 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName(i18next.t("prefix.title"))
 			.setDesc(i18next.t("prefix.desc"))
+			.setHeading()
 			.addText((text) => {
 				text.setValue(this.plugin.settings.prefix).inputEl.onblur = async () => {
 					const value = text.getValue();
@@ -122,11 +123,11 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 					}
 				};
 			});
-
-		containerEl.createEl("hr");
+		
 
 		new Setting(containerEl)
 			.setName(i18next.t("interval.title"))
+			.setHeading()
 			.setDesc(
 				sanitizeHTMLToDom(
 					`${i18next.t("interval.info")} (→ <code>${this.convertTimeInterval(this.plugin.settings.interval)}</code>) ${i18next.t("interval.desc")}`
@@ -158,7 +159,7 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 					};
 			});
 
-		containerEl.createEl("hr");
+		
 
 		new Setting(containerEl)
 			.setName("Fields name")
@@ -168,6 +169,7 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName(i18next.t("listFields.title"))
+			.setHeading()
 			.setDesc(
 				sanitizeHTMLToDom(
 					`${i18next.t("listFields.desc")} <code>_list</code> ${i18next.t("listFields.example")}`
@@ -184,7 +186,7 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 			});
 		this.addFieldToggles(containerEl, this.plugin.settings.listFields, false);
 
-		containerEl.createEl("hr");
+		
 
 		new Setting(containerEl)
 			.setHeading()
@@ -206,7 +208,7 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 			});
 		this.addFieldToggles(containerEl, this.plugin.settings.ignoreFields, false);
 
-		containerEl.createEl("hr");
+		
 
 		new Setting(containerEl)
 			.setHeading()
@@ -242,7 +244,7 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 					};
 			});
 		
-		this.containerEl.createEl("hr")
+		//this.containerEl.createEl("hr")
 		
 		const components = new Component()
 		components.load();
@@ -274,13 +276,13 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 			components
 		);
 
-		new Setting(containerEl).setName("Query language (DQL)").addToggle((toggle) =>
+		new Setting(containerEl).setHeading().setName("Query language (DQL)").addToggle((toggle) =>
 			toggle.setValue(this.plugin.settings.dql).onChange(async (value) => {
 				this.plugin.settings.dql = value;
 				await this.plugin.saveSettings();
 			})
 		);
-		new Setting(containerEl).setName("Javascript (DJS)").addToggle((toggle) =>
+		new Setting(containerEl).setHeading().setName("Javascript (DJS)").addToggle((toggle) =>
 			toggle.setValue(this.plugin.settings.djs).onChange(async (value) => {
 				this.plugin.settings.djs = value;
 				await this.plugin.saveSettings();

@@ -1,4 +1,4 @@
-.obsidian-dataview-properties .setting-item {
+/*.obsidian-dataview-properties .setting-item {
 	border: none;
 }
 /*
@@ -52,6 +52,7 @@
 	margin-top: 10px;
 }
 
+/*
 .obsidian-dataview-properties hr {
 	--hr-thickness: 1px;
 }
@@ -63,3 +64,4 @@
 .setting-item.setting-item-heading.h1.textarea {
 	margin-bottom: 0.5em;
 }
+*/
