@@ -1,3 +1,8 @@
+## [0.0.16](https://github.com/Mara-Li/obsidian-dataview-properties/compare/0.0.15...0.0.16) (2025-07-11)
+### Bug Fixes
+
+* unload component ([142cadb](https://github.com/Mara-Li/obsidian-dataview-properties/commit/142cadb72f3ff1e24c25b625477650d239f31652))
+
 ## [0.0.15](https://github.com/Mara-Li/obsidian-dataview-properties/compare/0.0.14...0.0.15) (2025-07-11)
 
 ## [0.0.14](https://github.com/Mara-Li/obsidian-dataview-properties/compare/0.0.13...0.0.14) (2025-07-10)
