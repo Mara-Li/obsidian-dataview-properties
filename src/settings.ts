@@ -268,6 +268,8 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 			"",
 			components
 		);
+		
+		components.unload();
 
 		new Setting(containerEl).setHeading().setName("Query language (DQL)").addToggle((toggle) =>
 			toggle.setValue(this.plugin.settings.dql).onChange(async (value) => {
