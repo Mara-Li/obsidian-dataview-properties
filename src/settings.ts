@@ -2,13 +2,13 @@ import dedent from "dedent";
 import i18next from "i18next";
 import {
 	type App,
+    Component,
 	MarkdownRenderer,
+	Notice,
 	PluginSettingTab,
 	Setting,
 	sanitizeHTMLToDom,
 	type TextAreaComponent,
-	Notice,
-    Component,
 } from "obsidian";
 import type DataviewProperties from "./main";
 import { isNumber } from "./utils";
@@ -53,12 +53,11 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 	private addFieldToggles(
 		containerEl: HTMLElement,
 		group: {
-			fields?: string[];
-			lowerCase: boolean;
+			enabled?: false | true | undefined;
+			fields?: string[] | undefined;
 			ignoreAccents: boolean;
-			enabled?: boolean;
-		},
-		addHr: boolean = true
+			lowerCase: boolean
+		}
 	) {
 		if ((group.fields && group.fields.length > 0) || group.enabled) {
 			new Setting(containerEl)
@@ -85,14 +84,12 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					})
 				);
-			//if (addHr) containerEl.createEl("hr");
 		}
 	}
 
 	private addDeleteFieldToggles(containerEl: HTMLElement) {
 		const grp = this.plugin.settings.deleteFromFrontmatter;
-		this.addFieldToggles(containerEl, grp, false);
-		//containerEl.createEl("hr");
+		this.addFieldToggles(containerEl, grp);
 	}
 
 	async display(): Promise<void> {
@@ -165,7 +162,6 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 			.setName("Fields name")
 			.setDesc("Change the behavior of the plugin for some specific fields.")
 			.setHeading()
-			.setClass("h1");
 
 		new Setting(containerEl)
 			.setName(i18next.t("listFields.title"))
@@ -184,7 +180,7 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 						await this.display();
 					};
 			});
-		this.addFieldToggles(containerEl, this.plugin.settings.listFields, false);
+		this.addFieldToggles(containerEl, this.plugin.settings.listFields);
 
 		
 
@@ -206,7 +202,7 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 					await this.display();
 				};
 			});
-		this.addFieldToggles(containerEl, this.plugin.settings.ignoreFields, false);
+		this.addFieldToggles(containerEl, this.plugin.settings.ignoreFields);
 
 		
 
@@ -228,7 +224,6 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 		const set = new Setting(containerEl)
 			.setName(i18next.t("cleanUpText.title"))
 			.setHeading()
-			.setClass("h1")
 			.setDesc(
 				sanitizeHTMLToDom(
 					`${i18next.t("cleanUpText.desc")} <code>/</code> ${i18next.t("ignoredFields.example")} <code>/myRegex/gi</code>`
@@ -244,7 +239,6 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 					};
 			});
 		
-		//this.containerEl.createEl("hr")
 		
 		const components = new Component()
 		components.load();
@@ -263,7 +257,6 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 			.setName("Dataview")
 			.setDesc(i18next.t("dataview.title"))
 			.setHeading()
-			.setClass("h1");
 
 		await MarkdownRenderer.render(
 			this.app,
