@@ -334,7 +334,8 @@ export async function getInlineFields(
 
 	for (const key in pageData) {
 		const normalizedKey = key.toLowerCase();
-		if (processedKeys.has(normalizedKey)) continue;
+		const withSpace = normalizedKey.replaceAll("-", " ");
+		if (processedKeys.has(normalizedKey) || processedKeys.has(withSpace)) continue;
 		processedKeys.add(normalizedKey);
 		if (!frontmatter || !(key in frontmatter)) {
 			inlineFields[key] = await compiler.evaluateInline(pageData[key], key);

@@ -188,6 +188,12 @@ describe("Dataview Properties Plugin E2E Tests", function () {
 		expect(normalizeContent(content)).toEqual(getExceptedContent(fileName));
 	});
 
+	it("Should not create duplicate fields when a fields has space", async function () {
+		const fileName = "space_fields.md";
+		const content = await runTestWithFixture(fileName, "SpaceFields.md");
+		expect(normalizeContent(content)).toEqual(getExceptedContent(fileName));
+	});
+
 	describe("List properties", function () {
 		it("Should be a list in properties", async function () {
 			const fileName = "lists.md";
