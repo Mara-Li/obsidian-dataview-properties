@@ -1,3 +1,8 @@
+## [0.0.17](https://github.com/Mara-Li/obsidian-dataview-properties/compare/0.0.16...0.0.17) (2025-07-24)
+### Bug Fixes
+
+* duplicate key created by dataview ([6b2105d](https://github.com/Mara-Li/obsidian-dataview-properties/commit/6b2105d1d955c6f096fdcb18800882ed540a2e93)), closes [#6](https://github.com/Mara-Li/obsidian-dataview-properties/issues/6)
+
 ## [0.0.16](https://github.com/Mara-Li/obsidian-dataview-properties/compare/0.0.15...0.0.16) (2025-07-11)
 ### Bug Fixes
 
