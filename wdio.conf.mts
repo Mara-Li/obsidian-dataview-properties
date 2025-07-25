@@ -37,9 +37,7 @@ export const config: WebdriverIO.Config = {
 	runner: "local",
 
 	specs: ["./tests/specs/**/*.e2e.ts"],
-
-	// How many instances of Obsidian should be launched in parallel during testing.
-	maxInstances: Number(process.env["WDIO_MAX_INSTANCES"] || 4),
+	maxInstances: 4,
 
 	capabilities: versions.map(([appVersion, installerVersion]) => ({
 		browserName: "obsidian",
@@ -55,16 +53,11 @@ export const config: WebdriverIO.Config = {
 
 	framework: "mocha",
 	services: ["obsidian"],
-	// You can use any wdio reporter, but by default they show the chromium version instead of the Obsidian version a
-	// test is running on. obsidian-reporter is just a wrapper around spec-reporter that shows the Obsidian version.
 	reporters: ["obsidian"],
 
 	mochaOpts: {
 		ui: "bdd",
 		timeout: 60000,
-		// You can set more config here like "retry" to retry flaky tests
-		// or "bail" to quit tests after the first failure.
-		retry: 2,
 	},
 
 	waitforInterval: 250,

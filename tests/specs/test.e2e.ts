@@ -1,14 +1,14 @@
 import { browser, expect } from "@wdio/globals";
-import { obsidianPage } from "wdio-obsidian-service";
 import * as fs from "fs";
 import * as path from "path";
+import { obsidianPage } from "wdio-obsidian-service";
 
 const manifest = JSON.parse(
 	fs.readFileSync(`${path.resolve(__dirname, "..", "..", "manifest.json")}`, "utf-8")
 ) as { id: string; name: string; version: string };
 
 console.log(
-	`Running tests for ${manifest.name} v${manifest.version} in ${process.env.VAULT}`
+	`Running tests for ${manifest.name} v${manifest.version} in ${process.env.VAULT_TEST}`
 );
 
 const folder = path.resolve(__dirname, "..");
