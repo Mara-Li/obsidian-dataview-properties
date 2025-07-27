@@ -11,8 +11,25 @@ type AreaSettings = {
 	fields: string[];
 } & TextOptions;
 
+export type Ignore = {
+	/**
+	 * Can be a regex or a string file path
+	 */
+	files: string[];
+	/**
+	 * If "key_name" is true in the properties, the file will be ignored by the parser.
+	 * @default dv_ignore
+	 * @example
+	 * ```yaml
+	 * dv_ignore: true
+	 * ```
+	 */
+	keyName: string;
+};
+
 export interface DataviewPropertiesSettings {
 	prefix: string;
+	ignore: Ignore;
 	dql: boolean;
 	djs: boolean;
 	/**
@@ -44,6 +61,10 @@ export enum UtilsConfig {
 
 export const DEFAULT_SETTINGS: DataviewPropertiesSettings = {
 	prefix: "dv_",
+	ignore: {
+		files: [],
+		keyName: "dv_ignore",
+	},
 	dql: true,
 	djs: true,
 	listFields: {
