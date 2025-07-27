@@ -28,6 +28,7 @@ The plugin offers the following features:
 > - **Insensitive** : The plugin will ignore the case of the field names when checking for matches. For example, if you have a field named "Name" and you set "name", both value will be recognized as the same.
 > - **Ignore accent** : The accented characters will be converted to their non-accented counterparts. For example, if you have a field named "école" and you set "ecole", both value will be recognized as the same.
 
+- **Excluded file** : Exclude files by path, a regex (like `/mypath.*/i`) or using a frontmatter key (by default, it is `dv_excluded: true`). These settings are under the button "Excluded files".
 - **Prefix**: The prefix to add to the frontmatter properties. This is useful to avoid conflicts with existing properties (and Dataview metadata). The default value is `dv_`. **An empty prefix is not supported.**
 - **Interval**: The time interval (in milliseconds) at which the plugin will check for changes in the Dataview queries and update the frontmatter properties accordingly. The default value is 1000ms (1 second).
 - **Mark a field as a list**: A textarea to define fields that must be converted to a list. Separate the fields with a comma or a new line. To use regex, encapsulate with `/` (ex: `/^name$/i`).
@@ -37,7 +38,6 @@ The plugin offers the following features:
 - **Dataview** : Enable/disable the evaluation of each type of dataview query. Only inline queries are supported.
     - **Dataview Query Language (DQL)**
     - **DataviewJS**
-- **Excluded file** : Exclude files by path, a regex (like `/mypath.*/i) or using a frontmatter key (by default, it is `dv_excluded: true`). This settings is under the button `excluded
 
 > [!CAUTION]
 > Only string/numbers/date are supported in the frontmatter. When the evaluated queries returns a html, it will converted to markdown. 
