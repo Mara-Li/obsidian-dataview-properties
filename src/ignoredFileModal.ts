@@ -37,7 +37,6 @@ export class ExcludedFilesModal extends Modal {
 		const component = new Component();
 		component.load();
 		await MarkdownRenderer.render(this.app, markdown, contentEl, "", component);
-
 		new Setting(contentEl).setName(i18next.t("excluded.keyName")).addText((text) => {
 			text.setValue(this.ignored.keyName).onChange((value) => {
 				this.ignored.keyName = value;
