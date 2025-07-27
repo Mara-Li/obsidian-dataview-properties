@@ -13,6 +13,14 @@
 		"desc": "Nettoyer le frontmatter quand un champ est supprimé.",
 		"title": "Nettoyage du frontmatter"
 	},
+	"excluded": {
+		"add": "Ajouter",
+		"keyName": "Clé de propriété",
+		"placeholder": "chemin/vers/fichier ou /regex/gi",
+		"remove": "supprimer",
+		"save": "sauvegarder",
+		"title": "Fichier exclus"
+	},
 	"ignore": "Valeur ignorée",
 	"ignoreAccents": {
 		"desc": "Les caractères accentués seront converti en leur valeur correspondante :",

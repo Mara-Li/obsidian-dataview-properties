@@ -24,3 +24,11 @@
 	font-family: var(--font-monospace);
 	margin-top: 10px;
 }
+
+.dataview-properties-modal .copy-code-button {
+	display: none;
+}
+
+.dataview-properties-modal input {
+	width: 100%;
+}

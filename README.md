@@ -13,6 +13,7 @@ The plugin offers the following features:
 - Automatic cleanup of the frontmatter when the Dataview field is removed (optional)
 - Lowercase & ignore accents for values and fields recognition
 - Granular options to convert to properties list. 
+- Exclude file with a frontmatter key or by path.
 
 > [!WARNING]
 > The Dataview plugin must be installed and activated in your Obsidian vault.
@@ -36,6 +37,7 @@ The plugin offers the following features:
 - **Dataview** : Enable/disable the evaluation of each type of dataview query. Only inline queries are supported.
     - **Dataview Query Language (DQL)**
     - **DataviewJS**
+- **Excluded file** : Exclude files by path, a regex (like `/mypath.*/i) or using a frontmatter key (by default, it is `dv_excluded: true`). This settings is under the button `excluded
 
 > [!CAUTION]
 > Only string/numbers/date are supported in the frontmatter. When the evaluated queries returns a html, it will converted to markdown. 

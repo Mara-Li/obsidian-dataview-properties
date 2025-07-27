@@ -2,7 +2,7 @@ import dedent from "dedent";
 import i18next from "i18next";
 import {
 	type App,
-    Component,
+	Component,
 	MarkdownRenderer,
 	Notice,
 	PluginSettingTab,
@@ -10,6 +10,7 @@ import {
 	sanitizeHTMLToDom,
 	type TextAreaComponent,
 } from "obsidian";
+import { ExcludedFilesModal } from "./ignoredFileModal";
 import type DataviewProperties from "./main";
 import { isNumber } from "./utils";
 
@@ -56,7 +57,7 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 			enabled?: false | true | undefined;
 			fields?: string[] | undefined;
 			ignoreAccents: boolean;
-			lowerCase: boolean
+			lowerCase: boolean;
 		}
 	) {
 		if ((group.fields && group.fields.length > 0) || group.enabled) {
@@ -99,6 +100,16 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 
 		containerEl.addClass("obsidian-dataview-properties");
 
+		new Setting(containerEl).addButton((button) => {
+			button.setButtonText(i18next.t("excluded.title")).onClick(() => {
+				console.log("Click!");
+				new ExcludedFilesModal(this.app, this.plugin.settings.ignore, async (ignored) => {
+					this.plugin.settings.ignore = ignored;
+					await this.plugin.saveSettings();
+				}).open();
+			});
+		});
+
 		new Setting(containerEl)
 			.setName(i18next.t("prefix.title"))
 			.setDesc(i18next.t("prefix.desc"))
@@ -120,7 +131,6 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 					}
 				};
 			});
-		
 
 		new Setting(containerEl)
 			.setName(i18next.t("interval.title"))
@@ -156,12 +166,10 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 					};
 			});
 
-		
-
 		new Setting(containerEl)
 			.setName("Fields name")
 			.setDesc("Change the behavior of the plugin for some specific fields.")
-			.setHeading()
+			.setHeading();
 
 		new Setting(containerEl)
 			.setName(i18next.t("listFields.title"))
@@ -182,8 +190,6 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 			});
 		this.addFieldToggles(containerEl, this.plugin.settings.listFields);
 
-		
-
 		new Setting(containerEl)
 			.setHeading()
 			.setName(i18next.t("ignoredFields.title"))
@@ -203,8 +209,6 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 				};
 			});
 		this.addFieldToggles(containerEl, this.plugin.settings.ignoreFields);
-
-		
 
 		new Setting(containerEl)
 			.setHeading()
@@ -238,9 +242,8 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 						await this.display();
 					};
 			});
-		
-		
-		const components = new Component()
+
+		const components = new Component();
 		components.load();
 		await MarkdownRenderer.render(
 			this.app,
@@ -256,7 +259,7 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName("Dataview")
 			.setDesc(i18next.t("dataview.title"))
-			.setHeading()
+			.setHeading();
 
 		await MarkdownRenderer.render(
 			this.app,
@@ -268,20 +271,26 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 			"",
 			components
 		);
-		
+
 		components.unload();
 
-		new Setting(containerEl).setHeading().setName("Query language (DQL)").addToggle((toggle) =>
-			toggle.setValue(this.plugin.settings.dql).onChange(async (value) => {
-				this.plugin.settings.dql = value;
-				await this.plugin.saveSettings();
-			})
-		);
-		new Setting(containerEl).setHeading().setName("Javascript (DJS)").addToggle((toggle) =>
-			toggle.setValue(this.plugin.settings.djs).onChange(async (value) => {
-				this.plugin.settings.djs = value;
-				await this.plugin.saveSettings();
-			})
-		);
+		new Setting(containerEl)
+			.setHeading()
+			.setName("Query language (DQL)")
+			.addToggle((toggle) =>
+				toggle.setValue(this.plugin.settings.dql).onChange(async (value) => {
+					this.plugin.settings.dql = value;
+					await this.plugin.saveSettings();
+				})
+			);
+		new Setting(containerEl)
+			.setHeading()
+			.setName("Javascript (DJS)")
+			.addToggle((toggle) =>
+				toggle.setValue(this.plugin.settings.djs).onChange(async (value) => {
+					this.plugin.settings.djs = value;
+					await this.plugin.saveSettings();
+				})
+			);
 	}
 }
