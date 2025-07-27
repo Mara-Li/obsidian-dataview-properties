@@ -1,10 +1,10 @@
+import type DataviewPlugin from "@enveloppe/obsidian-dataview/lib/main";
 import { browser, expect } from "@wdio/globals";
-import { obsidianPage } from "wdio-obsidian-service";
 import * as fs from "fs";
 import * as path from "path";
-import type DataviewProperties from "../../src/main";
+import { obsidianPage } from "wdio-obsidian-service";
 import { type DataviewPropertiesSettings, DEFAULT_SETTINGS } from "../../src/interfaces";
-import type DataviewPlugin from "@enveloppe/obsidian-dataview/lib/main";
+import type DataviewProperties from "../../src/main";
 
 const manifest = JSON.parse(
 	fs.readFileSync(`${path.resolve(__dirname, "..", "..", "manifest.json")}`, "utf-8")
@@ -191,6 +191,12 @@ describe("Dataview Properties Plugin E2E Tests", function () {
 	it("Should not create duplicate fields when a fields has space", async function () {
 		const fileName = "space_fields.md";
 		const content = await runTestWithFixture(fileName, "SpaceFields.md");
+		expect(normalizeContent(content)).toEqual(getExceptedContent(fileName));
+	});
+
+	it("Should not process this file", async function () {
+		const fileName = "excluded_file.md";
+		const content = await runTestWithFixture(fileName, "ExcludedFile.md");
 		expect(normalizeContent(content)).toEqual(getExceptedContent(fileName));
 	});
 

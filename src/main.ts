@@ -25,6 +25,7 @@ import {
 } from "./interfaces";
 import { DataviewPropertiesSettingTab } from "./settings";
 import { Utils } from "./utils";
+import { isExcluded } from "./utils/ignored_file";
 
 export default class DataviewProperties extends Plugin {
 	settings!: DataviewPropertiesSettings;
@@ -178,7 +179,11 @@ export default class DataviewProperties extends Plugin {
 	private async resolveDataview(activeFile: TFile): Promise<void> {
 		if (!this.isDataviewEnabled()) return;
 		const filePath = activeFile.path;
-		if (this.processingFiles.has(filePath)) return;
+		if (
+			this.processingFiles.has(filePath) ||
+			isExcluded(this.settings.ignore, activeFile, this.app)
+		)
+			return;
 
 		try {
 			this.processingFiles.add(filePath);
