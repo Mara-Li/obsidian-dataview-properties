@@ -1,3 +1,8 @@
+## [0.0.18](https://github.com/Mara-Li/obsidian-dataview-properties/compare/0.0.18-0...0.0.18) (2025-08-02)
+### Features
+
+* add support for nested properties ([ad849a9](https://github.com/Mara-Li/obsidian-dataview-properties/commit/ad849a9c59a945af97223dc03681efbbcdf6e828)), closes [#9](https://github.com/Mara-Li/obsidian-dataview-properties/issues/9)
+
 ## [0.0.17](https://github.com/Mara-Li/obsidian-dataview-properties/compare/0.0.16...0.0.17) (2025-07-24)
 ### Bug Fixes
 
