@@ -102,7 +102,6 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl).addButton((button) => {
 			button.setButtonText(i18next.t("excluded.title")).onClick(() => {
-				console.log("Click!");
 				new ExcludedFilesModal(this.app, this.plugin.settings.ignore, async (ignored) => {
 					this.plugin.settings.ignore = ignored;
 					await this.plugin.saveSettings();
@@ -131,6 +130,69 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 					}
 				};
 			});
+
+		new Setting(containerEl)
+			.setName(i18next.t("unflatten.title"))
+			.setDesc(
+				sanitizeHTMLToDom(
+					i18next.t("unflatten.desc", {
+						keys: "<code>k1.k2.k3: value<code>",
+						conversion: "<code>k1: { k2: { k3: value } }</code>",
+					})
+				)
+			)
+			.setHeading()
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.unflatten.enabled)
+					.onChange(async (value) => {
+						this.plugin.settings.unflatten.enabled = value;
+						await this.plugin.saveSettings();
+						await this.display();
+					})
+			);
+
+		if (this.plugin.settings.unflatten.enabled) {
+			new Setting(containerEl)
+				.setName(i18next.t("separator.title"))
+				.setDesc(
+					sanitizeHTMLToDom(
+						`${i18next.t("separator.desc")}<br><span class='warning'>${i18next.t("separator.warning", { point: "<code>.</code>" })}</span>`
+					)
+				)
+				.addText((text) => {
+					text.setValue(this.plugin.settings.unflatten.separator).inputEl.onblur =
+						async () => {
+							const value = text.getValue();
+							if (value.trim().length === 0) {
+								new Notice(
+									sanitizeHTMLToDom(
+										`<span class="obsidian-dataview-properties notice-error">${i18next.t("separator.invalid")}</span>`
+									)
+								);
+								text.inputEl.addClass("is-invalid");
+							} else if (value.includes(".")) {
+								new Notice(
+									sanitizeHTMLToDom(
+										`<span class="obsidian-dataview-properties notice-error">${i18next.t(
+											"separator.point",
+											{
+												point: `<code>${text.inputEl.getText()}</code>`,
+											}
+										)}</span>`
+									)
+								);
+
+								text.inputEl.addClass("is-invalid");
+								text.inputEl.setText("");
+							} else {
+								this.plugin.settings.unflatten.separator = value.trim();
+								await this.plugin.saveSettings();
+								await this.display();
+							}
+						};
+				});
+		}
 
 		new Setting(containerEl)
 			.setName(i18next.t("interval.title"))

@@ -30,6 +30,7 @@ export type Ignore = {
 export interface DataviewPropertiesSettings {
 	prefix: string;
 	ignore: Ignore;
+	unflatten: Unflatten;
 	dql: boolean;
 	djs: boolean;
 	/**
@@ -59,8 +60,22 @@ export enum UtilsConfig {
 	Lists = "lists",
 }
 
+export type Unflatten = {
+	enabled: boolean;
+	/**
+	 * The character(s) used to separate nested properties in the frontmatter.
+	 * @default _
+	 * @important DV doesn't support `.` as a separator, so it is not allowed.
+	 */
+	separator: string;
+};
+
 export const DEFAULT_SETTINGS: DataviewPropertiesSettings = {
 	prefix: "dv_",
+	unflatten: {
+		enabled: false,
+		separator: "__",
+	},
 	ignore: {
 		files: [],
 		keyName: "dv_ignore",

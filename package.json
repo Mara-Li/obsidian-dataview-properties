@@ -53,7 +53,8 @@
 		"dotenv-cli": "^9.0.0",
 		"mocha": "^11.7.1",
 		"obsidian-typings": "^3.12.1",
-		"uniformize": "^2.4.0"
+		"uniformize": "^2.4.0",
+		"update": "^0.7.4"
 	},
 	"trustedDependencies": [
 		"@biomejs/biome",

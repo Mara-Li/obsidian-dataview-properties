@@ -56,6 +56,17 @@
 		"invalid": "The prefix can't be empty!",
 		"title": "Prefix"
 	},
+	"separator": {
+		"desc": "By which character(s) the keys must be separated.",
+		"invalid": "A value is mandatory.",
+		"point": "{{- point}} is not a valid separator.",
+		"title": "Separator",
+		"warning": "⚠️ {{- point}} is not a valid value (Dataview does not recognize keys that include it)."
+	},
+	"unflatten": {
+		"desc": "All properties composed as {{- keys}} will be converted to {{- conversion}}.",
+		"title": "Support for nested properties"
+	},
 	"warning": {
 		"desc": "Only inline dataview queries (DQL/DJS) are supported by the plugin, as code blocks can't be set for inline fields.",
 		"title": "Warning"

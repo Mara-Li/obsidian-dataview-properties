@@ -9,7 +9,7 @@ import dedent from "dedent";
 import { Component, type FrontMatterCache, htmlToMarkdown } from "obsidian";
 import { isRecognized } from "./fields";
 import type DataviewProperties from "./main";
-import { convertToNumber } from "./utils";
+import { convertToNumber, unflatten } from "./utils";
 import { parseMarkdownList } from "./utils/text_utils";
 
 /**
@@ -330,9 +330,9 @@ export async function getInlineFields(
 
 	const processedKeys = new Set<string>();
 	delete pageData.file; // Remove the file key from the page data
-	console.debug(`${plugin.prefix} Processing inline fields for ${path}:`, pageData);
 
 	for (const key in pageData) {
+		console.debug(`${plugin.prefix} Processing key: "${key}" with value:`, pageData[key]);
 		const normalizedKey = key.toLowerCase();
 		const withSpace = normalizedKey.replaceAll("-", " ");
 		if (processedKeys.has(normalizedKey) || processedKeys.has(withSpace)) continue;
@@ -349,6 +349,12 @@ export async function getInlineFields(
 			const valueToUse = arrayValue[arrayValue.length - 1];
 			inlineFields[key] = await compiler.evaluateInline(valueToUse, key);
 		}
+	}
+
+	if (plugin.settings.unflatten.enabled) {
+		const unflattened = unflatten(inlineFields, plugin.settings.unflatten.separator);
+		console.debug(`${plugin.prefix} After unflatten:`, unflattened);
+		return unflattened;
 	}
 
 	return inlineFields;

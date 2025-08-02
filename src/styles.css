@@ -9,6 +9,15 @@
 	color: var(--text-error);
 }
 
+.obsidian-dataview-properties .is-invalid:hover {
+	border-color: var(--background-modifier-error);
+	color: var(--text-error);
+}
+
+.obsidian-dataview-properties .is-invalid:focus {
+	box-shadow: 0 0 0 var(--input-border-width-focus) var(--background-modifier-error);
+}
+
 .notice:has(.obsidian-dataview-properties.notice-error) {
 	background-color: var(--background-modifier-error);
 }
@@ -31,4 +40,11 @@
 
 .dataview-properties-modal input {
 	width: 100%;
+}
+
+.warning {
+	background-color: var(--background-modifier-warning);
+	color: var(--text-warning);
+	border-color: var(--background-modifier-warning);
+	font-weight: bolder;
 }

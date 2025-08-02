@@ -56,6 +56,17 @@
 		"invalid": "Le préfixe ne peut pas être vide!",
 		"title": "Préfixe"
 	},
+	"separator": {
+		"desc": "Par quel(s) caractère(s) les clés doivent être séparée.",
+		"invalid": "Une valeur est nécessaire.",
+		"point": "{{- point}} n'est pas un séparateur valide.",
+		"title": "Séparateur",
+		"warning": "⚠️ {{- point}} n'est pas une valeur valide (Dataview ne reconnaît pas les clés l'incluant.)"
+	},
+	"unflatten": {
+		"desc": "Toutes les propriétés écrites tel que {{- keys}} seront converti en {{- conversion}}.",
+		"title": "Support des propriétés imbriquées"
+	},
 	"warning": {
 		"desc": "Seulement les queries dataview en ligne sont supportés par le plugin, puisque les bloc de code ne peuvent être mis pour eux.",
 		"title": "Attention"
