@@ -42,8 +42,11 @@
 		"title": "Interval"
 	},
 	"listFields": {
-		"desc": "Sometimes, an inline field can be recognized as a string instead of a list. You can use this options to \"force\" a recognition as a list. You can, also, use the suffix",
+		"desc": "Sometimes, an inline field can be recognized as a string instead of a list. You can use this options to \"force\" a recognition as a list. You can, also, use a (configurable) suffix  in the field name to allow it to be recognized directly.",
 		"example": "in the field name.",
+		"invalid": "The list suffix cannot be empty",
+		"separator": "You can't include the separator of unflatten in the suffix.",
+		"suffix": "Suffix",
 		"title": "Mark a field like a list"
 	},
 	"lowerCase": {

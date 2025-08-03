@@ -216,7 +216,7 @@ class Dataview {
 
 					if (
 						isRecognized(fieldName, this.plugin.listFields, this.plugin.utils) ||
-						fieldName.endsWith("_list")
+						fieldName.endsWith(this.plugin.settings.listSuffix)
 					) {
 						console.debug(`${this.prefix} Converting list:`, res);
 						return this.convertToDvArrayLinks(parseMarkdownList(res as string));
@@ -314,7 +314,7 @@ export async function getInlineFields(
 	path: string,
 	plugin: DataviewProperties,
 	frontmatter?: FrontMatterCache
-): Promise<Record<string, any>> {
+): Promise<Record<string, unknown>> {
 	const { app } = plugin;
 	if (!plugin.isDataviewEnabled()) return {};
 

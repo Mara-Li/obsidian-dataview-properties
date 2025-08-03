@@ -42,8 +42,11 @@
 		"title": "Intervalle"
 	},
 	"listFields": {
-		"desc": "Parfois, un champ inline peut être reconnu comme une chaîne de caractère au lieu d'une liste. Vous pouvez utiliser cette option pour \"forcer\" la reconnaissance en tant que tel. Vous pouvez également utiliser le suffixe",
+		"desc": "Parfois, un champ inline peut être reconnu comme une chaîne de caractère au lieu d'une liste. Vous pouvez utiliser cette option pour \"forcer\" la reconnaissance en tant que tel. Vous pouvez également utiliser un suffixe (configurable) dans le nom du champ pour le faire reconnaître directement.",
 		"example": "dans le nom du champ.",
+		"invalid": "Le suffix indiquant une liste ne peut être vide.",
+		"separator": "Vous ne pouvez pas inclure le séparateur des clés imbriqués dans le suffix.",
+		"suffix": "Suffixe",
 		"title": "Marquer un champ comme une liste"
 	},
 	"lowerCase": {

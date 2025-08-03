@@ -112,7 +112,7 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName(i18next.t("prefix.title"))
 			.setDesc(i18next.t("prefix.desc"))
-			.setHeading()
+
 			.addText((text) => {
 				text.setValue(this.plugin.settings.prefix).inputEl.onblur = async () => {
 					const value = text.getValue();
@@ -131,6 +131,8 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 				};
 			});
 
+		containerEl.createEl("hr");
+
 		new Setting(containerEl)
 			.setName(i18next.t("unflatten.title"))
 			.setDesc(
@@ -141,7 +143,7 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 					})
 				)
 			)
-			.setHeading()
+
 			.addToggle((toggle) =>
 				toggle
 					.setValue(this.plugin.settings.unflatten.enabled)
@@ -155,6 +157,7 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 		if (this.plugin.settings.unflatten.enabled) {
 			new Setting(containerEl)
 				.setName(i18next.t("separator.title"))
+
 				.setDesc(
 					sanitizeHTMLToDom(
 						`${i18next.t("separator.desc")}<br><span class='warning'>${i18next.t("separator.warning", { point: "<code>.</code>" })}</span>`
@@ -177,7 +180,7 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 										`<span class="obsidian-dataview-properties notice-error">${i18next.t(
 											"separator.point",
 											{
-												point: `<code>${text.inputEl.getText()}</code>`,
+												point: `<code>${value}</code>`,
 											}
 										)}</span>`
 									)
@@ -193,7 +196,7 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 						};
 				});
 		}
-
+		containerEl.createEl("hr");
 		new Setting(containerEl)
 			.setName(i18next.t("interval.title"))
 			.setHeading()
@@ -228,20 +231,48 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 					};
 			});
 
-		new Setting(containerEl)
-			.setName("Fields name")
-			.setDesc("Change the behavior of the plugin for some specific fields.")
-			.setHeading();
+		containerEl.createEl("hr");
 
 		new Setting(containerEl)
 			.setName(i18next.t("listFields.title"))
 			.setHeading()
-			.setDesc(
-				sanitizeHTMLToDom(
-					`${i18next.t("listFields.desc")} <code>_list</code> ${i18next.t("listFields.example")}`
-				)
-			)
-			.setClass("textarea")
+			.setDesc(sanitizeHTMLToDom(`${i18next.t("listFields.desc")}`));
+		new Setting(containerEl).setName(i18next.t("listFields.suffix")).addText((text) => {
+			text.setValue(this.plugin.settings.listSuffix).inputEl.onblur = async () => {
+				const value = text.getValue();
+				if (value.trim().length === 0) {
+					new Notice(
+						sanitizeHTMLToDom(
+							`<span class="notice-error">${i18next.t("listFields.invalid")}</span>`
+						)
+					);
+					text.inputEl.addClass("is-invalid");
+					text.setValue("_list");
+				} else if (
+					value.includes(this.plugin.settings.unflatten.separator) &&
+					this.plugin.settings.unflatten.enabled
+				) {
+					new Notice(
+						sanitizeHTMLToDom(
+							`<span class="notice-error">${i18next.t("listFields.separator", {
+								separator: `<code>${this.plugin.settings.unflatten.separator}</code>`,
+							})}</span>`
+						)
+					);
+					text.inputEl.addClass("is-invalid");
+					text.setValue(value.replaceAll(this.plugin.settings.unflatten.separator, ""));
+				} else {
+					this.plugin.settings.listSuffix = value.trim();
+					await this.plugin.saveSettings();
+					await this.display();
+				}
+			};
+		});
+		new Setting(containerEl)
+			.setNoInfo()
+			.setHeading()
+			.setClass("max-width")
+
 			.addTextArea((text) => {
 				text.setValue(this.plugin.settings.listFields.fields.join(", ")).inputEl.onblur =
 					async () => {
@@ -251,7 +282,7 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 					};
 			});
 		this.addFieldToggles(containerEl, this.plugin.settings.listFields);
-
+		containerEl.createEl("hr");
 		new Setting(containerEl)
 			.setHeading()
 			.setName(i18next.t("ignoredFields.title"))
@@ -271,7 +302,7 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 				};
 			});
 		this.addFieldToggles(containerEl, this.plugin.settings.ignoreFields);
-
+		containerEl.createEl("hr");
 		new Setting(containerEl)
 			.setHeading()
 			.setName(i18next.t("deleteFromFrontmatter.title"))
@@ -286,6 +317,8 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 					})
 			);
 		this.addDeleteFieldToggles(containerEl);
+
+		containerEl.createEl("hr");
 
 		const set = new Setting(containerEl)
 			.setName(i18next.t("cleanUpText.title"))
@@ -317,7 +350,7 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 			components
 		);
 		this.addFieldToggles(containerEl, this.plugin.settings.cleanUpText);
-
+		containerEl.createEl("hr");
 		new Setting(containerEl)
 			.setName("Dataview")
 			.setDesc(i18next.t("dataview.title"))
@@ -336,23 +369,17 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 
 		components.unload();
 
-		new Setting(containerEl)
-			.setHeading()
-			.setName("Query language (DQL)")
-			.addToggle((toggle) =>
-				toggle.setValue(this.plugin.settings.dql).onChange(async (value) => {
-					this.plugin.settings.dql = value;
-					await this.plugin.saveSettings();
-				})
-			);
-		new Setting(containerEl)
-			.setHeading()
-			.setName("Javascript (DJS)")
-			.addToggle((toggle) =>
-				toggle.setValue(this.plugin.settings.djs).onChange(async (value) => {
-					this.plugin.settings.djs = value;
-					await this.plugin.saveSettings();
-				})
-			);
+		new Setting(containerEl).setName("Query language (DQL)").addToggle((toggle) =>
+			toggle.setValue(this.plugin.settings.dql).onChange(async (value) => {
+				this.plugin.settings.dql = value;
+				await this.plugin.saveSettings();
+			})
+		);
+		new Setting(containerEl).setName("Javascript (DJS)").addToggle((toggle) =>
+			toggle.setValue(this.plugin.settings.djs).onChange(async (value) => {
+				this.plugin.settings.djs = value;
+				await this.plugin.saveSettings();
+			})
+		);
 	}
 }

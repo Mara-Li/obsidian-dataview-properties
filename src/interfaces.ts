@@ -31,6 +31,7 @@ export interface DataviewPropertiesSettings {
 	prefix: string;
 	ignore: Ignore;
 	unflatten: Unflatten;
+	listSuffix: string;
 	dql: boolean;
 	djs: boolean;
 	/**
@@ -72,6 +73,7 @@ export type Unflatten = {
 
 export const DEFAULT_SETTINGS: DataviewPropertiesSettings = {
 	prefix: "dv_",
+	listSuffix: "_list",
 	unflatten: {
 		enabled: false,
 		separator: "__",
