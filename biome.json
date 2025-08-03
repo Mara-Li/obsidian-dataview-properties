@@ -77,6 +77,7 @@
 			"style": {
 				"useFilenamingConvention": "error",
 				"useImportType": "error",
+				"noNonNullAssertion": "off",
 				"useNamingConvention": {
 					"level": "warn",
 					"options": {
