@@ -27,8 +27,8 @@ for (const option of ["default", "unflatted"]) {
 					},
 				});
 
-	describe("Dataview Properties Plugin E2E Tests", function () {
-		beforeEach(async function () {
+	describe("Dataview Properties Plugin E2E Tests", () => {
+		beforeEach(async () => {
 			await obsidianPage.resetVault();
 			//reset the settings of the plugin
 			await browser.executeObsidian(
@@ -102,7 +102,7 @@ for (const option of ["default", "unflatted"]) {
 			}, fileName);
 		}
 
-		it("Should have the settings assignated", async function () {
+		it("Should have the settings assignated", async () => {
 			// Check if the plugin is loaded
 			const dvPluginT = await browser.executeObsidian(({ app }, pluginId) => {
 				const plug = app.plugins.getPlugin(pluginId) as DataviewProperties | undefined;
@@ -119,7 +119,7 @@ for (const option of ["default", "unflatted"]) {
 			expect(dvPluginT.prefix).toEqual("dv_");
 		});
 
-		it("Should have the same manifest version as the plugin", async function () {
+		it("Should have the same manifest version as the plugin", async () => {
 			const dvPluginT = await browser.executeObsidian(({ app }, pluginId) => {
 				const plug = app.plugins.getPlugin(pluginId) as DataviewProperties | undefined;
 				if (!plug) {
@@ -132,7 +132,7 @@ for (const option of ["default", "unflatted"]) {
 			console.log(dvPluginT);
 		});
 
-		it("should add properties to existing frontmatter", async function () {
+		it("should add properties to existing frontmatter", async () => {
 			const fileName = "existing_frontmatter.md";
 			const content = await runTestWithFixture(fileName, "ExistingFrontmatter.md");
 
@@ -140,7 +140,7 @@ for (const option of ["default", "unflatted"]) {
 			expect(normalizeContent(content)).toEqual(getExceptedContent(fileName));
 		});
 
-		it("should respect ignored fields configuration", async function () {
+		it("should respect ignored fields configuration", async () => {
 			// Configure plugin to ignore specific fields
 			await browser.executeObsidian(({ app }, pluginId) => {
 				const plugin = app.plugins.getPlugin(pluginId) as DataviewProperties;
@@ -156,7 +156,7 @@ for (const option of ["default", "unflatted"]) {
 			expect(normalizeContent(content)).toEqual(getExceptedContent("ignored_fields.md"));
 		});
 
-		it("should handle case sensitivity and accents correctly", async function () {
+		it("should handle case sensitivity and accents correctly", async () => {
 			// Configure plugin to be case insensitive and ignore accents
 			const content = await runTestWithFixture(
 				"case_sensitivity.md",
@@ -167,7 +167,7 @@ for (const option of ["default", "unflatted"]) {
 			);
 		});
 
-		it("should not update when values are identical", async function () {
+		it("should not update when values are identical", async () => {
 			const content = await runTestWithFixture(
 				"identical_values.md",
 				"IdenticalValues.md"
@@ -179,7 +179,7 @@ for (const option of ["default", "unflatted"]) {
 			);
 		});
 
-		it("should clean up values based on configuration", async function () {
+		it("should clean up values based on configuration", async () => {
 			// Configure plugin to clean up specific terms
 			await browser.executeObsidian(({ app }, pluginId) => {
 				const plugin = app.plugins.getPlugin(pluginId) as DataviewProperties;
@@ -197,50 +197,50 @@ for (const option of ["default", "unflatted"]) {
 			expect(normalizeContent(content)).toEqual(getExceptedContent("cleanup_values.md"));
 		});
 
-		it("should not modify files without dataview properties", async function () {
+		it("should not modify files without dataview properties", async () => {
 			const fileName = "no_properties.md";
 			const content = await runTestWithFixture(fileName, "NoProperties.md");
 			expect(normalizeContent(content)).toEqual(getExceptedContent(fileName));
 		});
 
-		it("Should add the calculated field to the frontmatter", async function () {
+		it("Should add the calculated field to the frontmatter", async () => {
 			const fileName = "calc.md";
 			const content = await runTestWithFixture(fileName, "Calc.md");
 			expect(normalizeContent(content)).toEqual(getExceptedContent(fileName));
 		});
 
-		it("Should not create duplicate fields when a fields has space", async function () {
+		it("Should not create duplicate fields when a fields has space", async () => {
 			const fileName = "space_fields.md";
 			const content = await runTestWithFixture(fileName, "SpaceFields.md");
 			expect(normalizeContent(content)).toEqual(getExceptedContent(fileName));
 		});
 
-		it("Should not process this file", async function () {
+		it("Should not process this file", async () => {
 			const fileName = "excluded_file.md";
 			const content = await runTestWithFixture(fileName, "ExcludedFile.md");
 			expect(normalizeContent(content)).toEqual(getExceptedContent(fileName));
 		});
 
 		if (option === "unflatted") {
-			it("Should be nested", async function () {
+			it("Should be nested", async () => {
 				const fileName = "nested.md";
 				const content = await runTestWithFixture(fileName, "Nested.md");
 				expect(normalizeContent(content)).toEqual(getExceptedContent(fileName));
 			});
 		}
 
-		describe("List properties", function () {
-			it("Should be a list in properties", async function () {
+		describe("List properties", () => {
+			it("Should be a list in properties", async () => {
 				const fileName = "lists.md";
 				const content = await runTestWithFixture(fileName, "Lists.md");
 				expect(normalizeContent(content)).toEqual(getExceptedContent(fileName));
 			});
-			it("Should markdownify lists in properties", async function () {
+			it("Should markdownify lists in properties", async () => {
 				const fileName = "markdownify_lists.md";
 				const content = await runTestWithFixture(fileName, "MarkdownifyLists.md");
 				expect(normalizeContent(content)).toEqual(getExceptedContent(fileName));
 			});
-			it("Should populate with a list from dataviewjs", async function () {
+			it("Should populate with a list from dataviewjs", async () => {
 				const fileName = "dv_list.md";
 				//enable dataviewjs
 				await browser.executeObsidian(({ app }, pluginId) => {

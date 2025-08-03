@@ -9,8 +9,11 @@
 	},
 	"linter": {
 		"enabled": true,
+		"domains": {
+			"test": "recommended"
+		},
 		"rules": {
-			"recommended": false,
+			"recommended": true,
 			"complexity": {
 				"noExtraBooleanCast": "error",
 				"noAdjacentSpacesInRegex": "error",
@@ -94,24 +97,13 @@
 	},
 	"overrides": [
 		{
-			"includes": [
-				"**/*.ts",
-				"**/*.tsx",
-				"!**/*.js",
-				"!**/node_modules/**"
-			]
+			"includes": ["**/*.ts", "**/*.tsx", "!**/*.js", "!**/node_modules/**"]
 		},
 		{
-			"includes": [
-				"**/*.js",
-				"!**/node_modules/**"
-			]
+			"includes": ["**/*.js", "!**/node_modules/**"]
 		},
 		{
-			"includes": [
-				"**/*.json",
-				"!**/node_modules/**"
-			]
+			"includes": ["**/*.json", "!**/node_modules/**"]
 		}
 	],
 	"formatter": {

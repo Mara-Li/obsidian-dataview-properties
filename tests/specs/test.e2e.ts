@@ -1,6 +1,6 @@
+import * as fs from "node:fs";
+import * as path from "node:path";
 import { browser, expect } from "@wdio/globals";
-import * as fs from "fs";
-import * as path from "path";
 import { obsidianPage } from "wdio-obsidian-service";
 
 const manifest = JSON.parse(
@@ -14,25 +14,22 @@ console.log(
 const folder = path.resolve(__dirname, "..");
 const fixtures = path.resolve(folder, "fixtures");
 
-describe("Test my plugin", function () {
-	beforeEach(async function () {
+describe("Test my plugin", () => {
+	beforeEach(async () => {
 		await obsidianPage.resetVault();
 	});
-	it("plugins should be loaded", async function () {
+	it("plugins should be loaded", async () => {
 		// Check if the plugin is loaded in the vault
-		const pluginIsLoaded = await browser.executeObsidian(
-			({ app, obsidian }, pluginId) => {
-				return (
-					app.plugins.getPlugin(pluginId)?._loaded &&
-					app.plugins.getPlugin("dataview")?._loaded
-				);
-			},
-			manifest.id
-		);
+		const pluginIsLoaded = await browser.executeObsidian(({ app }, pluginId) => {
+			return (
+				app.plugins.getPlugin(pluginId)?._loaded &&
+				app.plugins.getPlugin("dataview")?._loaded
+			);
+		}, manifest.id);
 		expect(pluginIsLoaded).toBe(true);
 	});
 
-	it("List all files in the vault", async function () {
+	it("List all files in the vault", async () => {
 		// List all files in the vault
 		const files = await browser.executeObsidian(({ app }) => {
 			return app.vault.getMarkdownFiles().map((file) => file.path);
@@ -41,7 +38,7 @@ describe("Test my plugin", function () {
 		expect(files.some((file) => file.match(/(welcome|bienvenue)\.md$/i))).toBe(true);
 	});
 
-	it("should add the keys to an empty frontmatter", async function () {
+	it("should add the keys to an empty frontmatter", async () => {
 		const simpleAdd = fs.readFileSync(`${fixtures}/simple_add.md`, "utf-8");
 		// Create a new note with empty frontmatter
 		await browser.executeObsidian(async ({ app }, simpleAdd) => {
