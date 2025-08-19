@@ -12,6 +12,8 @@ import type DataviewProperties from "./main";
 import { convertToNumber, unflatten } from "./utils";
 import { parseMarkdownList } from "./utils/text_utils";
 
+import typeOf = Values.typeOf;
+
 /**
  * Handles Dataview API interactions and query evaluation
  */
@@ -226,7 +228,8 @@ class Dataview {
 				return res;
 			}
 
-			if (Values.isLink(value)) return this.stringifyLink(value);
+			if (Values.isLink(value as Link) || value?.constructor.name === "Link")
+				return this.stringifyLink(value as Link);
 
 			if (Values.isHtml(value)) return htmlToMarkdown(value);
 
@@ -258,7 +261,7 @@ class Dataview {
 	 * Convert a Dataview Link object to markdown link format
 	 */
 	private stringifyLink(fieldValue: Link): string {
-		let path = decodeURI(fieldValue.path);
+		let path = decodeURI(fieldValue.path).replaceAll(".md", "");
 		if (fieldValue.subpath) path += `#${fieldValue.subpath}`;
 		if (fieldValue.display) return `[[${path}|${fieldValue.display}]]`;
 		return `[[${path}]]`;
