@@ -1,3 +1,8 @@
+## [0.0.19](https://github.com/Mara-Li/obsidian-dataview-properties/compare/0.0.19-0...0.0.19) (2025-08-19)
+### Bug Fixes
+
+* links should be keep as links ([751ea3c](https://github.com/Mara-Li/obsidian-dataview-properties/commit/751ea3c081e78c79b95fab03e2668cb5895d6259)), closes [#11](https://github.com/Mara-Li/obsidian-dataview-properties/issues/11)
+
 ## [0.0.18](https://github.com/Mara-Li/obsidian-dataview-properties/compare/0.0.18-0...0.0.18) (2025-08-02)
 ### Features
 
