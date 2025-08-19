@@ -1,7 +1,7 @@
 ---
 title: DvList
 dv_add_list: 
-  - "[[DataviewList.md|DataviewList]]"
+  - "[[dv_list.md|dv_list]]"
   - "[[Welcome.md|Welcome]]"
 ---
 

@@ -27,10 +27,10 @@ for (const option of ["default", "unflatted"]) {
 					},
 				});
 
-	describe("Dataview Properties Plugin E2E Tests", () => {
+	describe(`Dataview Properties Plugin E2E Tests (${option})`, () => {
 		beforeEach(async () => {
 			await obsidianPage.resetVault();
-			//reset the settings of the plugin
+			// reset plugin settings
 			await browser.executeObsidian(
 				({ app }, pluginId, defaultSettings: DataviewPropertiesSettings) => {
 					const plugin = app.plugins.getPlugin(pluginId) as DataviewProperties;
@@ -89,7 +89,7 @@ for (const option of ["default", "unflatted"]) {
 
 			// Run the command to add keys to the frontmatter
 			await browser.executeObsidianCommand(`${manifest.id}:dataview-to-frontmatter`);
-			//wait for the command to finish
+			// wait for the command to finish
 			await browser.pause(500);
 
 			// Get the updated content
@@ -132,127 +132,54 @@ for (const option of ["default", "unflatted"]) {
 			console.log(dvPluginT);
 		});
 
-		it("should add properties to existing frontmatter", async () => {
-			const fileName = "existing_frontmatter.md";
-			const content = await runTestWithFixture(fileName, "ExistingFrontmatter.md");
+		// Découverte automatique des tests à partir des fichiers présents
+		const allFixtures = fs
+			.readdirSync(fixtures)
+			.filter((f) => f.toLowerCase().endsWith(".md"));
+		const runnable = allFixtures.filter((f) => fs.existsSync(path.join(expected, f)));
 
-			// Compare frontmatter content (ignoring whitespace differences)
-			expect(normalizeContent(content)).toEqual(getExceptedContent(fileName));
-		});
+		for (const fileName of runnable) {
+			// nested.md n'est pertinent que pour l'option unflatted
+			if (fileName === "nested.md" && option === "default") continue;
 
-		it("should respect ignored fields configuration", async () => {
-			// Configure plugin to ignore specific fields
-			await browser.executeObsidian(({ app }, pluginId) => {
-				const plugin = app.plugins.getPlugin(pluginId) as DataviewProperties;
-				if (plugin) {
-					plugin.settings.ignoreFields.fields = ["ignored", "test", "/^prefix.*/i"];
-					plugin.saveSettings();
+			it(`should process ${fileName}`, async () => {
+				// Pré-configurations spécifiques par fichier
+				if (fileName === "ignored_fields.md") {
+					await browser.executeObsidian(({ app }, pluginId) => {
+						const plugin = app.plugins.getPlugin(pluginId) as DataviewProperties;
+						if (plugin) {
+							plugin.settings.ignoreFields.fields = ["ignored", "test", "/^prefix.*/i"];
+							plugin.saveSettings();
+						}
+					}, manifest.id);
 				}
-			}, manifest.id);
 
-			const content = await runTestWithFixture("ignored_fields.md", "IgnoredFields.md");
-
-			// Verify only non-ignored fields are added
-			expect(normalizeContent(content)).toEqual(getExceptedContent("ignored_fields.md"));
-		});
-
-		it("should handle case sensitivity and accents correctly", async () => {
-			// Configure plugin to be case insensitive and ignore accents
-			const content = await runTestWithFixture(
-				"case_sensitivity.md",
-				"CaseSensitivity.md"
-			);
-			expect(normalizeContent(content)).toEqual(
-				getExceptedContent("case_sensitivity.md")
-			);
-		});
-
-		it("should not update when values are identical", async () => {
-			const content = await runTestWithFixture(
-				"identical_values.md",
-				"IdenticalValues.md"
-			);
-
-			// Verify that identical values aren't changed and new values are added
-			expect(normalizeContent(content)).toEqual(
-				getExceptedContent("identical_values.md")
-			);
-		});
-
-		it("should clean up values based on configuration", async () => {
-			// Configure plugin to clean up specific terms
-			await browser.executeObsidian(({ app }, pluginId) => {
-				const plugin = app.plugins.getPlugin(pluginId) as DataviewProperties;
-				if (plugin) {
-					plugin.settings.cleanUpText.fields = ["épreuve", "/test\\d+test/g"];
-					plugin.settings.cleanUpText.ignoreAccents = true;
-					plugin.settings.cleanUpText.lowerCase = true;
-					plugin.saveSettings();
+				if (fileName === "cleanup_values.md") {
+					await browser.executeObsidian(({ app }, pluginId) => {
+						const plugin = app.plugins.getPlugin(pluginId) as DataviewProperties;
+						if (plugin) {
+							plugin.settings.cleanUpText.fields = ["épreuve", "/test\\d+test/g"];
+							plugin.settings.cleanUpText.ignoreAccents = true;
+							plugin.settings.cleanUpText.lowerCase = true;
+							plugin.saveSettings();
+						}
+					}, manifest.id);
 				}
-			}, manifest.id);
 
-			const content = await runTestWithFixture("cleanup_values.md", "CleanupValues.md");
+				if (fileName === "dv_list.md") {
+					// Activer dataviewjs dans le plugin Dataview
+					await browser.executeObsidian(({ app }, pluginId) => {
+						const plugin = app.plugins.getPlugin(pluginId) as DataviewPlugin;
+						if (plugin) {
+							plugin.settings.enableDataviewJs = true;
+							plugin.updateSettings(plugin.settings);
+						}
+					}, "dataview");
+				}
 
-			// Verify that value is cleaned up
-			expect(normalizeContent(content)).toEqual(getExceptedContent("cleanup_values.md"));
-		});
-
-		it("should not modify files without dataview properties", async () => {
-			const fileName = "no_properties.md";
-			const content = await runTestWithFixture(fileName, "NoProperties.md");
-			expect(normalizeContent(content)).toEqual(getExceptedContent(fileName));
-		});
-
-		it("Should add the calculated field to the frontmatter", async () => {
-			const fileName = "calc.md";
-			const content = await runTestWithFixture(fileName, "Calc.md");
-			expect(normalizeContent(content)).toEqual(getExceptedContent(fileName));
-		});
-
-		it("Should not create duplicate fields when a fields has space", async () => {
-			const fileName = "space_fields.md";
-			const content = await runTestWithFixture(fileName, "SpaceFields.md");
-			expect(normalizeContent(content)).toEqual(getExceptedContent(fileName));
-		});
-
-		it("Should not process this file", async () => {
-			const fileName = "excluded_file.md";
-			const content = await runTestWithFixture(fileName, "ExcludedFile.md");
-			expect(normalizeContent(content)).toEqual(getExceptedContent(fileName));
-		});
-
-		if (option === "unflatted") {
-			it("Should be nested", async () => {
-				const fileName = "nested.md";
-				const content = await runTestWithFixture(fileName, "Nested.md");
+				const content = await runTestWithFixture(fileName, fileName);
 				expect(normalizeContent(content)).toEqual(getExceptedContent(fileName));
 			});
 		}
-
-		describe("List properties", () => {
-			it("Should be a list in properties", async () => {
-				const fileName = "lists.md";
-				const content = await runTestWithFixture(fileName, "Lists.md");
-				expect(normalizeContent(content)).toEqual(getExceptedContent(fileName));
-			});
-			it("Should markdownify lists in properties", async () => {
-				const fileName = "markdownify_lists.md";
-				const content = await runTestWithFixture(fileName, "MarkdownifyLists.md");
-				expect(normalizeContent(content)).toEqual(getExceptedContent(fileName));
-			});
-			it("Should populate with a list from dataviewjs", async () => {
-				const fileName = "dv_list.md";
-				//enable dataviewjs
-				await browser.executeObsidian(({ app }, pluginId) => {
-					const plugin = app.plugins.getPlugin(pluginId) as DataviewPlugin;
-					if (plugin) {
-						plugin.settings.enableDataviewJs = true;
-						plugin.updateSettings(plugin.settings);
-					}
-				}, "dataview");
-				const content = await runTestWithFixture(fileName, "DataviewList.md");
-				expect(normalizeContent(content)).toEqual(getExceptedContent(fileName));
-			});
-		});
 	});
 }
