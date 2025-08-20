@@ -4,7 +4,8 @@ import {
 	Notice,
 	Plugin,
 	sanitizeHTMLToDom,
-	type TFile,
+	TFile,
+	TFolder,
 } from "obsidian";
 import "uniformize";
 import { isPluginEnabled } from "@enveloppe/obsidian-dataview";
@@ -85,7 +86,7 @@ export default class DataviewProperties extends Plugin {
 			name: i18next.t("addToFrontmatter"),
 			checkCallback: (checking: boolean) => {
 				const activeFile = this.app.workspace.getActiveFile();
-				if (!activeFile) return false;
+				if (!activeFile || this.isIgnoredFile(activeFile)) return false;
 
 				if (!checking) {
 					this.resolveDataview(activeFile).catch((err) =>
@@ -98,7 +99,7 @@ export default class DataviewProperties extends Plugin {
 
 		this.registerEvent(
 			this.app.metadataCache.on(
-				//@ts-ignore
+				//@ts-expect-error
 				"dataview:metadata-change",
 				async (eventName: string, file: TFile) => {
 					if (eventName === "delete") {
@@ -109,6 +110,57 @@ export default class DataviewProperties extends Plugin {
 				}
 			)
 		);
+		this.registerEvent(
+			this.app.workspace.on("file-menu", (menu, file) => {
+				if (file instanceof TFile && !this.isIgnoredFile(file)) {
+					menu.addItem((item) => {
+						item
+							.setTitle(i18next.t("addToFrontmatter"))
+							.setIcon("checkmark")
+							.onClick(async () => {
+								await this.resolveDataview(file);
+							});
+					});
+				} else if (file instanceof TFolder) {
+					const allFileInTheFolder = file.children.filter(
+						(child) => child instanceof TFile && !this.isIgnoredFile(child)
+					) as TFile[];
+					if (allFileInTheFolder.length > 0) {
+						menu.addItem((item) => {
+							item
+								.setTitle(i18next.t("addToFrontmatter"))
+								.setIcon("checkmark")
+								.onClick(async () => {
+									await this.processMultipleFiles(allFileInTheFolder);
+								});
+						});
+					}
+				}
+			})
+		);
+
+		this.registerEvent(
+			this.app.workspace.on("files-menu", (menu, files) => {
+				const filesToProcess = files.filter(
+					(file) => file instanceof TFile && !this.isIgnoredFile(file)
+				);
+				if (filesToProcess.length > 0) {
+					menu.addItem((item) => {
+						item
+							.setTitle(i18next.t("addToFrontmatter"))
+							.setIcon("checkmark")
+							.onClick(async () => {
+								await this.processMultipleFiles(filesToProcess as TFile[]);
+							});
+					});
+				}
+			})
+		);
+	}
+
+	async processMultipleFiles(files: TFile[]): Promise<void> {
+		if (!this.isDataviewEnabled()) return;
+		await Promise.all(files.map((file) => this.resolveDataview(file)));
 	}
 
 	/**
@@ -133,6 +185,7 @@ export default class DataviewProperties extends Plugin {
 	 * Determines if frontmatter needs updating based on inline fields
 	 */
 	private shouldBeUpdated(
+		// biome-ignore lint/suspicious/noExplicitAny: Need this for generic fields
 		fields: Record<string, any>,
 		frontmatter?: FrontMatterCache
 	): boolean {
@@ -173,17 +226,21 @@ export default class DataviewProperties extends Plugin {
 		console.debug(`${this.prefix} ${markdownFiles.length} files indexed.`);
 	}
 
+	private isIgnoredFile(file: TFile): boolean {
+		if (!this.isDataviewEnabled()) return true;
+		const filePath = file.path;
+		return (
+			this.processingFiles.has(filePath) ||
+			isExcluded(this.settings.ignore, file, this.app)
+		);
+	}
+
 	/**
 	 * Process file to update frontmatter with inline Dataview fields
 	 */
 	private async resolveDataview(activeFile: TFile): Promise<void> {
-		if (!this.isDataviewEnabled()) return;
 		const filePath = activeFile.path;
-		if (
-			this.processingFiles.has(filePath) ||
-			isExcluded(this.settings.ignore, activeFile, this.app)
-		)
-			return;
+		if (this.isIgnoredFile(activeFile)) return;
 
 		try {
 			this.processingFiles.add(filePath);
@@ -234,6 +291,7 @@ export default class DataviewProperties extends Plugin {
 	 */
 	async updateFrontmatter(
 		file: TFile,
+		// biome-ignore lint/suspicious/noExplicitAny: this is the type returned by obsidian for the frontmatter so we need to use it with any
 		inlineFields: Record<string, any>,
 		removedKey?: Set<string>
 	): Promise<void> {
@@ -264,7 +322,7 @@ export default class DataviewProperties extends Plugin {
 			}
 			this.utils.useConfig(UtilsConfig.Cleanup);
 			for (const [key, value] of Object.entries(inlineFields)) {
-				if (this.isIgnored(key) || value == undefined) continue;
+				if (this.isIgnored(key) || value == null) continue;
 				frontmatter[`${this.settings.prefix}${key}`] = value;
 			}
 		});

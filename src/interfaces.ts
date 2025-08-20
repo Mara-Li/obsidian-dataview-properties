@@ -51,6 +51,10 @@ export interface DataviewPropertiesSettings {
 	deleteFromFrontmatter: {
 		enabled: boolean;
 	} & TextOptions;
+	/**
+	 * Allow right-clicking on a file/files/folder to process the properties on them.
+	 */
+	extraMenus: boolean;
 }
 
 export enum UtilsConfig {
@@ -105,4 +109,5 @@ export const DEFAULT_SETTINGS: DataviewPropertiesSettings = {
 		lowerCase: true,
 		ignoreAccents: true,
 	},
+	extraMenus: false,
 };
