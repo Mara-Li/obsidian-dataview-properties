@@ -261,10 +261,19 @@ class Dataview {
 	 * Convert a Dataview Link object to markdown link format
 	 */
 	private stringifyLink(fieldValue: Link): string {
-		let path = decodeURI(fieldValue.path).replaceAll(".md", "");
-		if (fieldValue.subpath) path += `#${fieldValue.subpath}`;
-		if (fieldValue.display) return `[[${path}|${fieldValue.display}]]`;
-		return `[[${path}]]`;
+		function stringify() {
+			const l = fieldValue.toString();
+			if (!fieldValue.display && !fieldValue.subpath) return l.replace(/\|.*\]{2}/, "]]");
+			return l;
+		}
+		const file = this.plugin.app.vault.getFileByPath(fieldValue.path);
+		if (!file) return stringify();
+		return this.plugin.app.fileManager.generateMarkdownLink(
+			file,
+			this.path,
+			fieldValue.subpath ? `#${fieldValue.subpath}` : undefined,
+			fieldValue.display
+		);
 	}
 
 	/**
