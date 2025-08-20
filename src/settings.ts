@@ -197,6 +197,18 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 				});
 		}
 		containerEl.createEl("hr");
+
+		new Setting(containerEl)
+			.setName(i18next.t("extraMenus.title"))
+			.setDesc(i18next.t("extraMenus.desc"))
+			.addToggle((toggle) =>
+				toggle.setValue(this.plugin.settings.extraMenus).onChange(async (value) => {
+					this.plugin.settings.extraMenus = value;
+					await this.plugin.saveSettings();
+					await this.display();
+				})
+			);
+
 		new Setting(containerEl)
 			.setName(i18next.t("interval.title"))
 			.setHeading()
