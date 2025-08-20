@@ -1,3 +1,9 @@
+## [0.0.20](https://github.com/Mara-Li/obsidian-dataview-properties/compare/0.0.19...0.0.20) (2025-08-20)
+### Features
+
+* add extra menu for adding dataview properties as batch ([de9cbe0](https://github.com/Mara-Li/obsidian-dataview-properties/commit/de9cbe03178c3f5fb7f0138c1dd659b71e584645)), closes [#12](https://github.com/Mara-Li/obsidian-dataview-properties/issues/12)
+* links should follow obsidian settings (shortest path etc) ([9a97ca6](https://github.com/Mara-Li/obsidian-dataview-properties/commit/9a97ca6ace55e05e7c564cc9ec0dd829142b51e5))
+
 ## [0.0.19](https://github.com/Mara-Li/obsidian-dataview-properties/compare/0.0.19-0...0.0.19) (2025-08-19)
 ### Bug Fixes
 
