@@ -1,4 +1,5 @@
 ---
+title: Links
 dv_links: "[[myFile]]"
 dv_markdownLinks: "[myFile](myFile.md)"
 dv_withAnAlias: "[[myFile|myAlias]]"
