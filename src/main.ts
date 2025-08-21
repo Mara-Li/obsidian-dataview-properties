@@ -112,7 +112,11 @@ export default class DataviewProperties extends Plugin {
 		);
 		this.registerEvent(
 			this.app.workspace.on("file-menu", (menu, file) => {
-				if (file instanceof TFile && !this.isIgnoredFile(file)) {
+				if (
+					file instanceof TFile &&
+					!this.isIgnoredFile(file) &&
+					this.settings.extraMenus
+				) {
 					menu.addItem((item) => {
 						item
 							.setTitle(i18next.t("addToFrontmatter"))
@@ -121,11 +125,11 @@ export default class DataviewProperties extends Plugin {
 								await this.resolveDataview(file);
 							});
 					});
-				} else if (file instanceof TFolder) {
+				} else if (file instanceof TFolder && this.settings.extraMenus) {
 					const allFileInTheFolder = file.children.filter(
 						(child) => child instanceof TFile && !this.isIgnoredFile(child)
 					) as TFile[];
-					if (allFileInTheFolder.length > 0) {
+					if (allFileInTheFolder.length > 0 && this.settings.extraMenus) {
 						menu.addItem((item) => {
 							item
 								.setTitle(i18next.t("addToFrontmatter"))
@@ -144,7 +148,7 @@ export default class DataviewProperties extends Plugin {
 				const filesToProcess = files.filter(
 					(file) => file instanceof TFile && !this.isIgnoredFile(file)
 				);
-				if (filesToProcess.length > 0) {
+				if (filesToProcess.length > 0 && this.settings.extraMenus) {
 					menu.addItem((item) => {
 						item
 							.setTitle(i18next.t("addToFrontmatter"))
