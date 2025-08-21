@@ -1,3 +1,8 @@
+## [0.0.21](https://github.com/Mara-Li/obsidian-dataview-properties/compare/0.0.20...0.0.21) (2025-08-21)
+### Bug Fixes
+
+* **extraMenu:** forgot to add the settings ([9d0fb5b](https://github.com/Mara-Li/obsidian-dataview-properties/commit/9d0fb5bc2680b93aa513fa23db9ea521a5f10b51))
+
 ## [0.0.20](https://github.com/Mara-Li/obsidian-dataview-properties/compare/0.0.19...0.0.20) (2025-08-20)
 ### Features
 
