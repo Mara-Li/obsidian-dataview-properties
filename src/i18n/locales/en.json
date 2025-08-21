@@ -21,6 +21,10 @@
 		"save": "save",
 		"title": "Excluded files"
 	},
+	"extraMenus": {
+		"desc": "Add a right-click option in the explorer to process the dataview properties in a batch.",
+		"title": "Menu"
+	},
 	"ignore": "Ignored values",
 	"ignoreAccents": {
 		"desc": "Accented characters will be converted to their corresponding value:",

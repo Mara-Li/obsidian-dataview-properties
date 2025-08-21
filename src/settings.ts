@@ -205,7 +205,6 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 				toggle.setValue(this.plugin.settings.extraMenus).onChange(async (value) => {
 					this.plugin.settings.extraMenus = value;
 					await this.plugin.saveSettings();
-					await this.display();
 				})
 			);
 

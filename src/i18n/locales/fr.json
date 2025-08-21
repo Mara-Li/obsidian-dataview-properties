@@ -21,6 +21,10 @@
 		"save": "sauvegarder",
 		"title": "Fichier exclus"
 	},
+	"extraMenus": {
+		"desc": "Ajoute une option dans le click droit de l'explorateur pour ajouter les propriétés dataview en lot.",
+		"title": "Menu"
+	},
 	"ignore": "Valeur ignorée",
 	"ignoreAccents": {
 		"desc": "Les caractères accentués seront converti en leur valeur correspondante :",
