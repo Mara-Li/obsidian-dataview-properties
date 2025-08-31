@@ -364,9 +364,7 @@ export async function getInlineFields(
 	}
 
 	if (plugin.settings.unflatten.enabled) {
-		const unflattened = unflatten(inlineFields, plugin.settings.unflatten.separator);
-		console.debug(`${plugin.prefix} After unflatten:`, unflattened);
-		return unflattened;
+		return unflatten(inlineFields, plugin.settings.unflatten.separator);
 	}
 
 	return inlineFields;

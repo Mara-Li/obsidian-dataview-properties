@@ -8,9 +8,7 @@ function isExcludedByPath(excluded: Ignore, file: TFile): boolean {
 		if (pattern.startsWith("/")) {
 			// Regex pattern
 			const splitted = pattern.split("/").filter((x) => x.length); //-> should be ['regex', 'flags']
-			console.debug(
-				`[Dataview Properties] Checking if file path '${filePath}' matches regex pattern '${pattern}' with flags '${splitted[1]}'`
-			);
+
 			if (splitted.length < 1) {
 				console.warn(
 					`[Dataview Properties] Invalid regex pattern: ${pattern}. It should be in the format '/regex/flags'.`
@@ -37,11 +35,9 @@ function isExcludedByFrontmatter(file: TFile, keyName: string, app: App) {
 
 export function isExcluded(excluded: Ignore, file: TFile, app: App): boolean {
 	if (isExcludedByPath(excluded, file)) {
-		console.debug(`[Dataview Properties] File ${file.path} is excluded by path.`);
 		return true;
 	}
 	if (isExcludedByFrontmatter(file, excluded.keyName, app)) {
-		console.debug(`[Dataview Properties] File ${file.path} is excluded by frontmatter.`);
 		return true;
 	}
 	return false;
