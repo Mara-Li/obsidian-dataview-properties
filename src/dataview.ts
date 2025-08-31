@@ -211,7 +211,7 @@ class Dataview {
 
 		const formatedDur = dur.toHuman(humanReadableOptions);
 
-		if (textReplacement?.replaceWith && textReplacement.toReplace) {
+		if (textReplacement?.toReplace) {
 			return formatedDur.replaceAll(
 				textReplacement.toReplace,
 				textReplacement.replaceWith

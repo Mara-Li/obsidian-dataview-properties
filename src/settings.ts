@@ -435,6 +435,7 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 									this.plugin.settings.dataviewOptions.durationFormat.humanReadableOptions =
 										parsed;
 									await this.plugin.saveSettings();
+									text.inputEl.removeClass("is-invalid");
 								} else {
 									new Notice(
 										sanitizeHTMLToDom(
@@ -480,10 +481,10 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 								return;
 							}
 							this.plugin.settings.dataviewOptions.durationFormat.textReplacement = {
-								toReplace: value.trim().length === 0 ? undefined : value.trim(),
+								toReplace: value.length === 0 ? undefined : value,
 								replaceWith:
 									this.plugin.settings.dataviewOptions.durationFormat.textReplacement
-										?.replaceWith,
+										?.replaceWith ?? "",
 							};
 							await this.plugin.saveSettings();
 						})
@@ -503,17 +504,11 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 						)
 						.setPlaceholder(i18next.t("durationFormat.textReplacement.placeholder2"))
 						.onChange(async (value) => {
-							if (value.trim().length === 0) {
-								this.plugin.settings.dataviewOptions.durationFormat.textReplacement =
-									undefined;
-								await this.plugin.saveSettings();
-								return;
-							}
 							this.plugin.settings.dataviewOptions.durationFormat.textReplacement = {
 								toReplace:
 									this.plugin.settings.dataviewOptions.durationFormat.textReplacement
 										?.toReplace,
-								replaceWith: value.trim().length === 0 ? undefined : value.trim(),
+								replaceWith: value,
 							};
 							await this.plugin.saveSettings();
 						})

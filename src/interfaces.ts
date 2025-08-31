@@ -65,10 +65,10 @@ export interface DataviewPropertiesSettings {
 export interface DurationOptions {
 	formatDuration: boolean;
 	humanReadableOptions?: ToHumanDurationOptions;
-	textReplacement?: Partial<{
-		toReplace: string;
+	textReplacement?: {
+		toReplace?: string;
 		replaceWith: string;
-	}>;
+	};
 }
 
 export enum UtilsConfig {
