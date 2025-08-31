@@ -1,5 +1,3 @@
-import { type TextOptions, UtilsConfig } from "../interfaces";
-
 // Regex patterns compiled once for better performance
 const NUMBER_REGEX = /^-?\d+e?\d*(\.\d+)?$/;
 
