@@ -34,13 +34,9 @@ function isExcludedByFrontmatter(file: TFile, keyName: string, app: App) {
 }
 
 export function isExcluded(excluded: Ignore, file: TFile, app: App): boolean {
-	if (isExcludedByPath(excluded, file)) {
-		return true;
-	}
-	if (isExcludedByFrontmatter(file, excluded.keyName, app)) {
-		return true;
-	}
-	return false;
+	if (isExcludedByPath(excluded, file)) return true;
+
+	return isExcludedByFrontmatter(file, excluded.keyName, app);
 }
 
 function validateFlags(flags: string): string {
