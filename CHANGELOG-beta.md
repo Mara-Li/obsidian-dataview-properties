@@ -1,3 +1,8 @@
+## [0.0.22-0](https://github.com/Mara-Li/obsidian-dataview-properties/compare/0.0.21...0.0.22-0) (2025-08-31)
+### Features
+
+* **dataview:** add duration conversion feature with customizable options with luxon ([d1adf40](https://github.com/Mara-Li/obsidian-dataview-properties/commit/d1adf40ee19101a438e9d1519f21de5c8f923ebb))
+
 ## [0.0.19-0](https://github.com/Mara-Li/obsidian-dataview-properties/compare/0.0.18...0.0.19-0) (2025-08-03)
 ### Features
 
