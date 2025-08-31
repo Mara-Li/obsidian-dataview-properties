@@ -69,3 +69,33 @@
 	padding: 0;
 	margin: 0;
 }
+
+.obsidian-dataview-properties .display-block {
+	display: block;
+}
+
+.obsidian-dataview-properties .li .setting-item-control {
+	padding-left: 1em;
+}
+
+.obsidian-dataview-properties .setting-item-control input.max-width {
+	width: 100%;
+}
+
+.obsidian-dataview-properties
+	.setting-item-control
+	.obsidian-dataview-properties
+	.clickable-icon.extra-setting-button.is-disabled.no-hover {
+	cursor: default;
+}
+
+.obsidian-dataview-properties
+	.clickable-icon.extra-setting-button.is-disabled.no-hover:hover {
+	background-color: transparent;
+	color: var(--icon-color);
+	opacity: var(--icon-opacity);
+}
+
+.obsidian-dataview-properties .setting-item.padding-top .setting-item-control {
+	padding-top: 1em;
+}

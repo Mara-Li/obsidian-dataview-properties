@@ -1,3 +1,5 @@
+import type { ToHumanDurationOptions } from "luxon";
+
 export type TextOptions = {
 	ignoreAccents: boolean;
 	lowerCase: boolean;
@@ -55,6 +57,18 @@ export interface DataviewPropertiesSettings {
 	 * Allow right-clicking on a file/files/folder to process the properties on them.
 	 */
 	extraMenus: boolean;
+	dataviewOptions: {
+		durationFormat: DurationOptions;
+	};
+}
+
+export interface DurationOptions {
+	formatDuration: boolean;
+	humanReadableOptions?: ToHumanDurationOptions;
+	textReplacement?: Partial<{
+		toReplace: string;
+		replaceWith: string;
+	}>;
 }
 
 export enum UtilsConfig {
@@ -110,4 +124,11 @@ export const DEFAULT_SETTINGS: DataviewPropertiesSettings = {
 		ignoreAccents: true,
 	},
 	extraMenus: false,
+	dataviewOptions: {
+		durationFormat: {
+			formatDuration: false,
+			humanReadableOptions: undefined,
+			textReplacement: undefined,
+		},
+	},
 };

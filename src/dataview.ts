@@ -6,13 +6,12 @@ import {
 	Values,
 } from "@enveloppe/obsidian-dataview";
 import dedent from "dedent";
+import { Duration } from "luxon";
 import { Component, type FrontMatterCache, htmlToMarkdown } from "obsidian";
 import { isRecognized } from "./fields";
 import type DataviewProperties from "./main";
 import { convertToNumber, unflatten } from "./utils";
 import { parseMarkdownList } from "./utils/text_utils";
-
-import typeOf = Values.typeOf;
 
 /**
  * Handles Dataview API interactions and query evaluation
@@ -186,7 +185,6 @@ class Dataview {
 		const res: unknown[] = [];
 		for (const value of values) {
 			if (Values.isLink(value)) {
-				console.debug(`${this.prefix} Converting link:`, value);
 				const link = this.stringifyLink(value);
 				res.push(link);
 			} else res.push(this.toWikiLink(decodeURI(value as string)));
@@ -202,6 +200,26 @@ class Dataview {
 		return false;
 	}
 
+	// biome-ignore lint/suspicious/noExplicitAny: dataview use type strangly
+	private convertDuration(field: any): string {
+		const { humanReadableOptions, textReplacement, formatDuration } =
+			this.plugin.settings.dataviewOptions.durationFormat;
+		if (!formatDuration) return field.toString();
+		console.debug(`${this.prefix} Converting Duration:`, field);
+		//should keep duration in a readable format
+		const dur = Duration.fromObject(field.values);
+
+		const formatedDur = dur.toHuman(humanReadableOptions);
+
+		if (textReplacement?.replaceWith && textReplacement.toReplace) {
+			return formatedDur.replaceAll(
+				textReplacement.toReplace,
+				textReplacement.replaceWith
+			);
+		}
+		return formatedDur;
+	}
+
 	/**
 	 * Evaluate and convert a dataview field value
 	 */
@@ -210,7 +228,6 @@ class Dataview {
 
 		try {
 			if (Values.isString(value)) {
-				console.debug(`${this.prefix} Converting string:`, value);
 				let res = convertToNumber(await this.convertDataviewQueries(value));
 
 				if (Values.isString(res)) {
@@ -220,7 +237,6 @@ class Dataview {
 						isRecognized(fieldName, this.plugin.listFields, this.plugin.utils) ||
 						fieldName.endsWith(this.plugin.settings.listSuffix)
 					) {
-						console.debug(`${this.prefix} Converting list:`, res);
 						return this.convertToDvArrayLinks(parseMarkdownList(res as string));
 					}
 					return res;
@@ -250,6 +266,8 @@ class Dataview {
 					value.map((item) => this.evaluateInline(item, fieldName))
 				);
 			}
+			if (value?.constructor.name === "Duration")
+				return this.convertDuration(value as Duration);
 			return value;
 		} catch (error) {
 			console.error(`${this.prefix} Error evaluating inline value:`, error);
@@ -344,7 +362,6 @@ export async function getInlineFields(
 	delete pageData.file; // Remove the file key from the page data
 
 	for (const key in pageData) {
-		console.debug(`${plugin.prefix} Processing key: "${key}" with value:`, pageData[key]);
 		const normalizedKey = key.toLowerCase();
 		const withSpace = normalizedKey.replaceAll("-", " ");
 		if (processedKeys.has(normalizedKey) || processedKeys.has(withSpace)) continue;

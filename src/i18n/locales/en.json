@@ -13,6 +13,20 @@
 		"desc": "Cleanup the frontmatter when a field is deleted.",
 		"title": "Frontmatter cleanup"
 	},
+	"durationFormat": {
+		"desc": "Allows you to convert durations (Dataview) into a format that can be read via {{- link}}.",
+		"options": {
+			"invalid": "The options set are invalid.",
+			"title": "Human readable options"
+		},
+		"textReplacement": {
+			"desc": "Allows you to replace one text with another during conversion to a readable format.",
+			"placeholder": "To be replaced",
+			"placeholder2": "Replaced with",
+			"title": "Transform (text replacement)"
+		},
+		"title": "Converting durations into a readable format"
+	},
 	"excluded": {
 		"add": "add",
 		"keyName": "Properties key",

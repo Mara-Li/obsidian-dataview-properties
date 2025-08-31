@@ -392,5 +392,133 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 				await this.plugin.saveSettings();
 			})
 		);
+
+		new Setting(containerEl)
+			.setName(i18next.t("durationFormat.title"))
+			.setDesc(
+				sanitizeHTMLToDom(
+					`${i18next.t("durationFormat.desc", { link: '<a href="https://moment.github.io/luxon/api-docs/index.html#durationtohuman" target="_blank">Luxon <code>toHuman(opts)</code></a>' })}`
+				)
+			)
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.dataviewOptions.durationFormat.formatDuration)
+					.onChange(async (value) => {
+						this.plugin.settings.dataviewOptions.durationFormat.formatDuration = value;
+						await this.plugin.saveSettings();
+						await this.display();
+					})
+			);
+
+		if (this.plugin.settings.dataviewOptions.durationFormat.formatDuration) {
+			new Setting(containerEl)
+				.setName(i18next.t("durationFormat.options.title"))
+				.addTextArea((text) => {
+					text
+						.setValue(
+							JSON.stringify(
+								this.plugin.settings.dataviewOptions.durationFormat.humanReadableOptions
+							) ?? ""
+						)
+						.setPlaceholder(
+							'e.g. { "unitDisplay": "long", "round": true }'
+						).inputEl.onblur = async () => {
+						const value = text.getValue();
+						if (value.trim().length === 0) {
+							this.plugin.settings.dataviewOptions.durationFormat.humanReadableOptions =
+								undefined;
+							await this.plugin.saveSettings();
+						} else {
+							try {
+								const parsed = JSON.parse(value);
+								if (typeof parsed === "object" && !Array.isArray(parsed)) {
+									this.plugin.settings.dataviewOptions.durationFormat.humanReadableOptions =
+										parsed;
+									await this.plugin.saveSettings();
+								} else {
+									new Notice(
+										sanitizeHTMLToDom(
+											`<span class="notice-error">${i18next.t("durationFormat.options.invalid")}</span>`
+										)
+									);
+									text.inputEl.addClass("is-invalid");
+								}
+							} catch (e) {
+								new Notice(
+									sanitizeHTMLToDom(
+										`<span class="notice-error">${i18next.t("durationFormat.options.invalid")}</span>`
+									)
+								);
+								console.error(e);
+								text.inputEl.addClass("is-invalid");
+							}
+						}
+					};
+				})
+				.setClass("max-width")
+				.setClass("li")
+				.setClass("display-block");
+
+			new Setting(containerEl)
+				.setName(i18next.t("durationFormat.textReplacement.title"))
+				.setDesc(i18next.t("durationFormat.textReplacement.desc"))
+				.setClass("li")
+				.setClass("padding-top")
+				.setClass("display-block")
+				.addText((cb) =>
+					cb
+						.setValue(
+							this.plugin.settings.dataviewOptions.durationFormat.textReplacement
+								?.toReplace ?? ""
+						)
+						.setPlaceholder(i18next.t("durationFormat.textReplacement.placeholder"))
+						.onChange(async (value) => {
+							if (value.trim().length === 0) {
+								this.plugin.settings.dataviewOptions.durationFormat.textReplacement =
+									undefined;
+								await this.plugin.saveSettings();
+								return;
+							}
+							this.plugin.settings.dataviewOptions.durationFormat.textReplacement = {
+								toReplace: value.trim().length === 0 ? undefined : value.trim(),
+								replaceWith:
+									this.plugin.settings.dataviewOptions.durationFormat.textReplacement
+										?.replaceWith,
+							};
+							await this.plugin.saveSettings();
+						})
+						.inputEl.addClass("max-width")
+				)
+				.addExtraButton((btn) =>
+					btn
+						.setIcon("arrow-right")
+						.setDisabled(true)
+						.extraSettingsEl.addClass("no-hover")
+				)
+				.addText((cb) =>
+					cb
+						.setValue(
+							this.plugin.settings.dataviewOptions.durationFormat.textReplacement
+								?.replaceWith ?? ""
+						)
+						.setPlaceholder(i18next.t("durationFormat.textReplacement.placeholder2"))
+						.onChange(async (value) => {
+							if (value.trim().length === 0) {
+								this.plugin.settings.dataviewOptions.durationFormat.textReplacement =
+									undefined;
+								await this.plugin.saveSettings();
+								return;
+							}
+							this.plugin.settings.dataviewOptions.durationFormat.textReplacement = {
+								toReplace:
+									this.plugin.settings.dataviewOptions.durationFormat.textReplacement
+										?.toReplace,
+								replaceWith: value.trim().length === 0 ? undefined : value.trim(),
+							};
+							await this.plugin.saveSettings();
+						})
+						.inputEl.addClass("max-width")
+				);
+		}
 	}
 }

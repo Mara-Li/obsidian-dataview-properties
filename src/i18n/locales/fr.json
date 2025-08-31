@@ -13,6 +13,20 @@
 		"desc": "Nettoyer le frontmatter quand un champ est supprimé.",
 		"title": "Nettoyage du frontmatter"
 	},
+	"durationFormat": {
+		"desc": "Permet de convertir les durées (Dataview) en un format lisible via {{- link}}.",
+		"options": {
+			"invalid": "Les options mises ne sont pas valides.",
+			"title": "Options de lecture lisible"
+		},
+		"textReplacement": {
+			"desc": "Permet de remplacer un texte par un autre durant la transformation en format lisible.",
+			"placeholder": "À être remplacé",
+			"placeholder2": "Remplacer avec",
+			"title": "Transformation (remplacement de texte)"
+		},
+		"title": "Convertion des durées en format lisible"
+	},
 	"excluded": {
 		"add": "Ajouter",
 		"keyName": "Clé de propriété",
