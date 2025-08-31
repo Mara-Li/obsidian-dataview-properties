@@ -20,6 +20,7 @@
       "devDependencies": {
         "@biomejs/biome": "^2.2.0",
         "@types/bun": "^1.2.20",
+        "@types/luxon": "^3.7.1",
         "@types/mocha": "^10.0.10",
         "@types/node": "^24.3.0",
         "@wdio/cli": "^9.19.1",
@@ -46,6 +47,9 @@
     "geckodriver",
     "classic-level",
   ],
+  "overrides": {
+    "luxon": "^3.7.1",
+  },
   "packages": {
     "7z-wasm": ["7z-wasm@1.2.0", "", { "dependencies": { "readline-sync": "^1.4.10" }, "bin": { "7z-wasm": "bin/cli" } }, "sha512-AZjtWXFleAe5nQ27JYISs70cICjO0zZr4LU45I9pXKcrhG0qiEWgq3Vjwr9JHHihFLuqgc7uSHYVn/z3vXCjdw=="],
 
@@ -436,6 +440,8 @@
     "@types/jsdom": ["@types/jsdom@21.1.7", "", { "dependencies": { "@types/node": "*", "@types/tough-cookie": "*", "parse5": "^7.0.0" } }, "sha512-yOriVnggzrnQ3a9OKOCxaVuSug3w3/SbOj5i7VwXWZEyUNl3bLF9V3MfxGbZKuwqJOQyRfqXyROBB1CoZLFWzA=="],
 
     "@types/keyv": ["@types/keyv@3.1.4", "", { "dependencies": { "@types/node": "*" } }, "sha512-BQ5aZNSCpj7D6K2ksrRCTmKRLEpnPvWDiLPfoGyhZ++8YtiK9d/3DBKPJgry359X/P1PfruyYwvnvwFjuEiEIg=="],
+
+    "@types/luxon": ["@types/luxon@3.7.1", "", {}, "sha512-H3iskjFIAn5SlJU7OuxUmTEpebK6TKB8rxZShDslBMZJ5u9S//KM1sbdAisiSrqwLQncVjnpi2OK2J51h+4lsg=="],
 
     "@types/minimist": ["@types/minimist@1.2.5", "", {}, "sha512-hov8bUuiLiyFPGyFPE1lwWhmzYbirOXQNNo40+y3zow8aFVTeyn3VWL0VFFfdNddA8S4Vf0Tc062rzyNr7Paag=="],
 
