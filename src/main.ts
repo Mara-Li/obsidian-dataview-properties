@@ -52,6 +52,7 @@ export default class DataviewProperties extends Plugin {
 		} else
 			this.debounced = debounce(
 				async (file: TFile) => {
+					if (this.isIgnoredFile(file)) return;
 					await this.resolveDataview(file);
 				},
 				this.settings.interval,
@@ -107,6 +108,7 @@ export default class DataviewProperties extends Plugin {
 				}
 			)
 		);
+
 		this.registerEvent(
 			this.app.workspace.on("file-menu", (menu, file) => {
 				if (
