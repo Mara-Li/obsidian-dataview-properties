@@ -1,3 +1,8 @@
+## [0.0.22](https://github.com/Mara-Li/obsidian-dataview-properties/compare/0.0.22-0...0.0.22) (2025-10-19)
+### Bug Fixes
+
+* some race condition between files ([16d0511](https://github.com/Mara-Li/obsidian-dataview-properties/commit/16d051103ee45c4ae301217d8009bb51c67a6743)), closes [#19](https://github.com/Mara-Li/obsidian-dataview-properties/issues/19)
+
 ## [0.0.21](https://github.com/Mara-Li/obsidian-dataview-properties/compare/0.0.20...0.0.21) (2025-08-21)
 ### Bug Fixes
 
