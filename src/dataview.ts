@@ -352,20 +352,24 @@ export async function getInlineFields(
 	if (!dvApi) return {};
 
 	const pageData = dvApi.page(path);
-
 	if (!pageData) return {};
 
 	const compiler = new Dataview(dvApi, path, plugin);
 	const inlineFields: Record<string, unknown> = {};
-
 	const processedKeys = new Set<string>();
-	delete pageData.file; // Remove the file key from the page data
 
 	for (const key in pageData) {
+		if (key === "file") continue; // Skip file key
+
 		const normalizedKey = key.toLowerCase();
-		const withSpace = normalizedKey.replaceAll("-", " ");
-		if (processedKeys.has(normalizedKey) || processedKeys.has(withSpace)) continue;
+		const withSpace = normalizedKey.replaceAll(" ", "-");
+		const withoutInvalid = normalizedKey.replaceAll(/[([)\]]/g, "");
+		if (processedKeys.has(normalizedKey) || processedKeys.has(withSpace) || processedKeys.has(withoutInvalid)) continue;
+
 		processedKeys.add(normalizedKey);
+		processedKeys.add(withSpace);
+		processedKeys.add(withoutInvalid);
+
 		if (!frontmatter || !(key in frontmatter)) {
 			inlineFields[key] = await compiler.evaluateInline(pageData[key], key);
 		} else if (
@@ -386,3 +390,5 @@ export async function getInlineFields(
 
 	return inlineFields;
 }
+
+
