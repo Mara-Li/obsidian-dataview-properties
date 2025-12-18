@@ -3,7 +3,7 @@ import * as os from "node:os";
 import dotenv from "dotenv";
 import { obsidianBetaAvailable, resolveObsidianVersions } from "wdio-obsidian-service";
 const cacheDir = path.resolve(os.tmpdir(), ".obsidian-cache");
-dotenv.config();
+dotenv.config({quiet: true});
 
 console.log(`Using obsidian vault: ${process.env.VAULT_TEST}`);
 console.log(`Using obsidian cache dir: ${cacheDir}`);

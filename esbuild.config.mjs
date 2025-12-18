@@ -7,7 +7,7 @@ import * as path from "path";
 import manifest from "./manifest.json" with { type: "json" };
 import packageJson from "./package.json" with { type: "json" };
 
-dotenv.config({ path: [".env"] });
+dotenv.config({ path: [".env"], quiet: true });
 
 const program = new Command();
 program
