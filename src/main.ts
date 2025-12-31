@@ -353,13 +353,21 @@ export default class DataviewProperties extends Plugin {
 		let modifiedContent = content;
 		let hasChanges = false;
 
-		for (const [key, value] of Object.entries(inlineFields)) {
+		// Sort entries by key length (descending) to match longer keys first
+		// This prevents shorter keys from matching parts of longer keys
+		// Filter to only include scalar values (exclude arrays, objects, etc.)
+		const sortedEntries = Object.entries(inlineFields)
+			.filter(([key, value]) => this.isScalarValue(value))
+			.sort((a, b) => b[0].length - a[0].length);
+
+		for (const [key, value] of sortedEntries) {
 			if (this.isIgnored(key)) continue;
 
-			// Create regex to match inline field: key:: value (with optional whitespace)
-			// This matches both `key:: value` and `[key:: value]` formats
+			// Create regex to match inline field with optional whitespace
+			// Matches: [key :: value], (key :: value), and key :: value
+			// Underscores in keys will match any non-word characters (spaces, hyphens, etc.)
 			const inlineFieldRegex = new RegExp(
-				`(\\[)?${this.escapeRegex(key)}::\\s*[^\\n\\]]+?(\\])?(?=\\s|$|\\n)`,
+				`([\\[\\(])?\\s*\\W?${this.escapeRegexForFieldKey(key)}\\s*::\\s*[^\\n\\]\\)]+?([\\]\\)])?(?=\\s|$|\\n)`,
 				'gi'
 			);
 
@@ -370,16 +378,23 @@ export default class DataviewProperties extends Plugin {
 				value
 			);
 
-			const newContent = modifiedContent.replace(inlineFieldRegex, (match: string) => {
-				// Check if the match is already a DataView expression
-				if (match.includes('`= this.')) {
-					return match; // Already replaced, skip
-				}
-				hasChanges = true;
-				return replacement;
+			// Split content into lines for line-by-line processing
+			const lines = modifiedContent.split('\n');
+
+			// Process each line independently
+			const processedLines = lines.map((line: string) => {
+				return line.replace(inlineFieldRegex, (match: string) => {
+					// Check if the match is already a DataView expression
+					if (match.includes('`= this.')) {
+						return match; // Already replaced, skip
+					}
+					hasChanges = true;
+					return replacement;
+				});
 			});
 
-			modifiedContent = newContent;
+			// Join lines back together
+			modifiedContent = processedLines.join('\n');
 		}
 
 		// Only write back if we made changes
@@ -389,10 +404,82 @@ export default class DataviewProperties extends Plugin {
 	}
 
 	/**
+	 * Check if a value is scalar-like (can be safely converted to string for replacement)
+	 * Returns true for primitives, dates, durations, and simple Dataview links
+	 * Returns false for arrays, plain objects, and other complex types
+	 */
+	private isScalarValue(value: any): boolean {
+		// Allow null/undefined
+		if (value == null) return true;
+		
+		const valueType = typeof value;
+		
+		// Allow all JavaScript primitives
+		if (valueType === 'string' || 
+				valueType === 'number' || 
+				valueType === 'boolean' || 
+				valueType === 'bigint' || 
+				valueType === 'symbol') {
+			return true;
+		}
+		
+		// For objects, be selective
+		if (valueType === 'object') {
+			// Exclude arrays
+			if (Array.isArray(value)) return false;
+			
+			// Allow native Date objects
+			if (value instanceof Date) return true;
+			
+			// Allow RegExp
+			if (value instanceof RegExp) return true;
+			
+			// Check constructor name for Dataview types
+			const constructorName = value.constructor?.name;
+			
+			// Allow Dataview scalar types by constructor name
+			if (constructorName === 'DateTime' ||   // Dataview dates/times
+					constructorName === 'Duration' ||   // Dataview durations
+					constructorName === 'Link') {       // Dataview links
+				return true;
+			}
+			
+			// Fallback: Check for Dataview DateTime by structure (has 'ts' timestamp property)
+			// This is more robust if constructor names change
+			if (value.ts !== undefined && typeof value.ts === 'number') {
+				return true;
+			}
+			
+			// Fallback: Check for Dataview Duration by structure (has duration properties)
+			if (value.years !== undefined || value.months !== undefined || 
+					value.days !== undefined || value.hours !== undefined) {
+				return true;
+			}
+			
+			// Exclude all other objects (plain objects, Maps, Sets, etc.)
+			return false;
+		}
+		
+		// Exclude functions and other types
+		return false;
+	}
+
+	/**
 	 * Escape special regex characters in string
 	 */
 	private escapeRegex(text: string): string {
 		return text.replace(/[/\-\\^$*+?.()|[\]{}]/g, "\\$&");
+	}
+
+	/**
+	 * Escape special regex characters for field keys, allowing underscores to match any non-word characters
+	 */
+	private escapeRegexForFieldKey(text: string): string {
+		// First escape regex special characters
+		const escaped = this.escapeRegex(text);
+		// Then replace underscores with pattern to match non-word chars
+		const result = "\\S+" + escaped.replace(/_/g, "\\S+") + "\\S+";
+		return result;
 	}
 
 	onunload(): void {
