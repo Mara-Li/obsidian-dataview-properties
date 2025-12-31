@@ -321,7 +321,7 @@ export default class DataviewProperties extends Plugin {
 			this.utils.useConfig(UtilsConfig.Cleanup);
 			for (const [key, value] of Object.entries(inlineFields)) {
 				if (this.isIgnored(key) || value == null) continue;
-				frontmatter[`${this.settings.prefix}${key}`] = value;
+				frontmatter[`${this.settings.prefix}${key}`] = this.normalizeValueForFrontmatter(value);
 			}
 		});
 
@@ -329,6 +329,41 @@ export default class DataviewProperties extends Plugin {
 		if(this.settings.replaceInlineFieldsWith) {
 			await this.replaceInlineFieldsWithExpressions(file, inlineFields);
 		}
+	}
+
+	/**
+	 * Normalize a value for frontmatter serialization
+	 * Converts DateTime objects to date-only strings to avoid timezone issues
+	 */
+	private normalizeValueForFrontmatter(value: any): any {
+		if (value == null) return value;
+		
+		const constructorName = value.constructor?.name;
+		
+		// Handle Dataview DateTime objects
+		if (constructorName === 'DateTime' || 
+				(value.ts !== undefined && typeof value.ts === 'number')) {
+			// Check if it's a date-only value (no time component)
+			// Check time in the DateTime's own zone, not UTC
+			// Luxon DateTime properties give time in the object's zone
+			const isDateOnly = 
+				value.hour === 0 && 
+				value.minute === 0 && 
+				value.second === 0 && 
+				value.millisecond === 0;
+			
+			if (isDateOnly) {
+				// Return as YYYY-MM-DD string
+				return value.toFormat?.('yyyy-MM-dd') || 
+							 new Date(value.ts).toISOString().split('T')[0];
+			}
+			
+			// For DateTime with time component, return ISO string
+			return value.toISO?.() || new Date(value.ts).toISOString();
+		}
+		
+		// Return other values unchanged
+		return value;
 	}
 
 	/**
@@ -478,7 +513,7 @@ export default class DataviewProperties extends Plugin {
 		// First escape regex special characters
 		const escaped = this.escapeRegex(text);
 		// Then replace underscores with pattern to match non-word chars
-		const result = "\\S+" + escaped.replace(/_/g, "\\S+") + "\\S+";
+		const result = escaped.replace(/_/g, "\\S+");
 		return result;
 	}
 
