@@ -131,6 +131,34 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 				};
 			});
 
+		new Setting(containerEl)
+			.setName("Inline field replacement template")
+			.setDesc(
+				sanitizeHTMLToDom(
+					`Template for replacing inline fields with dataview expressions. Available placeholders: <code>{{key}}</code>, <code>{{prefix}}</code>, <code>{{value}}</code><br>Default: <code>{{key}} = \`= this.{{prefix}}{{key}}\`</code>`
+				)
+			)
+			.addText((text) => {
+				text.setValue(this.plugin.settings.replaceInlineFieldsWith)
+					.setPlaceholder("{{key}} = `= this.{{prefix}}{{key}}`")
+					.inputEl.onblur = async () => {
+					const value = text.getValue();
+					if (value.trim().length === 0) {
+						new Notice(
+							sanitizeHTMLToDom(
+								`<span class="notice-error">Replacement template cannot be empty</span>`
+							)
+						);
+						text.inputEl.addClass("is-invalid");
+					} else {
+						this.plugin.settings.replaceInlineFieldsWith = value;
+						await this.plugin.saveSettings();
+						text.inputEl.removeClass("is-invalid");
+					}
+				};
+				text.inputEl.style.width = "100%";
+			});
+
 		containerEl.createEl("hr");
 
 		new Setting(containerEl)

@@ -57,6 +57,12 @@ export interface DataviewPropertiesSettings {
 	 * Allow right-clicking on a file/files/folder to process the properties on them.
 	 */
 	extraMenus: boolean;
+	/**
+	 * Template string for replacing inline fields with dataview expressions.
+	 * Available placeholders: {{key}}, {{prefix}}, {{value}}
+	 * @default {{key}} = `= this.{{prefix}}{{key}}`
+	 */
+	replaceInlineFieldsWith: string;
 	dataviewOptions: {
 		durationFormat: DurationOptions;
 	};
@@ -124,6 +130,7 @@ export const DEFAULT_SETTINGS: DataviewPropertiesSettings = {
 		ignoreAccents: true,
 	},
 	extraMenus: false,
+	replaceInlineFieldsWith: "{{key}} = `= this.{{prefix}}{{key}}`",
 	dataviewOptions: {
 		durationFormat: {
 			formatDuration: false,

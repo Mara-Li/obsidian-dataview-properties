@@ -326,7 +326,19 @@ export default class DataviewProperties extends Plugin {
 		});
 
 		// Replace inline fields with DataView expressions
-		await this.replaceInlineFieldsWithExpressions(file, inlineFields);
+		if(this.settings.replaceInlineFieldsWith) {
+			await this.replaceInlineFieldsWithExpressions(file, inlineFields);
+		}
+	}
+
+	/**
+	 * Interpolate template string with actual values
+	 */
+	private formatReplacement(template: string, key: string, value: any): string {
+		return template
+			.replace(/\{\{key\}\}/g, key)
+			.replace(/\{\{prefix\}\}/g, this.settings.prefix)
+			.replace(/\{\{value\}\}/g, String(value));
 	}
 
 	/**
@@ -341,7 +353,7 @@ export default class DataviewProperties extends Plugin {
 		let modifiedContent = content;
 		let hasChanges = false;
 
-		for (const key of Object.keys(inlineFields)) {
+		for (const [key, value] of Object.entries(inlineFields)) {
 			if (this.isIgnored(key)) continue;
 
 			// Create regex to match inline field: key:: value (with optional whitespace)
@@ -351,8 +363,12 @@ export default class DataviewProperties extends Plugin {
 				'gi'
 			);
 
-			// Replace with DataView expression
-			const replacement = `${key} = \`= this.${this.settings.prefix}${key}\``;
+			// Replace with DataView expression using configurable template
+			const replacement = this.formatReplacement(
+				this.settings.replaceInlineFieldsWith,
+				key,
+				value
+			);
 
 			const newContent = modifiedContent.replace(inlineFieldRegex, (match: string) => {
 				// Check if the match is already a DataView expression
