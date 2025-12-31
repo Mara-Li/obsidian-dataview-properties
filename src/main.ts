@@ -324,6 +324,59 @@ export default class DataviewProperties extends Plugin {
 				frontmatter[`${this.settings.prefix}${key}`] = value;
 			}
 		});
+
+		// Replace inline fields with DataView expressions
+		await this.replaceInlineFieldsWithExpressions(file, inlineFields);
+	}
+
+	/**
+	 * Replace inline DataView fields with expressions that reference frontmatter values
+	 */
+	private async replaceInlineFieldsWithExpressions(
+		file: TFile,
+		// biome-ignore lint/suspicious/noExplicitAny: this is the type returned by obsidian for the frontmatter so we need to use it with any
+		inlineFields: Record<string, any>
+	): Promise<void> {
+		const content = await this.app.vault.read(file);
+		let modifiedContent = content;
+		let hasChanges = false;
+
+		for (const key of Object.keys(inlineFields)) {
+			if (this.isIgnored(key)) continue;
+
+			// Create regex to match inline field: key:: value (with optional whitespace)
+			// This matches both `key:: value` and `[key:: value]` formats
+			const inlineFieldRegex = new RegExp(
+				`(\\[)?${this.escapeRegex(key)}::\\s*[^\\n\\]]+?(\\])?(?=\\s|$|\\n)`,
+				'gi'
+			);
+
+			// Replace with DataView expression
+			const replacement = `${key} = \`= this.${this.settings.prefix}${key}\``;
+
+			const newContent = modifiedContent.replace(inlineFieldRegex, (match: string) => {
+				// Check if the match is already a DataView expression
+				if (match.includes('`= this.')) {
+					return match; // Already replaced, skip
+				}
+				hasChanges = true;
+				return replacement;
+			});
+
+			modifiedContent = newContent;
+		}
+
+		// Only write back if we made changes
+		if (hasChanges) {
+			await this.app.vault.modify(file, modifiedContent);
+		}
+	}
+
+	/**
+	 * Escape special regex characters in string
+	 */
+	private escapeRegex(text: string): string {
+		return text.replace(/[/\-\\^$*+?.()|[\]{}]/g, "\\$&");
 	}
 
 	onunload(): void {
