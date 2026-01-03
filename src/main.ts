@@ -401,8 +401,9 @@ export default class DataviewProperties extends Plugin {
 			// Create regex to match inline field with optional whitespace
 			// Matches: [key :: value], (key :: value), and key :: value
 			// Underscores in keys will match any non-word characters (spaces, hyphens, etc.)
+			let escapedKey = this.escapeRegexForFieldKey(key);
 			const inlineFieldRegex = new RegExp(
-				`([\\[\\(])?\\s*\\W?${this.escapeRegexForFieldKey(key)}\\s*::\\s*[^\\n\\]\\)]+?([\\]\\)])?(?=\\s|$|\\n)`,
+				String.raw`\[\s*(\W?${escapedKey})\s*::\s*([^\]]*?)\]|\(\s*(\W?${escapedKey})\s*::\s*([^\)]*?)\)|\s*(\W?${escapedKey})\s*::\s*([^\n]*?)\s*$`,
 				'gi'
 			);
 
