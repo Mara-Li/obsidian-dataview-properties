@@ -68,6 +68,12 @@ export interface DataviewPropertiesSettings {
 		 * @default {{key}} = `= this.{{prefix}}{{key}}`
 		 */
 		template: string;
+		/**
+		 * Regular expression pattern to skip replacement when the inline field value matches.
+		 * Useful for skipping fields that already contain dataview expressions.
+		 * @default ^=|^\\$=
+		 */
+		skipPattern: string;
 	};
 	dataviewOptions: {
 		durationFormat: DurationOptions;
@@ -139,6 +145,7 @@ export const DEFAULT_SETTINGS: DataviewPropertiesSettings = {
 	replaceInlineFieldsWith: {
 		enabled: false,
 		template: "{{key}} = `= this.{{prefix}}{{key}}`",
+		skipPattern: "^=|^\\$=",
 	},
 	dataviewOptions: {
 		durationFormat: {

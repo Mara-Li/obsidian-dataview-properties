@@ -78,7 +78,13 @@
 		"title": "Préfixe"
 	},
 	"replaceInlineFields": {
-		"desc": "Activer le remplacement automatique des champs DataView en ligne par des expressions qui référencent les propriétés du frontmatter.",
+		"desc": "Activer le remplacement automatique des champs DataView en ligne par des expressions faisant référence aux propriétés du frontmatter.",
+		"skipPattern": {
+			"desc": "Modèle d'expression régulière pour ignorer le remplacement lorsque la valeur du champ en ligne correspond. Utile pour ignorer les champs contenant déjà des expressions dataview.<br>Exemple : <code>^=|^\\$=</code> (ignorer les valeurs commençant par <code>= </code> ou <code>=$</code>)",
+			"invalid": "Modèle d'expression régulière invalide",
+			"required": "Le modèle d'exclusion ne peut pas être vide",
+			"title": "Modèle d'exclusion (regex)"
+		},
 		"template": {
 			"desc": "Modèle pour remplacer les champs en ligne par des expressions dataview. Paramètres disponibles : <code>{{key}}</code>, <code>{{prefix}}</code>, <code>{{value}}</code><br>Défaut : <code>{{key}} = `= this.{{prefix}}{{key}}`</code>",
 			"invalid": "Le modèle de remplacement ne peut pas être vide",
