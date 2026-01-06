@@ -79,11 +79,6 @@
 	},
 	"replaceInlineFields": {
 		"desc": "Automatisches Ersetzen von Inline-DataView-Feldern durch Ausdrücke aktivieren, die auf Frontmatter-Eigenschaften verweisen.",
-		"skipPattern": {
-			"desc": "Regular Expression, um die Ersetzung zu überspringen, wenn der Wert des Inline-Feldes übereinstimmt. Nützlich zum Überspringen von Feldern, die bereits Dataview-Ausdrücke enthalten, so dass sie auch später noch aktualisiert werden.<br>Beispiel: <code>^=|^\\$=</code> (überspringt Werte, die mit <code>= </code> oder <code>=$</code> beginnen)",
-			"invalid": "Ungültiges reguläres Ausdrucksmuster",
-			"title": "Überspringmuster (Regex)"
-		},
 		"template": {
 			"desc": "Vorlage zum Ersetzen von Inline-Feldern durch Dataview-Ausdrücke. Verfügbare Platzhalter: <code>{{key}}</code>, <code>{{prefix}}</code>, <code>{{value}}</code><br>Standard: <code>{{key}} = `= this.{{prefix}}{{key}}`</code>",
 			"invalid": "Ersetzungsvorlage darf nicht leer sein",
