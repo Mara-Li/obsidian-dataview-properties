@@ -132,32 +132,51 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 			});
 
 		new Setting(containerEl)
-			.setName("Inline field replacement template")
+			.setName("Replace inline fields with expressions")
 			.setDesc(
 				sanitizeHTMLToDom(
-					`Template for replacing inline fields with dataview expressions. Available placeholders: <code>{{key}}</code>, <code>{{prefix}}</code>, <code>{{value}}</code><br>Default: <code>{{key}} = \`= this.{{prefix}}{{key}}\`</code>`
+					"Enable automatic replacement of inline DataView fields with expressions that reference frontmatter properties."
 				)
 			)
-			.addText((text) => {
-				text.setValue(this.plugin.settings.replaceInlineFieldsWith)
-					.setPlaceholder("{{key}} = `= this.{{prefix}}{{key}}`")
-					.inputEl.onblur = async () => {
-					const value = text.getValue();
-					if (value.trim().length === 0) {
-						new Notice(
-							sanitizeHTMLToDom(
-								`<span class="notice-error">Replacement template cannot be empty</span>`
-							)
-						);
-						text.inputEl.addClass("is-invalid");
-					} else {
-						this.plugin.settings.replaceInlineFieldsWith = value;
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.replaceInlineFieldsWith.enabled)
+					.onChange(async (value) => {
+						this.plugin.settings.replaceInlineFieldsWith.enabled = value;
 						await this.plugin.saveSettings();
-						text.inputEl.removeClass("is-invalid");
-					}
-				};
-				text.inputEl.style.width = "100%";
-			});
+						await this.display();
+					})
+			);
+
+		if (this.plugin.settings.replaceInlineFieldsWith.enabled) {
+			new Setting(containerEl)
+				.setName("Inline field replacement template")
+				.setDesc(
+					sanitizeHTMLToDom(
+						`Template for replacing inline fields with dataview expressions. Available placeholders: <code>{{key}}</code>, <code>{{prefix}}</code>, <code>{{value}}</code><br>Default: <code>{{key}} = \`= this.{{prefix}}{{key}}\`</code>`
+					)
+				)
+				.addText((text) => {
+					text.setValue(this.plugin.settings.replaceInlineFieldsWith.template)
+						.setPlaceholder("{{key}} = `= this.{{prefix}}{{key}}`")
+						.inputEl.onblur = async () => {
+						const value = text.getValue();
+						if (value.trim().length === 0) {
+							new Notice(
+								sanitizeHTMLToDom(
+									`<span class="notice-error">Replacement template cannot be empty</span>`
+								)
+							);
+							text.inputEl.addClass("is-invalid");
+						} else {
+							this.plugin.settings.replaceInlineFieldsWith.template = value;
+							await this.plugin.saveSettings();
+					text.inputEl.removeClass("is-invalid");
+				}
+			};
+			text.inputEl.addClass("max-width");
+		});
+		}
 
 		containerEl.createEl("hr");
 

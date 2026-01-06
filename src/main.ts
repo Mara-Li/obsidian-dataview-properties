@@ -326,7 +326,7 @@ export default class DataviewProperties extends Plugin {
 		});
 
 		// Replace inline fields with DataView expressions
-		if(this.settings.replaceInlineFieldsWith) {
+		if(this.settings.replaceInlineFieldsWith.enabled) {
 			await this.replaceInlineFieldsWithExpressions(file, inlineFields);
 		}
 	}
@@ -369,7 +369,8 @@ export default class DataviewProperties extends Plugin {
 	/**
 	 * Interpolate template string with actual values
 	 */
-	private formatReplacement(template: string, key: string, value: any): string {
+	private formatReplacement(key: string, value: any): string {
+		const template = this.settings.replaceInlineFieldsWith.template;
 		return template
 			.replace(/\{\{key\}\}/g, key)
 			.replace(/\{\{prefix\}\}/g, this.settings.prefix)
@@ -408,11 +409,7 @@ export default class DataviewProperties extends Plugin {
 			);
 
 			// Replace with DataView expression using configurable template
-			const replacement = this.formatReplacement(
-				this.settings.replaceInlineFieldsWith,
-				key,
-				value
-			);
+			const replacement = this.formatReplacement(key, value);
 
 			// Split content into lines for line-by-line processing
 			const lines = modifiedContent.split('\n');

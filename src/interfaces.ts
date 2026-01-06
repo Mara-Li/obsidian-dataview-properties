@@ -58,11 +58,17 @@ export interface DataviewPropertiesSettings {
 	 */
 	extraMenus: boolean;
 	/**
-	 * Template string for replacing inline fields with dataview expressions.
-	 * Available placeholders: {{key}}, {{prefix}}, {{value}}
-	 * @default {{key}} = `$= dv.current().{{prefix}}{{key}}`
+	 * Settings for replacing inline fields with dataview expressions.
 	 */
-	replaceInlineFieldsWith: string;
+	replaceInlineFieldsWith: {
+		enabled: boolean;
+		/**
+		 * Template string for replacing inline fields with dataview expressions.
+		 * Available placeholders: {{key}}, {{prefix}}, {{value}}
+		 * @default {{key}} = `$=this.{{prefix}}{{key}}`
+		 */
+		template: string;
+	};
 	dataviewOptions: {
 		durationFormat: DurationOptions;
 	};
@@ -130,7 +136,10 @@ export const DEFAULT_SETTINGS: DataviewPropertiesSettings = {
 		ignoreAccents: true,
 	},
 	extraMenus: false,
-	replaceInlineFieldsWith: "{{key}} = `$= dv.current().{{prefix}}{{key}}`",
+	replaceInlineFieldsWith: {
+		enabled: false,
+		template: "{{key}} = `=this.{{prefix}}{{key}}`",
+	},
 	dataviewOptions: {
 		durationFormat: {
 			formatDuration: false,
