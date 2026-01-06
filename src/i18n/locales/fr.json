@@ -77,6 +77,15 @@
 		"invalid": "Le préfixe ne peut pas être vide!",
 		"title": "Préfixe"
 	},
+	"replaceInlineFields": {
+		"desc": "Activer le remplacement automatique des champs DataView en ligne par des expressions qui référencent les propriétés du frontmatter.",
+		"template": {
+			"desc": "Modèle pour remplacer les champs en ligne par des expressions dataview. Paramètres disponibles : <code>{{key}}</code>, <code>{{prefix}}</code>, <code>{{value}}</code><br>Défaut : <code>{{key}} = `= this.{{prefix}}{{key}}`</code>",
+			"invalid": "Le modèle de remplacement ne peut pas être vide",
+			"title": "Modèle de remplacement des champs en ligne"
+		},
+		"title": "Remplacer les champs en ligne par des expressions"
+	},
 	"separator": {
 		"desc": "Par quel(s) caractère(s) les clés doivent être séparée.",
 		"invalid": "Une valeur est nécessaire.",
