@@ -1,0 +1,104 @@
+{
+	"addToFrontmatter": "Dataview-Felder zur Frontmatter hinzufügen",
+	"cleanUpText": {
+		"desc": "Beim Hinzufügen der Werte zur Frontmatter werden folgende Texte entfernt. Trennen Sie die Texte durch Komma oder Zeilenumbruch. Um einen regulären Ausdruck zu verwenden, umschließen Sie den Wert in ",
+		"heading": "Texte aus Wert entfernen",
+		"title": "Texte aus Wert entfernen"
+	},
+	"dataview": {
+		"title": "Dataview-Auswertungen aktivieren. Wenn eine Option deaktiviert ist, wird die Abfrage 'so wie sie ist' zu den Eigenschaften (Frontmatter) hinzugefügt."
+	},
+	"dataviewEnabled": "Dataview muss aktiviert sein, um dieses Plugin zu verwenden.",
+	"deleteFromFrontmatter": {
+		"desc": "Wenn ein Feld gelöscht wird, Frontmatter ebenfalls bereinigen.",
+		"title": "Frontmatter-Bereinigung"
+	},
+	"durationFormat": {
+		"desc": "Ermöglicht die Konvertierung von Zeitdauern (Dataview) in ein lesbares Format über {{- link}}.",
+		"options": {
+			"invalid": "Die eingestellten Optionen sind ungültig.",
+			"title": "Optionen für menschenlesbare Darstellung"
+		},
+		"textReplacement": {
+			"desc": "Ermöglicht das Ersetzen von Text während der Konvertierung in ein lesbares Format.",
+			"placeholder": "Zu ersetzen",
+			"placeholder2": "Ersetzen durch",
+			"title": "Transformation (Textersetzung)"
+		},
+		"title": "Konvertierung von Zeitdauern in lesbares Format"
+	},
+	"excluded": {
+		"add": "hinzufügen",
+		"keyName": "Eigenschaftsschlüssel",
+		"placeholder": "pfad/zur/datei oder /regex/gi",
+		"remove": "entfernen",
+		"save": "speichern",
+		"title": "Ausgeschlossene Dateien"
+	},
+	"extraMenus": {
+		"desc": "Fügt eine Rechtsklick-Option zum Explorer hinzu, um Dataview-Eigenschaften stapelweise zu verarbeiten.",
+		"title": "Menü"
+	},
+	"ignore": "Ignorierte Werte",
+	"ignoreAccents": {
+		"desc": "Akzentuierte Zeichen werden in ihre entsprechenden Werte konvertiert:",
+		"title": "Akzente ignorieren"
+	},
+	"ignoredFields": {
+		"desc": "Die folgenden Felder werden nicht zur Frontmatter hinzugefügt. Trennen Sie die Werte durch Zeilenumbruch oder Komma. Um einen regulären Ausdruck zu verwenden, umschließen Sie mit",
+		"example": "zum Beispiel:",
+		"placeholder": "feld1, feld-mit-text, anderes feld",
+		"title": "Ignorierte Felder"
+	},
+	"interval": {
+		"desc": "um nach neuen Dataview-Inline-Feldern zu suchen, sie auszuwerten und zu den Eigenschaften (Frontmatter) hinzuzufügen. Verwenden Sie 0 zum Deaktivieren.",
+		"info": "Intervall in Millisekunden",
+		"invalid": {
+			"negative": "Bitte geben Sie eine positive Zahl ein.",
+			"number": "Bitte geben Sie eine gültige Zahl ein."
+		},
+		"title": "Intervall"
+	},
+	"listFields": {
+		"desc": "Manchmal kann ein Inline-Feld als String statt als Liste erkannt werden. Sie können diese Option verwenden, um die Erkennung als Liste zu \"erzwingen\". Sie können auch ein (konfigurierbares) Suffix im Feldnamen verwenden, damit es direkt erkannt wird.",
+		"example": "im Feldnamen.",
+		"invalid": "Das Listen-Suffix darf nicht leer sein",
+		"separator": "Sie können den Separator für verschachtelte Eigenschaften nicht im Suffix verwenden.",
+		"suffix": "Suffix",
+		"title": "Feld als Liste markieren"
+	},
+	"lowerCase": {
+		"desc": "Großbuchstaben werden als Kleinbuchstaben erkannt.",
+		"title": "Groß-/Kleinschreibung ignorieren"
+	},
+	"note": "Felder mit leerem Wert werden nicht hinzugefügt!",
+	"prefix": {
+		"desc": "Dieses Präfix wird hinzugefügt, um die von Inline zur Frontmatter hinzugefügten Schlüssel zu unterscheiden. Es verhindert auch Duplikate in den von Dataview analysierten Metadaten.",
+		"invalid": "Das Präfix darf nicht leer sein!",
+		"title": "Präfix"
+	},
+	"replaceInlineFields": {
+		"desc": "Automatisches Ersetzen von Inline-DataView-Feldern durch Ausdrücke aktivieren, die auf Frontmatter-Eigenschaften verweisen.",
+		"template": {
+			"desc": "Vorlage zum Ersetzen von Inline-Feldern durch Dataview-Ausdrücke. Verfügbare Platzhalter: <code>{{key}}</code>, <code>{{prefix}}</code>, <code>{{value}}</code><br>Standard: <code>{{key}} = `= this.{{prefix}}{{key}}`</code>",
+			"invalid": "Ersetzungsvorlage darf nicht leer sein",
+			"title": "Vorlage für Inline-Feld-Ersetzung"
+		},
+		"title": "Inline-Felder durch Ausdrücke ersetzen"
+	},
+	"separator": {
+		"desc": "Mit welchem/welchen Zeichen die Schlüssel getrennt werden müssen.",
+		"invalid": "Ein Wert ist erforderlich.",
+		"point": "{{- point}} ist kein gültiger Separator.",
+		"title": "Separator",
+		"warning": "⚠️ {{- point}} ist kein gültiger Wert (Dataview erkennt Schlüssel nicht, wenn sie dies enthalten, )."
+	},
+	"unflatten": {
+		"desc": "Alle Eigenschaften, die als {{- keys}} strukturiert sind, werden in {{- conversion}} verschachtelt.",
+		"title": "Unterstützung für verschachtelte Eigenschaften"
+	},
+	"warning": {
+		"desc": "Nur Inline-Dataview-Abfragen (DQL/DJS) werden vom Plugin unterstützt, da Code-Blöcke nicht für Inline-Felder gesetzt werden können.",
+		"title": "Warnung"
+	}
+}
