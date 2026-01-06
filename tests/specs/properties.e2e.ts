@@ -176,7 +176,16 @@ for (const option of ["default", "unflatted"]) {
 						}
 					}, "dataview");
 				}
-
+				if (fileName === "ReplaceExpressions.md") {
+					await browser.executeObsidian(({ app }, pluginId) => {
+						const plugin = app.plugins.getPlugin(pluginId) as DataviewProperties;
+						if (plugin) {
+							//update the configuration here
+							plugin.settings.replaceInlineFieldsWith.enabled = true;
+							plugin.saveSettings();
+						}
+					}, manifest.id);
+				}
 				const content = await runTestWithFixture(fileName, fileName);
 				expect(normalizeContent(content)).toEqual(getExpectedContent(fileName));
 			});
