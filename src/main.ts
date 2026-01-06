@@ -215,7 +215,6 @@ export default class DataviewProperties extends Plugin {
 					const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
 					if (frontmatter) {
 						const inline = await getInlineFields(file.path, this, frontmatter);
-						console.debug("[Dataview Properties] Inline fields for", file.path, inline);
 						//only store if there is at least one field
 						if (inline && Object.keys(inline).length > 0)
 							this.previousDataviewFields.set(file.path, new Set(Object.keys(inline)));
@@ -251,7 +250,7 @@ export default class DataviewProperties extends Plugin {
 			const previousKeys = this.previousDataviewFields.get(filePath);
 			const inline = await getInlineFields(filePath, this, frontmatter);
 
-			const shouldCheckRemoved = previousKeys && previousKeys.size > 0;
+			const shouldCheckRemoved = this.settings.deleteFromFrontmatter.enabled && previousKeys && previousKeys.size > 0;
 			const removedKey = new Set<string>();
 			if (shouldCheckRemoved) {
 				const currentKeys = new Set(Object.keys(inline || {}));
