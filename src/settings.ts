@@ -132,12 +132,8 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 			});
 
 		new Setting(containerEl)
-			.setName("Replace inline fields with expressions")
-			.setDesc(
-				sanitizeHTMLToDom(
-					"Enable automatic replacement of inline DataView fields with expressions that reference frontmatter properties."
-				)
-			)
+			.setName(i18next.t("replaceInlineFields.title"))
+			.setDesc(i18next.t("replaceInlineFields.desc"))
 			.addToggle((toggle) =>
 				toggle
 					.setValue(this.plugin.settings.replaceInlineFieldsWith.enabled)
@@ -150,11 +146,9 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 
 		if (this.plugin.settings.replaceInlineFieldsWith.enabled) {
 			new Setting(containerEl)
-				.setName("Inline field replacement template")
+				.setName(i18next.t("replaceInlineFields.template.title"))
 				.setDesc(
-					sanitizeHTMLToDom(
-						`Template for replacing inline fields with dataview expressions. Available placeholders: <code>{{key}}</code>, <code>{{prefix}}</code>, <code>{{value}}</code><br>Default: <code>{{key}} = \`= this.{{prefix}}{{key}}\`</code>`
-					)
+					sanitizeHTMLToDom(i18next.t("replaceInlineFields.template.desc"))
 				)
 				.addText((text) => {
 					text.setValue(this.plugin.settings.replaceInlineFieldsWith.template)
@@ -164,7 +158,7 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 						if (value.trim().length === 0) {
 							new Notice(
 								sanitizeHTMLToDom(
-									`<span class="notice-error">Replacement template cannot be empty</span>`
+									`<span class="notice-error">${i18next.t("replaceInlineFields.template.invalid")}</span>`
 								)
 							);
 							text.inputEl.addClass("is-invalid");
