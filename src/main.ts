@@ -398,6 +398,33 @@ export default class DataviewProperties extends Plugin {
 		// Split content into lines once before processing
 		const lines = modifiedContent.split('\n');
 
+		// Replace existing DataView expressions that reference unprefixed properties
+		// This updates expressions like `this.name` to `this.dv_name`
+		for (const [key, value] of sortedEntries) {
+			if (this.isIgnored(key)) continue;
+
+			// Create regex to match this.key with word boundary
+			// This ensures we match the full key name and not partial matches
+			const escapedKey = this.escapeRegex(key);
+			const thisKeyRegex = new RegExp(`\\bthis\\.${escapedKey}\\b`, 'g');
+			const currentKeyRegex = new RegExp(`\\bdv.current\\(\\)\\.${escapedKey}\\b`, 'g');
+
+			// Replace with prefixed version
+			const prefixedThisKey = `this.${this.settings.prefix}${key}`;
+			const prefixedCurrentKey = `dv.current().${this.settings.prefix}${key}`;
+
+			// Process each line, updating in place
+			for (let i = 0; i < lines.length; i++) {
+				const originalLine = lines[i];
+				const updatedLine = originalLine.replace(thisKeyRegex, prefixedThisKey);
+				const updatedLine2 = updatedLine.replace(currentKeyRegex, prefixedCurrentKey);
+				if (originalLine !== updatedLine2) {
+					lines[i] = updatedLine2;
+					hasChanges = true;
+				}
+			}
+		}
+
 		for (const [key, value] of sortedEntries) {
 			if (this.isIgnored(key)) continue;
 
