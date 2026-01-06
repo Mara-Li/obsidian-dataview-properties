@@ -395,12 +395,16 @@ export default class DataviewProperties extends Plugin {
 			.filter(([key, value]) => this.isScalarValue(value))
 			.sort((a, b) => b[0].length - a[0].length);
 
+		// Split content into lines once before processing
+		const lines = modifiedContent.split('\n');
+
 		for (const [key, value] of sortedEntries) {
 			if (this.isIgnored(key)) continue;
 
-			// Create regex to match inline field with optional whitespace
+			// Create regex to match any inline field with optional whitespace
 			// Matches: [key :: value], (key :: value), and key :: value
-			// Underscores in keys will match any non-word characters (spaces, hyphens, etc.)
+			// Underscores in keys will match any sequence of non-word characters (spaces, hyphens, etc.)
+			// due to dataView canonicalization of keys. 
 			let escapedKey = this.escapeRegexForFieldKey(key);
 			const inlineFieldRegex = new RegExp(
 				String.raw`\[\s*(\W?${escapedKey})\s*::\s*([^\]]*?)\]|\(\s*(\W?${escapedKey})\s*::\s*([^\)]*?)\)|\s*(\W?${escapedKey})\s*::\s*([^\n]*?)\s*$`,
@@ -410,24 +414,24 @@ export default class DataviewProperties extends Plugin {
 			// Replace with DataView expression using configurable template
 			const replacement = this.formatReplacement(key, value);
 
-			// Split content into lines for line-by-line processing
-			const lines = modifiedContent.split('\n');
-
-			// Process each line independently
-			const processedLines = lines.map((line: string) => {
-				return line.replace(inlineFieldRegex, (match: string) => {
+			// Process each line independently, updating in place
+			for (let i = 0; i < lines.length; i++) {
+				lines[i] = lines[i].replace(inlineFieldRegex, (match: string) => {
 					// Check if the match is already a DataView expression
-					if (match.includes('`= this.')) {
+					if (match.includes('this.')) {
+						return match; // Already replaced, skip
+					}
+					if (match.includes('dv.current().')) {
 						return match; // Already replaced, skip
 					}
 					hasChanges = true;
 					return replacement;
 				});
-			});
-
-			// Join lines back together
-			modifiedContent = processedLines.join('\n');
+			}
 		}
+
+		// Join lines back together after all processing
+		modifiedContent = lines.join('\n');
 
 		// Only write back if we made changes
 		if (hasChanges) {
