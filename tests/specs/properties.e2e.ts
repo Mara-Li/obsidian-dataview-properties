@@ -52,7 +52,7 @@ for (const option of ["default", "unflatted"]) {
 				.trim();
 		}
 
-		function getExceptedContent(fileName: string) {
+		function getExpectedContent(fileName: string) {
 			const content = fs.readFileSync(`${expected}/${fileName}`, "utf-8");
 			return normalizeContent(content);
 		}
@@ -178,7 +178,7 @@ for (const option of ["default", "unflatted"]) {
 				}
 
 				const content = await runTestWithFixture(fileName, fileName);
-				expect(normalizeContent(content)).toEqual(getExceptedContent(fileName));
+				expect(normalizeContent(content)).toEqual(getExpectedContent(fileName));
 			});
 		}
 	});

@@ -65,7 +65,7 @@ export interface DataviewPropertiesSettings {
 		/**
 		 * Template string for replacing inline fields with dataview expressions.
 		 * Available placeholders: {{key}}, {{prefix}}, {{value}}
-		 * @default {{key}} = `$=this.{{prefix}}{{key}}`
+		 * @default {{key}} = `= this.{{prefix}}{{key}}`
 		 */
 		template: string;
 	};
@@ -138,7 +138,7 @@ export const DEFAULT_SETTINGS: DataviewPropertiesSettings = {
 	extraMenus: false,
 	replaceInlineFieldsWith: {
 		enabled: false,
-		template: "{{key}} = `=this.{{prefix}}{{key}}`",
+		template: "{{key}} = `= this.{{prefix}}{{key}}`",
 	},
 	dataviewOptions: {
 		durationFormat: {
