@@ -125,9 +125,7 @@ export default class DataviewProperties extends Plugin {
 							});
 					});
 				} else if (file instanceof TFolder && this.settings.extraMenus) {
-					const allFileInTheFolder = file.children.filter(
-						(child) => child instanceof TFile && !this.isIgnoredFile(child)
-					) as TFile[];
+					const allFileInTheFolder = this.getAllFilesRecursively(file);
 					if (allFileInTheFolder.length > 0 && this.settings.extraMenus) {
 						menu.addItem((item) => {
 							item
@@ -159,6 +157,26 @@ export default class DataviewProperties extends Plugin {
 				}
 			})
 		);
+	}
+
+	/**
+	 * Recursively collect all files from a folder and its subfolders
+	 */
+	private getAllFilesRecursively(folder: TFolder): TFile[] {
+		const files: TFile[] = [];
+		
+		for (const child of folder.children) {
+			if (child instanceof TFile) {
+				if (!this.isIgnoredFile(child)) {
+					files.push(child);
+				}
+			} else if (child instanceof TFolder) {
+				// Recursively get files from subfolder
+				files.push(...this.getAllFilesRecursively(child));
+			}
+		}
+		
+		return files;
 	}
 
 	async processMultipleFiles(files: TFile[]): Promise<void> {
