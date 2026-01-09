@@ -452,7 +452,7 @@ export default class DataviewProperties extends Plugin {
 			// due to dataView canonicalization of keys. 
 			let escapedKey = this.escapeRegexForFieldKey(key);
 			const inlineFieldRegex = new RegExp(
-				String.raw`\[\s*(\W?${escapedKey})\s*::\s*([^\]]*?)\]|\(\s*(\W?${escapedKey})\s*::\s*([^\)]*?)\)|\s*(\W?${escapedKey})\s*::\s*([^\n]*?)\s*$`,
+				String.raw`\[\s*(\W?${escapedKey})\s*::\s*([^\]]*?)\]|\(\s*(\W?${escapedKey})\s*::\s*([^\)]*?)\)|^\s*(\W?${escapedKey})\s*::\s*([^\n]*?)\s*$`,
 				'gi'
 			);
 
