@@ -25,7 +25,7 @@ import {
 	UtilsConfig,
 } from "./interfaces";
 import { DataviewPropertiesSettingTab } from "./settings";
-import { Utils } from "./utils";
+import { deepMerge, Utils } from "./utils";
 import { isExcluded } from "./utils/ignored_file";
 
 export default class DataviewProperties extends Plugin {
@@ -338,7 +338,20 @@ export default class DataviewProperties extends Plugin {
 			this.utils.useConfig(UtilsConfig.Cleanup);
 			for (const [key, value] of Object.entries(inlineFields)) {
 				if (this.isIgnored(key) || value == null) continue;
-				frontmatter[`${this.settings.prefix}${key}`] = this.normalizeValueForFrontmatter(value);
+				const prefixedKey = `${this.settings.prefix}${key}`;
+				const normalizedValue = this.normalizeValueForFrontmatter(value);
+				
+				// Use deep merge for nested objects to preserve existing properties
+				if (prefixedKey in frontmatter && 
+					typeof frontmatter[prefixedKey] === 'object' && 
+					!Array.isArray(frontmatter[prefixedKey]) &&
+					typeof normalizedValue === 'object' && 
+					!Array.isArray(normalizedValue) &&
+					normalizedValue != null) {
+					frontmatter[prefixedKey] = deepMerge(frontmatter[prefixedKey], normalizedValue);
+				} else {
+					frontmatter[prefixedKey] = normalizedValue;
+				}
 			}
 		});
 
