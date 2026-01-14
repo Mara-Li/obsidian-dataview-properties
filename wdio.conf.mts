@@ -1,12 +1,15 @@
-import * as path from "node:path";
 import * as os from "node:os";
+import * as path from "node:path";
 import dotenv from "dotenv";
 import { obsidianBetaAvailable, resolveObsidianVersions } from "wdio-obsidian-service";
+
 const cacheDir = path.resolve(os.tmpdir(), ".obsidian-cache");
-dotenv.config({quiet: true});
+dotenv.config({ quiet: true });
 
 console.log(`Using obsidian vault: ${process.env.VAULT_TEST}`);
 console.log(`Using obsidian cache dir: ${cacheDir}`);
+
+//download dataview
 
 let versions: [string, string][]; // [appVersion, installerVersion][]
 if (process.env.OBSIDIAN_VERSIONS) {
@@ -44,7 +47,7 @@ export const config: WebdriverIO.Config = {
 		browserVersion: appVersion,
 		"wdio:obsidianOptions": {
 			installerVersion: installerVersion,
-			plugins: ["./dist", { id: "dataview" }],
+			plugins: ["./dist", { id: "dataview", version: "latest" }],
 			// If you need to switch between multiple vaults, you can omit this and use
 			// `reloadObsidian` to open vaults during the test.
 			vault: process.env.VAULT_TEST,
