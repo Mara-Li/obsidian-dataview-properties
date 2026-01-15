@@ -8,7 +8,7 @@ import {
 	TFolder,
 } from "obsidian";
 import "uniformize";
-import { isPluginEnabled, type Link } from "@enveloppe/obsidian-dataview";
+import { isPluginEnabled } from "@enveloppe/obsidian-dataview";
 import i18next from "i18next";
 import { DateTime, Duration } from "luxon";
 import { merge } from "ts-deepmerge";
@@ -24,25 +24,12 @@ import {
 	type DataviewPropertiesSettings,
 	DEFAULT_SETTINGS,
 	type PreparedFields,
+	type ScalarLike,
 	UtilsConfig,
 } from "./interfaces";
 import { DataviewPropertiesSettingTab } from "./settings";
 import { Utils } from "./utils";
 import { isExcluded } from "./utils/ignored_file";
-
-type ScalarLike =
-	| string
-	| number
-	| boolean
-	| bigint
-	| symbol
-	| null
-	| undefined
-	| Date
-	| RegExp
-	| DateTime
-	| Duration
-	| Link;
 
 export default class DataviewProperties extends Plugin {
 	settings!: DataviewPropertiesSettings;
@@ -397,10 +384,7 @@ export default class DataviewProperties extends Plugin {
 				value.second === 0 &&
 				value.millisecond === 0;
 
-			if (isDateOnly) {
-				return value.toFormat("yyyy-MM-dd");
-			}
-
+			if (isDateOnly) return value.toFormat("yyyy-MM-dd");
 			return value.toISO();
 		}
 
@@ -417,11 +401,8 @@ export default class DataviewProperties extends Plugin {
 
 		if (ts !== undefined) {
 			const isDateOnly = hour === 0 && minute === 0 && second === 0 && millisecond === 0;
-
-			if (isDateOnly) {
+			if (isDateOnly)
 				return toFormat?.("yyyy-MM-dd") || new Date(ts).toISOString().split("T")[0];
-			}
-
 			return toISO?.() || new Date(ts).toISOString();
 		}
 

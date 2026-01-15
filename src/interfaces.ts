@@ -1,4 +1,5 @@
-import type { ToHumanDurationOptions } from "luxon";
+import type { Link } from "@enveloppe/obsidian-dataview";
+import type { DateTime, Duration, ToHumanDurationOptions } from "luxon";
 
 export type TextOptions = {
 	ignoreAccents: boolean;
@@ -148,3 +149,16 @@ export const DEFAULT_SETTINGS: DataviewPropertiesSettings = {
 		},
 	},
 };
+export type ScalarLike =
+	| string
+	| number
+	| boolean
+	| bigint
+	| symbol
+	| null
+	| undefined
+	| Date
+	| RegExp
+	| DateTime
+	| Duration
+	| Link;
