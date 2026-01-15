@@ -8,8 +8,10 @@ import {
 	TFolder,
 } from "obsidian";
 import "uniformize";
-import { isPluginEnabled } from "@enveloppe/obsidian-dataview";
+import { isPluginEnabled, type Link } from "@enveloppe/obsidian-dataview";
 import i18next from "i18next";
+import { DateTime, Duration } from "luxon";
+import { merge } from "ts-deepmerge";
 import { getInlineFields } from "./dataview";
 import {
 	shouldBeUpdated as checkShouldBeUpdated,
@@ -25,8 +27,22 @@ import {
 	UtilsConfig,
 } from "./interfaces";
 import { DataviewPropertiesSettingTab } from "./settings";
-import { deepMerge, Utils } from "./utils";
+import { Utils } from "./utils";
 import { isExcluded } from "./utils/ignored_file";
+
+type ScalarLike =
+	| string
+	| number
+	| boolean
+	| bigint
+	| symbol
+	| null
+	| undefined
+	| Date
+	| RegExp
+	| DateTime
+	| Duration
+	| Link;
 
 export default class DataviewProperties extends Plugin {
 	settings!: DataviewPropertiesSettings;
@@ -164,7 +180,7 @@ export default class DataviewProperties extends Plugin {
 	 */
 	private getAllFilesRecursively(folder: TFolder): TFile[] {
 		const files: TFile[] = [];
-		
+
 		for (const child of folder.children) {
 			if (child instanceof TFile) {
 				if (!this.isIgnoredFile(child)) {
@@ -175,7 +191,7 @@ export default class DataviewProperties extends Plugin {
 				files.push(...this.getAllFilesRecursively(child));
 			}
 		}
-		
+
 		return files;
 	}
 
@@ -268,7 +284,10 @@ export default class DataviewProperties extends Plugin {
 			const previousKeys = this.previousDataviewFields.get(filePath);
 			const inline = await getInlineFields(filePath, this, frontmatter);
 
-			const shouldCheckRemoved = this.settings.deleteFromFrontmatter.enabled && previousKeys && previousKeys.size > 0;
+			const shouldCheckRemoved =
+				this.settings.deleteFromFrontmatter.enabled &&
+				previousKeys &&
+				previousKeys.size > 0;
 			const removedKey = new Set<string>();
 			if (shouldCheckRemoved) {
 				const currentKeys = new Set(Object.keys(inline || {}));
@@ -340,15 +359,17 @@ export default class DataviewProperties extends Plugin {
 				if (this.isIgnored(key) || value == null) continue;
 				const prefixedKey = `${this.settings.prefix}${key}`;
 				const normalizedValue = this.normalizeValueForFrontmatter(value);
-				
+
 				// Use deep merge for nested objects to preserve existing properties
-				if (prefixedKey in frontmatter && 
-					typeof frontmatter[prefixedKey] === 'object' && 
+				if (
+					prefixedKey in frontmatter &&
+					typeof frontmatter[prefixedKey] === "object" &&
 					!Array.isArray(frontmatter[prefixedKey]) &&
-					typeof normalizedValue === 'object' && 
+					typeof normalizedValue === "object" &&
 					!Array.isArray(normalizedValue) &&
-					normalizedValue != null) {
-					frontmatter[prefixedKey] = deepMerge(frontmatter[prefixedKey], normalizedValue);
+					normalizedValue != null
+				) {
+					frontmatter[prefixedKey] = merge(frontmatter[prefixedKey], normalizedValue);
 				} else {
 					frontmatter[prefixedKey] = normalizedValue;
 				}
@@ -356,7 +377,7 @@ export default class DataviewProperties extends Plugin {
 		});
 
 		// Replace inline fields with DataView expressions
-		if(this.settings.replaceInlineFieldsWith.enabled) {
+		if (this.settings.replaceInlineFieldsWith.enabled) {
 			await this.replaceInlineFieldsWithExpressions(file, inlineFields);
 		}
 	}
@@ -365,41 +386,52 @@ export default class DataviewProperties extends Plugin {
 	 * Normalize a value for frontmatter serialization
 	 * Converts DateTime objects to date-only strings to avoid timezone issues
 	 */
-	private normalizeValueForFrontmatter(value: any): any {
+	private normalizeValueForFrontmatter(value: unknown): unknown {
 		if (value == null) return value;
-		
-		const constructorName = value.constructor?.name;
-		
-		// Handle Dataview DateTime objects
-		if (constructorName === 'DateTime' || 
-				(value.ts !== undefined && typeof value.ts === 'number')) {
-			// Check if it's a date-only value (no time component)
-			// Check time in the DateTime's own zone, not UTC
-			// Luxon DateTime properties give time in the object's zone
-			const isDateOnly = 
-				value.hour === 0 && 
-				value.minute === 0 && 
-				value.second === 0 && 
+		if (typeof value !== "object") return value;
+
+		if (value instanceof DateTime) {
+			const isDateOnly =
+				value.hour === 0 &&
+				value.minute === 0 &&
+				value.second === 0 &&
 				value.millisecond === 0;
-			
+
 			if (isDateOnly) {
-				// Return as YYYY-MM-DD string
-				return value.toFormat?.('yyyy-MM-dd') || 
-							 new Date(value.ts).toISOString().split('T')[0];
+				return value.toFormat("yyyy-MM-dd");
 			}
-			
-			// For DateTime with time component, return ISO string
-			return value.toISO?.() || new Date(value.ts).toISOString();
+
+			return value.toISO();
 		}
-		
-		// Return other values unchanged
+
+		const recordValue = value as Record<string, unknown>;
+		const ts = typeof recordValue.ts === "number" ? recordValue.ts : undefined;
+		const hour = typeof recordValue.hour === "number" ? recordValue.hour : 0;
+		const minute = typeof recordValue.minute === "number" ? recordValue.minute : 0;
+		const second = typeof recordValue.second === "number" ? recordValue.second : 0;
+		const millisecond =
+			typeof recordValue.millisecond === "number" ? recordValue.millisecond : 0;
+		const toISO = typeof recordValue.toISO === "function" ? recordValue.toISO : undefined;
+		const toFormat =
+			typeof recordValue.toFormat === "function" ? recordValue.toFormat : undefined;
+
+		if (ts !== undefined) {
+			const isDateOnly = hour === 0 && minute === 0 && second === 0 && millisecond === 0;
+
+			if (isDateOnly) {
+				return toFormat?.("yyyy-MM-dd") || new Date(ts).toISOString().split("T")[0];
+			}
+
+			return toISO?.() || new Date(ts).toISOString();
+		}
+
 		return value;
 	}
 
 	/**
 	 * Interpolate template string with actual values
 	 */
-	private formatReplacement(key: string, value: any): string {
+	private formatReplacement(key: string, value: ScalarLike): string {
 		const template = this.settings.replaceInlineFieldsWith.template;
 		return template
 			.replace(/\{\{key\}\}/g, key)
@@ -423,22 +455,22 @@ export default class DataviewProperties extends Plugin {
 		// This prevents shorter keys from matching parts of longer keys
 		// Filter to only include scalar values (exclude arrays, objects, etc.)
 		const sortedEntries = Object.entries(inlineFields)
-			.filter(([key, value]) => this.isScalarValue(value))
+			.filter(([_, value]) => this.isScalarValue(value))
 			.sort((a, b) => b[0].length - a[0].length);
 
 		// Split content into lines once before processing
-		const lines = modifiedContent.split('\n');
+		const lines = modifiedContent.split("\n");
 
 		// Replace existing DataView expressions that reference unprefixed properties
 		// This updates expressions like `this.name` to `this.dv_name`
-		for (const [key, value] of sortedEntries) {
+		for (const [key] of sortedEntries) {
 			if (this.isIgnored(key)) continue;
 
 			// Create regex to match this.key with word boundary
 			// This ensures we match the full key name and not partial matches
 			const escapedKey = this.escapeRegex(key);
-			const thisKeyRegex = new RegExp(`\\bthis\\.${escapedKey}\\b`, 'g');
-			const currentKeyRegex = new RegExp(`\\bdv.current\\(\\)\\.${escapedKey}\\b`, 'g');
+			const thisKeyRegex = new RegExp(`\\bthis\\.${escapedKey}\\b`, "g");
+			const currentKeyRegex = new RegExp(`\\bdv.current\\(\\)\\.${escapedKey}\\b`, "g");
 
 			// Replace with prefixed version
 			const prefixedThisKey = `this.${this.settings.prefix}${key}`;
@@ -462,11 +494,11 @@ export default class DataviewProperties extends Plugin {
 			// Create regex to match any inline field with optional whitespace
 			// Matches: [key :: value], (key :: value), and key :: value
 			// Underscores in keys will match any sequence of non-word characters (spaces, hyphens, etc.)
-			// due to dataView canonicalization of keys. 
-			let escapedKey = this.escapeRegexForFieldKey(key);
+			// due to dataView canonicalization of keys.
+			const escapedKey = this.escapeRegexForFieldKey(key);
 			const inlineFieldRegex = new RegExp(
 				String.raw`\[\s*(\W?${escapedKey})\s*::\s*([^\]]*?)\]|\(\s*(\W?${escapedKey})\s*::\s*([^\)]*?)\)|^\s*(\W?${escapedKey})\s*::\s*([^\n]*?)\s*$`,
-				'gi'
+				"gi"
 			);
 
 			// Replace with DataView expression using configurable template
@@ -476,10 +508,10 @@ export default class DataviewProperties extends Plugin {
 			for (let i = 0; i < lines.length; i++) {
 				lines[i] = lines[i].replace(inlineFieldRegex, (match: string) => {
 					// Check if the match is already a DataView expression
-					if (match.includes('this.')) {
+					if (match.includes("this.")) {
 						return match; // Already replaced, skip
 					}
-					if (match.includes('dv.current().')) {
+					if (match.includes("dv.current().")) {
 						return match; // Already replaced, skip
 					}
 					hasChanges = true;
@@ -489,7 +521,7 @@ export default class DataviewProperties extends Plugin {
 		}
 
 		// Join lines back together after all processing
-		modifiedContent = lines.join('\n');
+		modifiedContent = lines.join("\n");
 
 		// Only write back if we made changes
 		if (hasChanges) {
@@ -502,59 +534,60 @@ export default class DataviewProperties extends Plugin {
 	 * Returns true for primitives, dates, durations, and simple Dataview links
 	 * Returns false for arrays, plain objects, and other complex types
 	 */
-	private isScalarValue(value: any): boolean {
-		// Allow null/undefined
+	private isScalarValue(value: unknown): value is ScalarLike {
+		// Allow null/undefined and primitive types
 		if (value == null) return true;
-		
 		const valueType = typeof value;
-		
-		// Allow all JavaScript primitives
-		if (valueType === 'string' || 
-				valueType === 'number' || 
-				valueType === 'boolean' || 
-				valueType === 'bigint' || 
-				valueType === 'symbol') {
+		if (
+			valueType === "string" ||
+			valueType === "number" ||
+			valueType === "boolean" ||
+			valueType === "bigint" ||
+			valueType === "symbol"
+		) {
 			return true;
 		}
-		
+
 		// For objects, be selective
-		if (valueType === 'object') {
-			// Exclude arrays
+		if (valueType === "object") {
 			if (Array.isArray(value)) return false;
-			
-			// Allow native Date objects
-			if (value instanceof Date) return true;
-			
-			// Allow RegExp
-			if (value instanceof RegExp) return true;
-			
-			// Check constructor name for Dataview types
-			const constructorName = value.constructor?.name;
-			
-			// Allow Dataview scalar types by constructor name
-			if (constructorName === 'DateTime' ||   // Dataview dates/times
-					constructorName === 'Duration' ||   // Dataview durations
-					constructorName === 'Link') {       // Dataview links
+
+			if (
+				value instanceof Date ||
+				value instanceof RegExp ||
+				value instanceof DateTime ||
+				value instanceof Duration
+			)
 				return true;
-			}
-			
-			// Fallback: Check for Dataview DateTime by structure (has 'ts' timestamp property)
-			// This is more robust if constructor names change
-			if (value.ts !== undefined && typeof value.ts === 'number') {
-				return true;
-			}
-			
-			// Fallback: Check for Dataview Duration by structure (has duration properties)
-			if (value.years !== undefined || value.months !== undefined || 
-					value.days !== undefined || value.hours !== undefined) {
-				return true;
-			}
-			
-			// Exclude all other objects (plain objects, Maps, Sets, etc.)
+
+			const recordValue = value as Record<string, unknown>;
+			const constructorName = (recordValue as { constructor?: { name?: string } })
+				.constructor?.name;
+			if (constructorName === "Link") return true;
+
+			const hasTimestamp = typeof recordValue.ts === "number";
+			if (hasTimestamp) return true;
+
+			const durationProps = [
+				"years",
+				"months",
+				"days",
+				"hours",
+				"minutes",
+				"seconds",
+				"milliseconds",
+			] as const;
+			const hasDurationProps = durationProps.some(
+				(p) => typeof recordValue[p] === "number"
+			);
+			if (hasDurationProps) return true;
+
+			const hasLinkPath = typeof recordValue.path === "string";
+			if (hasLinkPath) return true;
+
 			return false;
 		}
-		
-		// Exclude functions and other types
+
 		return false;
 	}
 
