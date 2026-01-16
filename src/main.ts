@@ -463,7 +463,7 @@ export default class DataviewProperties extends Plugin {
 			// Matches: [key :: value], (key :: value), and key :: value
 			// Underscores in keys will match any sequence of non-word characters (spaces, hyphens, etc.)
 			// due to dataView canonicalization of keys. 
-			let escapedKey = this.escapeRegexForFieldKey(key);
+			const escapedKey = this.escapeRegexForFieldKey(key);
 			const inlineFieldRegex = new RegExp(
 				String.raw`\[\s*(\W?${escapedKey})\s*::\s*([^\]]*?)\]|\(\s*(\W?${escapedKey})\s*::\s*([^\)]*?)\)|^\s*(\W?${escapedKey})\s*::\s*([^\n]*?)\s*$`,
 				'gi'
