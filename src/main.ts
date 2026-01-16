@@ -431,7 +431,7 @@ export default class DataviewProperties extends Plugin {
 
 		// Replace existing DataView expressions that reference unprefixed properties
 		// This updates expressions like `this.name` to `this.dv_name`
-		for (const [key, value] of sortedEntries) {
+		for (const [key] of sortedEntries) {
 			if (this.isIgnored(key)) continue;
 
 			// Create regex to match this.key with word boundary
