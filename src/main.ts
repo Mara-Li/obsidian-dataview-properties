@@ -423,7 +423,7 @@ export default class DataviewProperties extends Plugin {
 		// This prevents shorter keys from matching parts of longer keys
 		// Filter to only include scalar values (exclude arrays, objects, etc.)
 		const sortedEntries = Object.entries(inlineFields)
-			.filter(([key, value]) => this.isScalarValue(value))
+			.filter(([_key, value]) => this.isScalarValue(value))
 			.sort((a, b) => b[0].length - a[0].length);
 
 		// Split content into lines once before processing
