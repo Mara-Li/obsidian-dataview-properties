@@ -70,7 +70,7 @@ export default class Utils {
 		if (processedFmKey === processedInlineKey) return true;
 		if (frontmatterKey.includes("/")) {
 			const regex = this.recognizeRegex(frontmatterKey);
-			if (regex && regex.test(inlineKey)) return true;
+			if (regex?.test(inlineKey)) return true;
 		}
 		return false;
 	}
@@ -93,7 +93,7 @@ export default class Utils {
 	/**
 	 * Check if two values are equal
 	 */
-	valuesEqual(val1: any, val2: any): boolean {
+	valuesEqual(val1: unknown, val2: unknown): boolean {
 		if (val1 === val2) return true;
 		if (typeof val1 === "string" && typeof val2 === "string")
 			return this.processString(val1) === this.processString(val2);

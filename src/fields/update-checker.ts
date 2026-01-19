@@ -1,9 +1,11 @@
 export function shouldBeUpdated(
+	// biome-ignore lint/suspicious/noExplicitAny: Fields can have any shape
 	fields: Record<string, any>,
+	// biome-ignore lint/suspicious/noExplicitAny: frontmatter can have any shape
 	frontmatter: Record<string, any> | undefined,
 	isIgnoredFn: (key: string) => boolean,
 	keysMatchFn: (key1: string, key2: string) => boolean,
-	valuesEqualFn: (val1: any, val2: any) => boolean
+	valuesEqualFn: (val1: unknown, val2: unknown) => boolean
 ): boolean {
 	if (!fields || Object.keys(fields).length === 0) return false;
 

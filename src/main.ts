@@ -10,6 +10,8 @@ import {
 import "uniformize";
 import { isPluginEnabled } from "@enveloppe/obsidian-dataview";
 import i18next from "i18next";
+import { DateTime, Duration } from "luxon";
+import { merge } from "ts-deepmerge";
 import { getInlineFields } from "./dataview";
 import {
 	shouldBeUpdated as checkShouldBeUpdated,
@@ -22,6 +24,7 @@ import {
 	type DataviewPropertiesSettings,
 	DEFAULT_SETTINGS,
 	type PreparedFields,
+	type ScalarLike,
 	UtilsConfig,
 } from "./interfaces";
 import { DataviewPropertiesSettingTab } from "./settings";
@@ -125,9 +128,7 @@ export default class DataviewProperties extends Plugin {
 							});
 					});
 				} else if (file instanceof TFolder && this.settings.extraMenus) {
-					const allFileInTheFolder = file.children.filter(
-						(child) => child instanceof TFile && !this.isIgnoredFile(child)
-					) as TFile[];
+					const allFileInTheFolder = this.getAllFilesRecursively(file);
 					if (allFileInTheFolder.length > 0 && this.settings.extraMenus) {
 						menu.addItem((item) => {
 							item
@@ -159,6 +160,26 @@ export default class DataviewProperties extends Plugin {
 				}
 			})
 		);
+	}
+
+	/**
+	 * Recursively collect all files from a folder and its subfolders
+	 */
+	private getAllFilesRecursively(folder: TFolder): TFile[] {
+		const files: TFile[] = [];
+
+		for (const child of folder.children) {
+			if (child instanceof TFile) {
+				if (!this.isIgnoredFile(child)) {
+					files.push(child);
+				}
+			} else if (child instanceof TFolder) {
+				// Recursively get files from subfolder
+				files.push(...this.getAllFilesRecursively(child));
+			}
+		}
+
+		return files;
 	}
 
 	async processMultipleFiles(files: TFile[]): Promise<void> {
@@ -215,7 +236,6 @@ export default class DataviewProperties extends Plugin {
 					const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
 					if (frontmatter) {
 						const inline = await getInlineFields(file.path, this, frontmatter);
-						console.debug("[Dataview Properties] Inline fields for", file.path, inline);
 						//only store if there is at least one field
 						if (inline && Object.keys(inline).length > 0)
 							this.previousDataviewFields.set(file.path, new Set(Object.keys(inline)));
@@ -251,7 +271,10 @@ export default class DataviewProperties extends Plugin {
 			const previousKeys = this.previousDataviewFields.get(filePath);
 			const inline = await getInlineFields(filePath, this, frontmatter);
 
-			const shouldCheckRemoved = previousKeys && previousKeys.size > 0;
+			const shouldCheckRemoved =
+				this.settings.deleteFromFrontmatter.enabled &&
+				previousKeys &&
+				previousKeys.size > 0;
 			const removedKey = new Set<string>();
 			if (shouldCheckRemoved) {
 				const currentKeys = new Set(Object.keys(inline || {}));
@@ -321,9 +344,250 @@ export default class DataviewProperties extends Plugin {
 			this.utils.useConfig(UtilsConfig.Cleanup);
 			for (const [key, value] of Object.entries(inlineFields)) {
 				if (this.isIgnored(key) || value == null) continue;
-				frontmatter[`${this.settings.prefix}${key}`] = value;
+				const prefixedKey = `${this.settings.prefix}${key}`;
+				const normalizedValue = this.normalizeValueForFrontmatter(value);
+
+				// Use deep merge for nested objects to preserve existing properties
+				if (
+					prefixedKey in frontmatter &&
+					typeof frontmatter[prefixedKey] === "object" &&
+					!Array.isArray(frontmatter[prefixedKey]) &&
+					typeof normalizedValue === "object" &&
+					!Array.isArray(normalizedValue) &&
+					normalizedValue != null
+				) {
+					frontmatter[prefixedKey] = merge(frontmatter[prefixedKey], normalizedValue);
+				} else {
+					frontmatter[prefixedKey] = normalizedValue;
+				}
 			}
 		});
+
+		// Replace inline fields with DataView expressions
+		if (this.settings.replaceInlineFieldsWith.enabled) {
+			await this.replaceInlineFieldsWithExpressions(file, inlineFields);
+		}
+	}
+
+	/**
+	 * Normalize a value for frontmatter serialization
+	 * Converts DateTime objects to date-only strings to avoid timezone issues
+	 */
+	private normalizeValueForFrontmatter(value: unknown): unknown {
+		if (value == null) return value;
+		if (typeof value !== "object") return value;
+
+		if (value instanceof DateTime) {
+			const isDateOnly =
+				value.hour === 0 &&
+				value.minute === 0 &&
+				value.second === 0 &&
+				value.millisecond === 0;
+
+			if (isDateOnly) return value.toFormat("yyyy-MM-dd");
+			return value.toISO();
+		}
+
+		const recordValue = value as Record<string, unknown>;
+		const ts = typeof recordValue.ts === "number" ? recordValue.ts : undefined;
+		const hour = typeof recordValue.hour === "number" ? recordValue.hour : 0;
+		const minute = typeof recordValue.minute === "number" ? recordValue.minute : 0;
+		const second = typeof recordValue.second === "number" ? recordValue.second : 0;
+		const millisecond =
+			typeof recordValue.millisecond === "number" ? recordValue.millisecond : 0;
+		const toISO = typeof recordValue.toISO === "function" ? recordValue.toISO : undefined;
+		const toFormat =
+			typeof recordValue.toFormat === "function" ? recordValue.toFormat : undefined;
+
+		if (ts !== undefined) {
+			const isDateOnly = hour === 0 && minute === 0 && second === 0 && millisecond === 0;
+			if (isDateOnly)
+				return toFormat?.("yyyy-MM-dd") || new Date(ts).toISOString().split("T")[0];
+			return toISO?.() || new Date(ts).toISOString();
+		}
+
+		return value;
+	}
+
+	/**
+	 * Interpolate template string with actual values
+	 */
+	private formatReplacement(key: string, value: ScalarLike): string {
+		const template = this.settings.replaceInlineFieldsWith.template;
+		return template
+			.replace(/\{\{key\}\}/g, key)
+			.replace(/\{\{prefix\}\}/g, this.settings.prefix)
+			.replace(/\{\{value\}\}/g, String(value));
+	}
+
+	/**
+	 * Replace inline DataView fields with expressions that reference frontmatter values
+	 */
+	private async replaceInlineFieldsWithExpressions(
+		file: TFile,
+		// biome-ignore lint/suspicious/noExplicitAny: this is the type returned by obsidian for the frontmatter so we need to use it with any
+		inlineFields: Record<string, any>
+	): Promise<void> {
+		const content = await this.app.vault.read(file);
+		let modifiedContent = content;
+		let hasChanges = false;
+
+		// Sort entries by key length (descending) to match longer keys first
+		// This prevents shorter keys from matching parts of longer keys
+		// Filter to only include scalar values (exclude arrays, objects, etc.)
+		const sortedEntries = Object.entries(inlineFields)
+			.filter(([_, value]) => this.isScalarValue(value))
+			.sort((a, b) => b[0].length - a[0].length);
+
+		// Split content into lines once before processing
+		const lines = modifiedContent.split("\n");
+
+		// Replace existing DataView expressions that reference unprefixed properties
+		// This updates expressions like `this.name` to `this.dv_name`
+		for (const [key] of sortedEntries) {
+			if (this.isIgnored(key)) continue;
+
+			// Create regex to match this.key with word boundary
+			// This ensures we match the full key name and not partial matches
+			const escapedKey = this.escapeRegex(key);
+			const thisKeyRegex = new RegExp(`\\bthis\\.${escapedKey}\\b`, "g");
+			const currentKeyRegex = new RegExp(`\\bdv.current\\(\\)\\.${escapedKey}\\b`, "g");
+
+			// Replace with prefixed version
+			const prefixedThisKey = `this.${this.settings.prefix}${key}`;
+			const prefixedCurrentKey = `dv.current().${this.settings.prefix}${key}`;
+
+			// Process each line, updating in place
+			for (let i = 0; i < lines.length; i++) {
+				const originalLine = lines[i];
+				const updatedLine = originalLine.replace(thisKeyRegex, prefixedThisKey);
+				const updatedLine2 = updatedLine.replace(currentKeyRegex, prefixedCurrentKey);
+				if (originalLine !== updatedLine2) {
+					lines[i] = updatedLine2;
+					hasChanges = true;
+				}
+			}
+		}
+
+		for (const [key, value] of sortedEntries) {
+			if (this.isIgnored(key)) continue;
+
+			// Create regex to match any inline field with optional whitespace
+			// Matches: [key :: value], (key :: value), and key :: value
+			// Underscores in keys will match any sequence of non-word characters (spaces, hyphens, etc.)
+			// due to dataView canonicalization of keys.
+			const escapedKey = this.escapeRegexForFieldKey(key);
+			const inlineFieldRegex = new RegExp(
+				String.raw`\[\s*(\W?${escapedKey})\s*::\s*([^\]]*?)\]|\(\s*(\W?${escapedKey})\s*::\s*([^\)]*?)\)|^\s*(\W?${escapedKey})\s*::\s*([^\n]*?)\s*$`,
+				"gi"
+			);
+
+			// Replace with DataView expression using configurable template
+			const replacement = this.formatReplacement(key, value);
+
+			// Process each line independently, updating in place
+			for (let i = 0; i < lines.length; i++) {
+				lines[i] = lines[i].replace(inlineFieldRegex, (match: string) => {
+					// Check if the match is already a DataView expression
+					if (match.includes("this.")) {
+						return match; // Already replaced, skip
+					}
+					if (match.includes("dv.current().")) {
+						return match; // Already replaced, skip
+					}
+					hasChanges = true;
+					return replacement;
+				});
+			}
+		}
+
+		// Join lines back together after all processing
+		modifiedContent = lines.join("\n");
+
+		// Only write back if we made changes
+		if (hasChanges) {
+			await this.app.vault.modify(file, modifiedContent);
+		}
+	}
+
+	/**
+	 * Check if a value is scalar-like (can be safely converted to string for replacement)
+	 * Returns true for primitives, dates, durations, and simple Dataview links
+	 * Returns false for arrays, plain objects, and other complex types
+	 */
+	private isScalarValue(value: unknown): value is ScalarLike {
+		// Allow null/undefined and primitive types
+		if (value == null) return true;
+		const valueType = typeof value;
+		if (
+			valueType === "string" ||
+			valueType === "number" ||
+			valueType === "boolean" ||
+			valueType === "bigint" ||
+			valueType === "symbol"
+		) {
+			return true;
+		}
+
+		// For objects, be selective
+		if (valueType === "object") {
+			if (Array.isArray(value)) return false;
+
+			if (
+				value instanceof Date ||
+				value instanceof RegExp ||
+				value instanceof DateTime ||
+				value instanceof Duration
+			)
+				return true;
+
+			const recordValue = value as Record<string, unknown>;
+			const constructorName = (recordValue as { constructor?: { name?: string } })
+				.constructor?.name;
+			if (constructorName === "Link") return true;
+
+			const hasTimestamp = typeof recordValue.ts === "number";
+			if (hasTimestamp) return true;
+
+			const durationProps = [
+				"years",
+				"months",
+				"days",
+				"hours",
+				"minutes",
+				"seconds",
+				"milliseconds",
+			] as const;
+			const hasDurationProps = durationProps.some(
+				(p) => typeof recordValue[p] === "number"
+			);
+			if (hasDurationProps) return true;
+
+			const hasLinkPath = typeof recordValue.path === "string";
+			if (hasLinkPath) return true;
+
+			return false;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Escape special regex characters in string
+	 */
+	private escapeRegex(text: string): string {
+		return text.replace(/[/\-\\^$*+?.()|[\]{}]/g, "\\$&");
+	}
+
+	/**
+	 * Escape special regex characters for field keys, allowing underscores to match any non-word characters
+	 */
+	private escapeRegexForFieldKey(text: string): string {
+		// First escape regex special characters
+		const escaped = this.escapeRegex(text);
+		// Then replace underscores with pattern to match non-word chars
+		const result = escaped.replace(/_/g, "\\S+");
+		return result;
 	}
 
 	onunload(): void {

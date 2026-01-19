@@ -1,4 +1,5 @@
-import type { ToHumanDurationOptions } from "luxon";
+import type { Link } from "@enveloppe/obsidian-dataview";
+import type { DateTime, Duration, ToHumanDurationOptions } from "luxon";
 
 export type TextOptions = {
 	ignoreAccents: boolean;
@@ -57,6 +58,18 @@ export interface DataviewPropertiesSettings {
 	 * Allow right-clicking on a file/files/folder to process the properties on them.
 	 */
 	extraMenus: boolean;
+	/**
+	 * Settings for replacing inline fields with dataview expressions.
+	 */
+	replaceInlineFieldsWith: {
+		enabled: boolean;
+		/**
+		 * Template string for replacing inline fields with dataview expressions.
+		 * Available placeholders: {{key}}, {{prefix}}, {{value}}
+		 * @default {{key}} = `= this.{{prefix}}{{key}}`
+		 */
+		template: string;
+	};
 	dataviewOptions: {
 		durationFormat: DurationOptions;
 	};
@@ -124,6 +137,10 @@ export const DEFAULT_SETTINGS: DataviewPropertiesSettings = {
 		ignoreAccents: true,
 	},
 	extraMenus: false,
+	replaceInlineFieldsWith: {
+		enabled: false,
+		template: "{{key}} = `= this.{{prefix}}{{key}}`",
+	},
 	dataviewOptions: {
 		durationFormat: {
 			formatDuration: false,
@@ -132,3 +149,16 @@ export const DEFAULT_SETTINGS: DataviewPropertiesSettings = {
 		},
 	},
 };
+export type ScalarLike =
+	| string
+	| number
+	| boolean
+	| bigint
+	| symbol
+	| null
+	| undefined
+	| Date
+	| RegExp
+	| DateTime
+	| Duration
+	| Link;

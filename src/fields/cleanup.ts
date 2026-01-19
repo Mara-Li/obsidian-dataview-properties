@@ -62,11 +62,13 @@ export function correctValue(value: unknown, utils: Utils, fields: string[]) {
 
 export function cleanList(
 	utils: Utils,
+	// biome-ignore lint/suspicious/noExplicitAny: Fields can have any shape
 	inline: Record<string, any>,
 	fields: string[],
 	ignored: PreparedFields,
 	removedKey: Set<string>
 ) {
+	// biome-ignore lint/suspicious/noExplicitAny: Fields can have any shape
 	const result: Record<string, any> = {};
 	utils.useConfig(UtilsConfig.Cleanup);
 

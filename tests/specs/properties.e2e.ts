@@ -6,15 +6,15 @@ import { obsidianPage } from "wdio-obsidian-service";
 import { type DataviewPropertiesSettings, DEFAULT_SETTINGS } from "../../src/interfaces";
 import type DataviewProperties from "../../src/main";
 
+const projectRoot = process.cwd();
 const manifest = JSON.parse(
-	fs.readFileSync(`${path.resolve(__dirname, "..", "..", "manifest.json")}`, "utf-8")
+	fs.readFileSync(path.join(projectRoot, "manifest.json"), "utf-8")
 ) as { id: string; name: string; version: string };
 
 console.log(`Running tests for ${manifest.name} v${manifest.version}`);
 
-const folder = path.resolve(__dirname, "..");
-const fixtures = path.resolve(folder, "fixtures");
-const expected = path.resolve(folder, "expected");
+const fixtures = path.join(projectRoot, "tests", "fixtures");
+const expected = path.join(projectRoot, "tests", "expected");
 
 for (const option of ["default", "unflatted"]) {
 	const settings: DataviewPropertiesSettings =
@@ -29,7 +29,20 @@ for (const option of ["default", "unflatted"]) {
 
 	describe(`Dataview Properties Plugin E2E Tests (${option})`, () => {
 		beforeEach(async () => {
-			await obsidianPage.resetVault();
+			// Clear vault - don't copy fixtures yet as each test creates its own file
+			await browser.executeObsidian(async ({ app }) => {
+				// Delete all existing files
+				const allFiles = app.vault.getAllLoadedFiles();
+				for (const file of allFiles) {
+					if (file.path && !file.path.startsWith('.obsidian')) {
+						try {
+							await app.vault.delete(file, true);
+						} catch (e) {
+							// ignore errors
+						}
+					}
+				}
+			});
 			// reset plugin settings
 			await browser.executeObsidian(
 				({ app }, pluginId, defaultSettings: DataviewPropertiesSettings) => {
@@ -52,7 +65,7 @@ for (const option of ["default", "unflatted"]) {
 				.trim();
 		}
 
-		function getExceptedContent(fileName: string) {
+		function getExpectedContent(fileName: string) {
 			const content = fs.readFileSync(`${expected}/${fileName}`, "utf-8");
 			return normalizeContent(content);
 		}
@@ -176,9 +189,18 @@ for (const option of ["default", "unflatted"]) {
 						}
 					}, "dataview");
 				}
-
+				if (fileName === "ReplaceExpressions.md") {
+					await browser.executeObsidian(({ app }, pluginId) => {
+						const plugin = app.plugins.getPlugin(pluginId) as DataviewProperties;
+						if (plugin) {
+							//update the configuration here
+							plugin.settings.replaceInlineFieldsWith.enabled = true;
+							plugin.saveSettings();
+						}
+					}, manifest.id);
+				}
 				const content = await runTestWithFixture(fileName, fileName);
-				expect(normalizeContent(content)).toEqual(getExceptedContent(fileName));
+				expect(normalizeContent(content)).toEqual(getExpectedContent(fileName));
 			});
 		}
 	});

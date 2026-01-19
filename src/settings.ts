@@ -131,6 +131,46 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 				};
 			});
 
+		new Setting(containerEl)
+			.setName(i18next.t("replaceInlineFields.title"))
+			.setDesc(i18next.t("replaceInlineFields.desc"))
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.replaceInlineFieldsWith.enabled)
+					.onChange(async (value) => {
+						this.plugin.settings.replaceInlineFieldsWith.enabled = value;
+						await this.plugin.saveSettings();
+						await this.display();
+					})
+			);
+
+		if (this.plugin.settings.replaceInlineFieldsWith.enabled) {
+			new Setting(containerEl)
+				.setName(i18next.t("replaceInlineFields.template.title"))
+				.setDesc(sanitizeHTMLToDom(i18next.t("replaceInlineFields.template.desc")))
+				.addText((text) => {
+					text
+						.setValue(this.plugin.settings.replaceInlineFieldsWith.template)
+						.setPlaceholder("{{key}} = `= this.{{prefix}}{{key}}`").inputEl.onblur =
+						async () => {
+							const value = text.getValue();
+							if (value.trim().length === 0) {
+								new Notice(
+									sanitizeHTMLToDom(
+										`<span class="notice-error">${i18next.t("replaceInlineFields.template.invalid")}</span>`
+									)
+								);
+								text.inputEl.addClass("is-invalid");
+							} else {
+								this.plugin.settings.replaceInlineFieldsWith.template = value;
+								await this.plugin.saveSettings();
+								text.inputEl.removeClass("is-invalid");
+							}
+						};
+					text.inputEl.addClass("max-width");
+				});
+		}
+
 		containerEl.createEl("hr");
 
 		new Setting(containerEl)
