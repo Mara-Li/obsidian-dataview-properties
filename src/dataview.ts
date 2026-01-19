@@ -364,7 +364,12 @@ export async function getInlineFields(
 		const normalizedKey = key.toLowerCase();
 		const withSpace = normalizedKey.replaceAll(" ", "-");
 		const withoutInvalid = normalizedKey.replaceAll(/[([)\]]/g, "");
-		if (processedKeys.has(normalizedKey) || processedKeys.has(withSpace) || processedKeys.has(withoutInvalid)) continue;
+		if (
+			processedKeys.has(normalizedKey) ||
+			processedKeys.has(withSpace) ||
+			processedKeys.has(withoutInvalid)
+		)
+			continue;
 
 		processedKeys.add(normalizedKey);
 		processedKeys.add(withSpace);
@@ -390,5 +395,3 @@ export async function getInlineFields(
 
 	return inlineFields;
 }
-
-
