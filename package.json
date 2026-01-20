@@ -1,6 +1,6 @@
 {
 	"name": "dataview-properties",
-	"version": "0.0.23",
+	"version": "0.0.24",
 	"description": "Automagically copy dataview inline field (and their values, even calculated!) into frontmatter properties and keep them sync.",
 	"main": "main.js",
 	"private": true,

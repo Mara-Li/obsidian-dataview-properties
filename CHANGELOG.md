@@ -1,3 +1,8 @@
+## [0.0.24](https://github.com/Mara-Li/obsidian-dataview-properties/compare/0.0.23...0.0.24) (2026-01-20)
+### Features
+
+* Allow to replace inline field with link to value ([e249971](https://github.com/Mara-Li/obsidian-dataview-properties/commit/e249971f0e0ee767d899907a019162f1d8e95542))
+
 ## [0.0.23](https://github.com/Mara-Li/obsidian-dataview-properties/compare/0.0.22...0.0.23) (2025-12-18)
 ### Bug Fixes
 
