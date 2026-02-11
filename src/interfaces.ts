@@ -73,6 +73,10 @@ export interface DataviewPropertiesSettings {
 	dataviewOptions: {
 		durationFormat: DurationOptions;
 	};
+	onlyMode: {
+		enable: boolean;
+		forceFields: AreaSettings;
+	};
 }
 
 export interface DurationOptions {
@@ -146,6 +150,14 @@ export const DEFAULT_SETTINGS: DataviewPropertiesSettings = {
 			formatDuration: false,
 			humanReadableOptions: undefined,
 			textReplacement: undefined,
+		},
+	},
+	onlyMode: {
+		enable: false,
+		forceFields: {
+			fields: [],
+			lowerCase: false,
+			ignoreAccents: false,
 		},
 	},
 };

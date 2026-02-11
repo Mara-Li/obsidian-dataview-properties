@@ -420,6 +420,15 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 
 		components.unload();
 
+		new Setting(containerEl)
+			.setName(i18next.t("dql.title"))
+			.setDesc(i18next.t("dql.description"))
+			.addToggle((toggle) =>
+				toggle.setValue(this.plugin.settings.dql).onChange(async (value) => {
+					this.plugin.settings.onlyMode.enable = value;
+				})
+			);
+
 		new Setting(containerEl).setName("Query language (DQL)").addToggle((toggle) =>
 			toggle.setValue(this.plugin.settings.dql).onChange(async (value) => {
 				this.plugin.settings.dql = value;
@@ -432,6 +441,25 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 				await this.plugin.saveSettings();
 			})
 		);
+
+		if (this.plugin.settings.onlyMode.enable) {
+			//add the force fields textarea
+			new Setting(containerEl)
+				.setName(i18next.t("onlyMode.forceFields.title"))
+				.setDesc(i18next.t("onlyMode.forceFields.desc"))
+				.addTextArea((text) => {
+					text.setValue(
+						this.plugin.settings.onlyMode.forceFields.fields.join(", ")
+					).inputEl.onblur = async () => {
+						this.plugin.settings.onlyMode.forceFields.fields =
+							this.textAreaSettings(text);
+						await this.plugin.saveSettings();
+						await this.display();
+					};
+				});
+
+			this.addFieldToggles(containerEl, this.plugin.settings.onlyMode.forceFields);
+		}
 
 		new Setting(containerEl)
 			.setName(i18next.t("durationFormat.title"))

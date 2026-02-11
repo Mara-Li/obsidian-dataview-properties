@@ -1,104 +1,114 @@
 {
-	"addToFrontmatter": "Add the Dataview field to the frontmatter",
-	"cleanUpText": {
-		"desc": "When adding the value to the frontmatter, remove the following text. Separate value by comma or a newline. To use a regex, encapsulate the value with",
-		"heading": "Remove texte from value",
-		"title": "Remove text from value"
-	},
-	"dataview": {
-		"title": "Enable dataview evaluations. If any option is disabled, the query will be added 'as is' to the properties (frontmatter)."
-	},
-	"dataviewEnabled": "Dataview need to be enabled to use this plugin.",
-	"deleteFromFrontmatter": {
-		"desc": "Cleanup the frontmatter when a field is deleted.",
-		"title": "Frontmatter cleanup"
-	},
-	"durationFormat": {
-		"desc": "Allows you to convert durations (Dataview) into a format that can be read via {{- link}}.",
-		"options": {
-			"invalid": "The options set are invalid.",
-			"title": "Human readable options"
-		},
-		"textReplacement": {
-			"desc": "Allows you to replace one text with another during conversion to a readable format.",
-			"placeholder": "To be replaced",
-			"placeholder2": "Replaced with",
-			"title": "Transform (text replacement)"
-		},
-		"title": "Converting durations into a readable format"
-	},
-	"excluded": {
-		"add": "add",
-		"keyName": "Properties key",
-		"placeholder": "path/to/file or /regex/gi",
-		"remove": "remove",
-		"save": "save",
-		"title": "Excluded files"
-	},
-	"extraMenus": {
-		"desc": "Add a right-click option in the explorer to process the dataview properties in a batch.",
-		"title": "Menu"
-	},
-	"ignore": "Ignored values",
-	"ignoreAccents": {
-		"desc": "Accented characters will be converted to their corresponding value:",
-		"title": "Ignore accents"
-	},
-	"ignoredFields": {
-		"desc": "The following fields won't be added to the frontmatter. Separate the value by a new line or a comma. To use regex, encapsulate with",
-		"example": "for example:",
-		"placeholder": "field1, field-with-text, another field",
-		"title": "Ignored fields"
-	},
-	"interval": {
-		"desc": "to check new Dataview inline field, evaluate and adding them to the properties (frontmatter). Use 0 to disable.",
-		"info": "Interval in milliseconds",
-		"invalid": {
-			"negative": "Please enter a positive number.",
-			"number": "Please, enter a valid number."
-		},
-		"title": "Interval"
-	},
-	"listFields": {
-		"desc": "Sometimes, an inline field can be recognized as a string instead of a list. You can use this options to \"force\" a recognition as a list. You can, also, use a (configurable) suffix  in the field name to allow it to be recognized directly.",
-		"example": "in the field name.",
-		"invalid": "The list suffix cannot be empty",
-		"separator": "You can't include the separator of unflatten in the suffix.",
-		"suffix": "Suffix",
-		"title": "Mark a field like a list"
-	},
-	"lowerCase": {
-		"desc": "Uppercase will be recognized as lowercase.",
-		"title": "Insensitive"
-	},
-	"note": "Fields with empty value won't be added!",
-	"prefix": {
-		"desc": "This prefix will be added to discriminate added key from the inline to the frontmatter. It, also, prevent duplicate in the metadata parsed by Dataview.",
-		"invalid": "The prefix can't be empty!",
-		"title": "Prefix"
-	},
-	"replaceInlineFields": {
-		"desc": "Enable automatic replacement of inline DataView fields with expressions that reference frontmatter properties.",
-		"template": {
-			"desc": "Template for replacing inline fields with dataview expressions. Available placeholders: <code>{{key}}</code>, <code>{{prefix}}</code>, <code>{{value}}</code><br>Default: <code>{{key}} = `= this.{{prefix}}{{key}}`</code>",
-			"invalid": "Replacement template cannot be empty",
-			"title": "Inline field replacement template"
-		},
-		"title": "Replace inline fields with expressions"
-	},
-	"separator": {
-		"desc": "By which character(s) the keys must be separated.",
-		"invalid": "A value is mandatory.",
-		"point": "{{- point}} is not a valid separator.",
-		"title": "Separator",
-		"warning": "⚠️ {{- point}} is not a valid value (Dataview does not recognize keys that include it)."
-	},
-	"unflatten": {
-		"desc": "All properties composed as {{- keys}} will be converted to {{- conversion}}.",
-		"title": "Support for nested properties"
-	},
-	"warning": {
-		"desc": "Only inline dataview queries (DQL/DJS) are supported by the plugin, as code blocks can't be set for inline fields.",
-		"title": "Warning"
-	}
+  "addToFrontmatter": "Add the Dataview field to the frontmatter",
+  "cleanUpText": {
+    "desc": "When adding the value to the frontmatter, remove the following text. Separate value by comma or a newline. To use a regex, encapsulate the value with",
+    "heading": "Remove texte from value",
+    "title": "Remove text from value"
+  },
+  "dataview": {
+    "title": "Enable dataview evaluations. If any option is disabled, the query will be added 'as is' to the properties (frontmatter)."
+  },
+  "dataviewEnabled": "Dataview need to be enabled to use this plugin.",
+  "deleteFromFrontmatter": {
+    "desc": "Cleanup the frontmatter when a field is deleted.",
+    "title": "Frontmatter cleanup"
+  },
+  "dql": {
+    "description": "",
+    "title": ""
+  },
+  "durationFormat": {
+    "desc": "Allows you to convert durations (Dataview) into a format that can be read via {{- link}}.",
+    "options": {
+      "invalid": "The options set are invalid.",
+      "title": "Human readable options"
+    },
+    "textReplacement": {
+      "desc": "Allows you to replace one text with another during conversion to a readable format.",
+      "placeholder": "To be replaced",
+      "placeholder2": "Replaced with",
+      "title": "Transform (text replacement)"
+    },
+    "title": "Converting durations into a readable format"
+  },
+  "excluded": {
+    "add": "add",
+    "keyName": "Properties key",
+    "placeholder": "path/to/file or /regex/gi",
+    "remove": "remove",
+    "save": "save",
+    "title": "Excluded files"
+  },
+  "extraMenus": {
+    "desc": "Add a right-click option in the explorer to process the dataview properties in a batch.",
+    "title": "Menu"
+  },
+  "ignore": "Ignored values",
+  "ignoreAccents": {
+    "desc": "Accented characters will be converted to their corresponding value:",
+    "title": "Ignore accents"
+  },
+  "ignoredFields": {
+    "desc": "The following fields won't be added to the frontmatter. Separate the value by a new line or a comma. To use regex, encapsulate with",
+    "example": "for example:",
+    "placeholder": "field1, field-with-text, another field",
+    "title": "Ignored fields"
+  },
+  "interval": {
+    "desc": "to check new Dataview inline field, evaluate and adding them to the properties (frontmatter). Use 0 to disable.",
+    "info": "Interval in milliseconds",
+    "invalid": {
+      "negative": "Please enter a positive number.",
+      "number": "Please, enter a valid number."
+    },
+    "title": "Interval"
+  },
+  "listFields": {
+    "desc": "Sometimes, an inline field can be recognized as a string instead of a list. You can use this options to \"force\" a recognition as a list. You can, also, use a (configurable) suffix  in the field name to allow it to be recognized directly.",
+    "example": "in the field name.",
+    "invalid": "The list suffix cannot be empty",
+    "separator": "You can't include the separator of unflatten in the suffix.",
+    "suffix": "Suffix",
+    "title": "Mark a field like a list"
+  },
+  "lowerCase": {
+    "desc": "Uppercase will be recognized as lowercase.",
+    "title": "Insensitive"
+  },
+  "note": "Fields with empty value won't be added!",
+  "onlyMode": {
+    "forceFields": {
+      "desc": "",
+      "title": ""
+    }
+  },
+  "prefix": {
+    "desc": "This prefix will be added to discriminate added key from the inline to the frontmatter. It, also, prevent duplicate in the metadata parsed by Dataview.",
+    "invalid": "The prefix can't be empty!",
+    "title": "Prefix"
+  },
+  "replaceInlineFields": {
+    "desc": "Enable automatic replacement of inline DataView fields with expressions that reference frontmatter properties.",
+    "template": {
+      "desc": "Template for replacing inline fields with dataview expressions. Available placeholders: <code>{{key}}</code>, <code>{{prefix}}</code>, <code>{{value}}</code><br>Default: <code>{{key}} = `= this.{{prefix}}{{key}}`</code>",
+      "invalid": "Replacement template cannot be empty",
+      "title": "Inline field replacement template"
+    },
+    "title": "Replace inline fields with expressions"
+  },
+  "separator": {
+    "desc": "By which character(s) the keys must be separated.",
+    "invalid": "A value is mandatory.",
+    "point": "{{- point}} is not a valid separator.",
+    "title": "Separator",
+    "warning": "⚠️ {{- point}} is not a valid value (Dataview does not recognize keys that include it)."
+  },
+  "unflatten": {
+    "desc": "All properties composed as {{- keys}} will be converted to {{- conversion}}.",
+    "title": "Support for nested properties"
+  },
+  "warning": {
+    "desc": "Only inline dataview queries (DQL/DJS) are supported by the plugin, as code blocks can't be set for inline fields.",
+    "title": "Warning"
+  }
 }

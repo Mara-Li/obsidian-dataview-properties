@@ -1,104 +1,114 @@
 {
-	"addToFrontmatter": "Ajouter les champs Dataview au frontmatter",
-	"cleanUpText": {
-		"desc": "Quand la valeur sera ajouté au frontmatter, le(s) texte(s) suivant seront supprimé. Séparé les valeurs par une virgule ou un retour à la ligne. Pour utiliser une expression régulière, encadrer le texte avec",
-		"heading": "Supprimer des valeurs",
-		"title": "Supprimer du texte dans les valeurs"
-	},
-	"dataview": {
-		"title": "Activer les évaluations de DataView. Si une option est désactivée, la requête sera ajoutée « telle quelle » aux propriétés (frontmatter)."
-	},
-	"dataviewEnabled": "DataView doit être activé pour pouvoir utiliser ce module.",
-	"deleteFromFrontmatter": {
-		"desc": "Nettoyer le frontmatter quand un champ est supprimé.",
-		"title": "Nettoyage du frontmatter"
-	},
-	"durationFormat": {
-		"desc": "Permet de convertir les durées (Dataview) en un format lisible via {{- link}}.",
-		"options": {
-			"invalid": "Les options mises ne sont pas valides.",
-			"title": "Options de lecture lisible"
-		},
-		"textReplacement": {
-			"desc": "Permet de remplacer un texte par un autre durant la transformation en format lisible.",
-			"placeholder": "À être remplacé",
-			"placeholder2": "Remplacer avec",
-			"title": "Transformation (remplacement de texte)"
-		},
-		"title": "Convertion des durées en format lisible"
-	},
-	"excluded": {
-		"add": "Ajouter",
-		"keyName": "Clé de propriété",
-		"placeholder": "chemin/vers/fichier ou /regex/gi",
-		"remove": "supprimer",
-		"save": "sauvegarder",
-		"title": "Fichier exclus"
-	},
-	"extraMenus": {
-		"desc": "Ajoute une option dans le click droit de l'explorateur pour ajouter les propriétés dataview en lot.",
-		"title": "Menu"
-	},
-	"ignore": "Valeur ignorée",
-	"ignoreAccents": {
-		"desc": "Les caractères accentués seront converti en leur valeur correspondante :",
-		"title": "Ignorer les accents"
-	},
-	"ignoredFields": {
-		"desc": "Les champs suivants ne seront pas ajouté au frontmatter. Séparez les valeurs par un retour à la ligne ou une virgule. Pour utiliser une expression régulière, encadré le texte avec",
-		"example": "par exemple :",
-		"placeholder": "champ1, champ-avec-text, autre champ",
-		"title": "Champs ignorés"
-	},
-	"interval": {
-		"desc": "pour vérifier les nouveaux champs en « inline » de Dataview, les évaluer et les ajouter aux propriétés (frontmatter). Utiliser 0 pour le désactiver.",
-		"info": "Intervalle en millisecondes",
-		"invalid": {
-			"negative": "Merci d'entrer un nombre positif.",
-			"number": "Merci d'entrer un nombre valide."
-		},
-		"title": "Intervalle"
-	},
-	"listFields": {
-		"desc": "Parfois, un champ inline peut être reconnu comme une chaîne de caractère au lieu d'une liste. Vous pouvez utiliser cette option pour \"forcer\" la reconnaissance en tant que tel. Vous pouvez également utiliser un suffixe (configurable) dans le nom du champ pour le faire reconnaître directement.",
-		"example": "dans le nom du champ.",
-		"invalid": "Le suffix indiquant une liste ne peut être vide.",
-		"separator": "Vous ne pouvez pas inclure le séparateur des clés imbriqués dans le suffix.",
-		"suffix": "Suffixe",
-		"title": "Marquer un champ comme une liste"
-	},
-	"lowerCase": {
-		"desc": "Les majuscules seront reconnues comme minuscules.",
-		"title": "Insensitive"
-	},
-	"note": "Les champs avec valeur vide ne seront pas ajoutés!",
-	"prefix": {
-		"desc": "Ce préfixe sera ajouté pour discriminer la clé ajoutée en \"inline\" du frontmatter.\nCela empêche également la duplication des métadonnées analysées par Dataview.",
-		"invalid": "Le préfixe ne peut pas être vide!",
-		"title": "Préfixe"
-	},
-	"replaceInlineFields": {
-		"desc": "Activer le remplacement automatique des champs DataView en ligne par des expressions faisant référence aux propriétés du frontmatter.",
-		"template": {
-			"desc": "Modèle pour remplacer les champs en ligne par des expressions dataview. Paramètres disponibles : <code>{{key}}</code>, <code>{{prefix}}</code>, <code>{{value}}</code><br>Défaut : <code>{{key}} = `= this.{{prefix}}{{key}}`</code>",
-			"invalid": "Le modèle de remplacement ne peut pas être vide",
-			"title": "Modèle de remplacement des champs en ligne"
-		},
-		"title": "Remplacer les champs en ligne par des expressions"
-	},
-	"separator": {
-		"desc": "Par quel(s) caractère(s) les clés doivent être séparée.",
-		"invalid": "Une valeur est nécessaire.",
-		"point": "{{- point}} n'est pas un séparateur valide.",
-		"title": "Séparateur",
-		"warning": "⚠️ {{- point}} n'est pas une valeur valide (Dataview ne reconnaît pas les clés l'incluant.)"
-	},
-	"unflatten": {
-		"desc": "Toutes les propriétés écrites tel que {{- keys}} seront converti en {{- conversion}}.",
-		"title": "Support des propriétés imbriquées"
-	},
-	"warning": {
-		"desc": "Seulement les queries dataview en ligne sont supportés par le plugin, puisque les bloc de code ne peuvent être mis pour eux.",
-		"title": "Attention"
-	}
+  "addToFrontmatter": "Ajouter les champs Dataview au frontmatter",
+  "cleanUpText": {
+    "desc": "Quand la valeur sera ajouté au frontmatter, le(s) texte(s) suivant seront supprimé. Séparé les valeurs par une virgule ou un retour à la ligne. Pour utiliser une expression régulière, encadrer le texte avec",
+    "heading": "Supprimer des valeurs",
+    "title": "Supprimer du texte dans les valeurs"
+  },
+  "dataview": {
+    "title": "Activer les évaluations de DataView. Si une option est désactivée, la requête sera ajoutée « telle quelle » aux propriétés (frontmatter)."
+  },
+  "dataviewEnabled": "DataView doit être activé pour pouvoir utiliser ce module.",
+  "deleteFromFrontmatter": {
+    "desc": "Nettoyer le frontmatter quand un champ est supprimé.",
+    "title": "Nettoyage du frontmatter"
+  },
+  "dql": {
+    "description": "Seuls les champs qui sont des queries dataview seront ajoutés dans le frontmatter.",
+    "title": "Activer uniquement pour les queries"
+  },
+  "durationFormat": {
+    "desc": "Permet de convertir les durées (Dataview) en un format lisible via {{- link}}.",
+    "options": {
+      "invalid": "Les options mises ne sont pas valides.",
+      "title": "Options de lecture lisible"
+    },
+    "textReplacement": {
+      "desc": "Permet de remplacer un texte par un autre durant la transformation en format lisible.",
+      "placeholder": "À être remplacé",
+      "placeholder2": "Remplacer avec",
+      "title": "Transformation (remplacement de texte)"
+    },
+    "title": "Convertion des durées en format lisible"
+  },
+  "excluded": {
+    "add": "Ajouter",
+    "keyName": "Clé de propriété",
+    "placeholder": "chemin/vers/fichier ou /regex/gi",
+    "remove": "supprimer",
+    "save": "sauvegarder",
+    "title": "Fichier exclus"
+  },
+  "extraMenus": {
+    "desc": "Ajoute une option dans le click droit de l'explorateur pour ajouter les propriétés dataview en lot.",
+    "title": "Menu"
+  },
+  "ignore": "Valeur ignorée",
+  "ignoreAccents": {
+    "desc": "Les caractères accentués seront converti en leur valeur correspondante :",
+    "title": "Ignorer les accents"
+  },
+  "ignoredFields": {
+    "desc": "Les champs suivants ne seront pas ajouté au frontmatter. Séparez les valeurs par un retour à la ligne ou une virgule. Pour utiliser une expression régulière, encadré le texte avec",
+    "example": "par exemple :",
+    "placeholder": "champ1, champ-avec-text, autre champ",
+    "title": "Champs ignorés"
+  },
+  "interval": {
+    "desc": "pour vérifier les nouveaux champs en « inline » de Dataview, les évaluer et les ajouter aux propriétés (frontmatter). Utiliser 0 pour le désactiver.",
+    "info": "Intervalle en millisecondes",
+    "invalid": {
+      "negative": "Merci d'entrer un nombre positif.",
+      "number": "Merci d'entrer un nombre valide."
+    },
+    "title": "Intervalle"
+  },
+  "listFields": {
+    "desc": "Parfois, un champ inline peut être reconnu comme une chaîne de caractère au lieu d'une liste. Vous pouvez utiliser cette option pour \"forcer\" la reconnaissance en tant que tel. Vous pouvez également utiliser un suffixe (configurable) dans le nom du champ pour le faire reconnaître directement.",
+    "example": "dans le nom du champ.",
+    "invalid": "Le suffix indiquant une liste ne peut être vide.",
+    "separator": "Vous ne pouvez pas inclure le séparateur des clés imbriqués dans le suffix.",
+    "suffix": "Suffixe",
+    "title": "Marquer un champ comme une liste"
+  },
+  "lowerCase": {
+    "desc": "Les majuscules seront reconnues comme minuscules.",
+    "title": "Insensitive"
+  },
+  "note": "Les champs avec valeur vide ne seront pas ajoutés!",
+  "onlyMode": {
+    "forceFields": {
+      "desc": "Permet de forcer des champs à être ajouté même s'ils ne sont pas des queries Dataview.",
+      "title": "Champs forcés"
+    }
+  },
+  "prefix": {
+    "desc": "Ce préfixe sera ajouté pour discriminer la clé ajoutée en \"inline\" du frontmatter.\nCela empêche également la duplication des métadonnées analysées par Dataview.",
+    "invalid": "Le préfixe ne peut pas être vide!",
+    "title": "Préfixe"
+  },
+  "replaceInlineFields": {
+    "desc": "Activer le remplacement automatique des champs DataView en ligne par des expressions faisant référence aux propriétés du frontmatter.",
+    "template": {
+      "desc": "Modèle pour remplacer les champs en ligne par des expressions dataview. Paramètres disponibles : <code>{{key}}</code>, <code>{{prefix}}</code>, <code>{{value}}</code><br>Défaut : <code>{{key}} = `= this.{{prefix}}{{key}}`</code>",
+      "invalid": "Le modèle de remplacement ne peut pas être vide",
+      "title": "Modèle de remplacement des champs en ligne"
+    },
+    "title": "Remplacer les champs en ligne par des expressions"
+  },
+  "separator": {
+    "desc": "Par quel(s) caractère(s) les clés doivent être séparée.",
+    "invalid": "Une valeur est nécessaire.",
+    "point": "{{- point}} n'est pas un séparateur valide.",
+    "title": "Séparateur",
+    "warning": "⚠️ {{- point}} n'est pas une valeur valide (Dataview ne reconnaît pas les clés l'incluant.)"
+  },
+  "unflatten": {
+    "desc": "Toutes les propriétés écrites tel que {{- keys}} seront converti en {{- conversion}}.",
+    "title": "Support des propriétés imbriquées"
+  },
+  "warning": {
+    "desc": "Seulement les queries dataview en ligne sont supportés par le plugin, puisque les bloc de code ne peuvent être mis pour eux.",
+    "title": "Attention"
+  }
 }
