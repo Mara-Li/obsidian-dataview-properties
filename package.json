@@ -50,7 +50,6 @@
 		"commander": "^14.0.2",
 		"commit-and-tag-version": "^12.6.1",
 		"dedent": "^1.7.1",
-		"dotenv": "^17.2.3",
 		"dotenv-cli": "^11.0.0",
 		"mocha": "^11.7.5",
 		"obsidian-typings": "^4.93.0",

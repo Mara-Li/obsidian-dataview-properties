@@ -2,13 +2,13 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { builtinModules as builtins } from "node:module";
 import { Command } from "commander";
-import dotenv from "dotenv";
+import { loadEnvFile } from "node:process";
 import esbuild from "esbuild";
 import manifest from "./manifest.json" with { type: "json" };
 import packageJson from "./package.json" with { type: "json" };
 
 // Initial configuration
-dotenv.config({ path: [".env"] });
+loadEnvFile();
 
 // Parsing command line arguments
 const program = new Command();
