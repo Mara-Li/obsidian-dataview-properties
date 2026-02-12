@@ -7,7 +7,7 @@
 	"scripts": {
 		"prebuild": "tsc --noEmit --skipLibCheck",
 		"build": "node esbuild.config.mjs --production",
-		"dev": "node esbuild.config.mjs -v",
+		"dev": "node esbuild.config.mjs",
 		"export": "node esbuild.config.mjs --production --vault",
 		"bump": "node commit-and-tag-version.mjs",
 		"postbump": "git push --follow-tags origin master",

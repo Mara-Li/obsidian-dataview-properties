@@ -9,6 +9,7 @@ import dedent from "dedent";
 import { Duration } from "luxon";
 import { Component, type FrontMatterCache, htmlToMarkdown } from "obsidian";
 import { isRecognized } from "./fields";
+import { UtilsConfig } from "./interfaces";
 import type DataviewProperties from "./main";
 import { convertToNumber, unflatten } from "./utils";
 import { parseMarkdownList } from "./utils/text_utils";
@@ -16,12 +17,16 @@ import { parseMarkdownList } from "./utils/text_utils";
 /**
  * Handles Dataview API interactions and query evaluation
  */
-class Dataview {
+export class Dataview {
 	dvApi: DataviewApi;
 	path: string;
 	plugin: DataviewProperties;
 	sourceText: string;
 	private queryCache: Map<string, string> = new Map();
+
+	// compiled regexes for inline dataview queries (reused)
+	dqlRe: RegExp;
+	djsRe: RegExp;
 
 	prefix: string = "[Dataview Properties]";
 
@@ -30,6 +35,13 @@ class Dataview {
 		this.path = path;
 		this.plugin = plugin;
 		this.sourceText = "";
+
+		// precompile inline-query regexes so they can be reused by helper methods
+		const dqlPrefix = this.dvApi.settings.inlineQueryPrefix || "=";
+		const djsPrefix = this.dvApi.settings.inlineJsQueryPrefix || "$=";
+		// keep regex *without* the global flag so `.test()` is stable
+		this.dqlRe = new RegExp(`\`${this.escapeRegex(dqlPrefix)}(.+?)\``, "sm");
+		this.djsRe = new RegExp(`\`${this.escapeRegex(djsPrefix)}(.+?)\``, "sm");
 	}
 
 	/**
@@ -43,24 +55,16 @@ class Dataview {
 	 * Get all matches for inline DQL queries
 	 */
 	private dvInlineQueryMatches(): IterableIterator<RegExpMatchArray> | [] {
-		const inlineQueryPrefix = this.dvApi.settings.inlineQueryPrefix || "=";
-		const inlineDataViewRegex = new RegExp(
-			`\`${this.escapeRegex(inlineQueryPrefix)}(.+?)\``,
-			"gsm"
-		);
-		return this.sourceText.matchAll(inlineDataViewRegex);
+		// matchAll requires a global regex; create one from the same source
+		return this.sourceText.matchAll(new RegExp(this.dqlRe.source, "gsm"));
 	}
 
 	/**
 	 * Get all matches for inline JS queries
 	 */
 	private dvInlineJSMatches(): IterableIterator<RegExpMatchArray> | [] {
-		const inlineJsQueryPrefix = this.dvApi.settings.inlineJsQueryPrefix || "$=";
-		const inlineJsDataViewRegex = new RegExp(
-			`\`${this.escapeRegex(inlineJsQueryPrefix)}(.+?)\``,
-			"gsm"
-		);
-		return this.sourceText.matchAll(inlineJsDataViewRegex);
+		// matchAll requires a global regex; create one from the same source
+		return this.sourceText.matchAll(new RegExp(this.djsRe.source, "gsm"));
 	}
 
 	/**
@@ -192,6 +196,73 @@ class Dataview {
 		return res;
 	}
 
+	/**
+	 * Return true if the provided value contains an inline DQL or DJS query.
+	 */
+	containsDvQuery(val: unknown): boolean {
+		if (!Values.isString(val)) return false;
+		const s = val as string;
+		return this.dqlRe.test(s) || this.djsRe.test(s);
+	}
+
+	/**
+	 * onlyMode helper: decide whether a field should be included when onlyMode
+	 * is enabled. Uses precompiled regexes and `this.plugin.utils` for
+	 * normalization (OnlyMode UtilsConfig).
+	 */
+	async onlyModeAllowsField(key: string, inlineValue: unknown): Promise<boolean> {
+		const settings = this.plugin.settings.onlyMode;
+		if (!settings || !settings.enable) return true;
+
+		// If value is array, inspect last element (same behaviour elsewhere)
+		let sampleVal = inlineValue;
+		if (Array.isArray(inlineValue) && inlineValue.length > 0)
+			sampleVal = inlineValue[inlineValue.length - 1];
+
+		// If the pageData still contains the raw inline query string, accept it
+		if (this.containsDvQuery(sampleVal)) return true;
+
+		// If the value is not a string (Dataview may have evaluated it),
+		// inspect the source file for a matching inline field definition.
+		if (!Values.isString(sampleVal)) {
+			try {
+				const tfile = this.plugin.app.vault.getAbstractFileByPath(this.path) as
+					| import("obsidian").TFile
+					| null;
+				if (tfile) {
+					const content = await this.plugin.app.vault.read(tfile);
+					const escapedKey = String(key).replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
+					const lineRe = new RegExp(`^\\s*${escapedKey}\\s*::\\s*([^\\n]+)`, "m");
+					const m = content.match(lineRe);
+					if (m?.[1] && this.containsDvQuery(m[1])) return true;
+				}
+			} catch {
+				// ignore read errors and continue to forceFields matching
+			}
+		}
+
+		// check forceFields using Utils.processString with OnlyMode config
+		const forceSettings = settings.forceFields || {
+			fields: [],
+			lowerCase: false,
+			ignoreAccents: false,
+		};
+		if (!Array.isArray(forceSettings.fields) || forceSettings.fields.length === 0)
+			return false;
+
+		this.plugin.utils.useConfig(UtilsConfig.OnlyMode);
+		try {
+			const normalizedKey = this.plugin.utils.processString(String(key));
+			const normalized = forceSettings.fields.map((f) =>
+				this.plugin.utils.processString(String(f))
+			);
+			const isForced = normalized.includes(normalizedKey);
+			return isForced;
+		} finally {
+			this.plugin.utils.useConfig(UtilsConfig.Default);
+		}
+	}
+
 	isHtml(value: unknown): boolean {
 		if (Values.isString(value)) {
 			const regex = /<[^>]+>/g;
@@ -223,12 +294,18 @@ class Dataview {
 	/**
 	 * Evaluate and convert a dataview field value
 	 */
-	async evaluateInline(value: unknown, fieldName: string): Promise<unknown | undefined> {
+	async evaluateInline(
+		value: unknown,
+		fieldName: string,
+		evaluatedFields?: Record<string, unknown>
+	): Promise<unknown | undefined> {
 		if (value === "" || value === undefined) return;
 
 		try {
 			if (Values.isString(value)) {
-				let res = convertToNumber(await this.convertDataviewQueries(value));
+				let res = convertToNumber(
+					await this.convertDataviewQueries(value as string, evaluatedFields)
+				);
 
 				if (Values.isString(res)) {
 					if (this.isHtml(res)) res = htmlToMarkdown(res);
@@ -263,7 +340,7 @@ class Dataview {
 			}
 			if (Values.isArray(value)) {
 				return await Promise.all(
-					value.map((item) => this.evaluateInline(item, fieldName))
+					value.map((item) => this.evaluateInline(item, fieldName, evaluatedFields))
 				);
 			}
 			if (value?.constructor.name === "Duration")
@@ -297,7 +374,10 @@ class Dataview {
 	/**
 	 * Process text to evaluate and convert any dataview queries
 	 */
-	private async convertDataviewQueries(text: string): Promise<string> {
+	private async convertDataviewQueries(
+		text: string,
+		evaluatedFields?: Record<string, unknown>
+	): Promise<string> {
 		const { app, settings } = this.plugin;
 		if (!this.plugin.isDataviewEnabled()) return text;
 
@@ -305,17 +385,39 @@ class Dataview {
 		if (!dvApi) return text;
 		this.sourceText = text;
 		const { inlineMatches, inlineJsMatches } = this.matches();
+
+		// Debug: log when a probable inline query is passed but no matches found
+		if (
+			typeof text === "string" &&
+			text.includes("=`") === false &&
+			text.includes("`=")
+		) {
+			// noop to satisfy linter; left intentionally minimal
+		}
 		let replacedText = text;
 		if (settings.dql) {
+			let found = false;
 			for (const inlineQuery of inlineMatches) {
+				found = true;
 				const code = inlineQuery[0];
 				const query = inlineQuery[1].trim();
 
-				const markdown = await this.inlineDQLDataview(query);
+				// substitute `this.<field>` using provided evaluatedFields before evaluation
+				const substitutedQuery = evaluatedFields
+					? query.replace(/\bthis\.([A-Za-z0-9_-]+)\b/g, (_m, name) => {
+							if (name in evaluatedFields) return JSON.stringify(evaluatedFields[name]);
+							return _m;
+						})
+					: query;
+
+				const markdown = await this.inlineDQLDataview(substitutedQuery);
 
 				if (!markdown.includes("Evaluation Error")) {
 					replacedText = replacedText.replace(code, markdown);
 				}
+			}
+			if (!found && typeof text === "string" && /`\s*=?/.test(text)) {
+				// no inline matches found for this text
 			}
 		}
 
@@ -323,10 +425,33 @@ class Dataview {
 			for (const inlineJsQuery of inlineJsMatches) {
 				const code = inlineJsQuery[0];
 				const query = inlineJsQuery[1].trim();
+
 				const markdown = await this.inlineDataviewJS(query);
 				if (!markdown.includes("Evaluation Error")) {
 					replacedText = replacedText.replace(code, markdown);
 				}
+			}
+		}
+
+		// Fallback: if nothing was replaced but the entire value looks like a
+		// single inline query (e.g. `= 1 + 2`), try evaluating it directly.
+		if (replacedText === text && typeof text === "string") {
+			const trimmed = text.trim();
+			const fullDql = trimmed.match(/^`\s*(=)\s*([\s\S]+?)\s*`$/);
+			const fullDjs = trimmed.match(/^`\s*(\$=)\s*([\s\S]+?)\s*`$/);
+			if (fullDql) {
+				const mdQuery = evaluatedFields
+					? fullDql[2].trim().replace(/\bthis\.([A-Za-z0-9_-]+)\b/g, (_m, name) => {
+							if (evaluatedFields && name in evaluatedFields)
+								return JSON.stringify(evaluatedFields[name]);
+							return _m;
+						})
+					: fullDql[2].trim();
+				const markdown = await this.inlineDQLDataview(mdQuery);
+				if (!markdown.includes("Evaluation Error")) replacedText = markdown;
+			} else if (fullDjs) {
+				const markdown = await this.inlineDataviewJS(fullDjs[2].trim());
+				if (!markdown.includes("Evaluation Error")) replacedText = markdown;
 			}
 		}
 		return replacedText;
@@ -376,7 +501,13 @@ export async function getInlineFields(
 		processedKeys.add(withoutInvalid);
 
 		if (!frontmatter || !(key in frontmatter)) {
-			inlineFields[key] = await compiler.evaluateInline(pageData[key], key);
+			if (plugin.settings.onlyMode?.enable) {
+				const inlineValue = pageData[key];
+				const allowed = await compiler.onlyModeAllowsField(key, inlineValue);
+				if (!allowed) continue;
+			}
+
+			inlineFields[key] = await compiler.evaluateInline(pageData[key], key, inlineFields);
 		} else if (
 			Array.isArray(pageData[key]) &&
 			pageData[key].length > 0 &&
@@ -385,7 +516,7 @@ export async function getInlineFields(
 			// Handle arrays by using the last value (most recent)
 			const arrayValue = pageData[key];
 			const valueToUse = arrayValue[arrayValue.length - 1];
-			inlineFields[key] = await compiler.evaluateInline(valueToUse, key);
+			inlineFields[key] = await compiler.evaluateInline(valueToUse, key, inlineFields);
 		}
 	}
 
@@ -395,3 +526,5 @@ export async function getInlineFields(
 
 	return inlineFields;
 }
+
+// ...existing code...

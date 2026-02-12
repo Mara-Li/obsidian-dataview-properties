@@ -34,7 +34,7 @@ for (const option of ["default", "unflatted"]) {
 				// Delete all existing files
 				const allFiles = app.vault.getAllLoadedFiles();
 				for (const file of allFiles) {
-					if (file.path && !file.path.startsWith('.obsidian')) {
+					if (file.path && !file.path.startsWith(".obsidian")) {
 						try {
 							await app.vault.delete(file, true);
 						} catch (e) {
@@ -195,6 +195,16 @@ for (const option of ["default", "unflatted"]) {
 						if (plugin) {
 							//update the configuration here
 							plugin.settings.replaceInlineFieldsWith.enabled = true;
+							plugin.saveSettings();
+						}
+					}, manifest.id);
+				}
+				if (fileName === "only_mode.md") {
+					await browser.executeObsidian(({ app }, pluginId) => {
+						const plugin = app.plugins.getPlugin(pluginId) as DataviewProperties;
+						if (plugin) {
+							plugin.settings.onlyMode.enable = true;
+							plugin.settings.onlyMode.forceFields.fields = ["force_me"];
 							plugin.saveSettings();
 						}
 					}, manifest.id);
