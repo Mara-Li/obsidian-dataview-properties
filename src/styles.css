@@ -99,3 +99,7 @@
 .obsidian-dataview-properties .setting-item.padding-top .setting-item-control {
 	padding-top: 1em;
 }
+
+.setting-item.textarea.max-width {
+	width: 100%;
+}

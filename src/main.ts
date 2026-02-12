@@ -601,6 +601,9 @@ export default class DataviewProperties extends Plugin {
 		this.utils.setConfig(UtilsConfig.Ignore, this.settings.ignoreFields);
 		this.utils.setConfig(UtilsConfig.Delete, this.settings.deleteFromFrontmatter);
 		this.utils.setConfig(UtilsConfig.Lists, this.settings.listFields);
+
+		// Configure utils for onlyMode.forceFields comparisons
+		this.utils.setConfig(UtilsConfig.OnlyMode, this.settings.onlyMode.forceFields);
 	}
 
 	private prepareIgnoredFields(): void {

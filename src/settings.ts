@@ -424,8 +424,10 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 			.setName(i18next.t("dql.title"))
 			.setDesc(i18next.t("dql.description"))
 			.addToggle((toggle) =>
-				toggle.setValue(this.plugin.settings.dql).onChange(async (value) => {
+				toggle.setValue(this.plugin.settings.onlyMode.enable).onChange(async (value) => {
 					this.plugin.settings.onlyMode.enable = value;
+					await this.plugin.saveSettings();
+					this.display();
 				})
 			);
 
@@ -447,6 +449,8 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 			new Setting(containerEl)
 				.setName(i18next.t("onlyMode.forceFields.title"))
 				.setDesc(i18next.t("onlyMode.forceFields.desc"))
+				.setClass("textarea")
+				.setClass("max-width")
 				.addTextArea((text) => {
 					text.setValue(
 						this.plugin.settings.onlyMode.forceFields.fields.join(", ")
@@ -454,7 +458,6 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 						this.plugin.settings.onlyMode.forceFields.fields =
 							this.textAreaSettings(text);
 						await this.plugin.saveSettings();
-						await this.display();
 					};
 				});
 

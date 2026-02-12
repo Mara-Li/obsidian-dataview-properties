@@ -94,6 +94,7 @@ export enum UtilsConfig {
 	Cleanup = "cleanup",
 	Delete = "delete",
 	Lists = "lists",
+	OnlyMode = "onlyMode",
 }
 
 export type Unflatten = {
