@@ -41,6 +41,10 @@ export default class DataviewProperties extends Plugin {
 		keys: new Set<string>(),
 		regex: [],
 	};
+	onlyModeFields: PreparedFields = {
+		keys: new Set<string>(),
+		regex: [],
+	};
 	private processingFiles: Set<string> = new Set();
 	private debounced!: (file: TFile) => void;
 	prefix: string = "obsidian-dataview-properties";
@@ -620,11 +624,19 @@ export default class DataviewProperties extends Plugin {
 		this.listFields.regex = result.regex;
 	}
 
+	private prepareOnlyModeFields(): void {
+		this.utils.useConfig(UtilsConfig.OnlyMode);
+		const result = prepareFields(this.settings.onlyMode.forceFields.fields, this.utils);
+		this.onlyModeFields.keys = result.keys;
+		this.onlyModeFields.regex = result.regex;
+	}
+
 	async loadSettings(): Promise<void> {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
 		this.loadUtils();
 		this.prepareIgnoredFields();
 		this.prepareListFields();
+		this.prepareOnlyModeFields();
 		this.updateDebouced();
 	}
 
@@ -633,6 +645,7 @@ export default class DataviewProperties extends Plugin {
 		this.loadUtils();
 		this.prepareIgnoredFields();
 		this.prepareListFields();
+		this.prepareOnlyModeFields();
 		this.updateDebouced();
 	}
 }

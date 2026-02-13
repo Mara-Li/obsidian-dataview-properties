@@ -74,6 +74,19 @@ class Dataview {
 	}
 
 	/**
+	 * Check if text contains any dataview formula (DQL or DJS)
+	 */
+	private hasDataviewFormula(text: string): boolean {
+		if (!Values.isString(text)) return false;
+		this.sourceText = text;
+		const { inlineMatches, inlineJsMatches } = this.matches();
+		// Check if there are any matches
+		return (
+			Boolean([...inlineMatches].length > 0) || Boolean([...inlineJsMatches].length > 0)
+		);
+	}
+
+	/**
 	 * Clean and sanitize dataview results
 	 */
 	private removeDataviewQueries(dataviewMarkdown: Literal): string {
@@ -295,6 +308,23 @@ class Dataview {
 	}
 
 	/**
+	 * Check if a field should be processed based on onlyMode settings
+	 * Public method to be used by getInlineFields
+	 */
+	shouldIncludeField(fieldName: string, fieldValue: unknown): boolean {
+		const { onlyMode } = this.plugin.settings;
+		if (!onlyMode.enable) return true;
+
+		// Check if field has dataview formula
+		if (this.hasDataviewFormula(fieldValue?.toString() ?? "")) return true;
+
+		// Check if field is in forceFields
+		if (isRecognized(fieldName, this.plugin.onlyModeFields, this.plugin.utils))
+			return true;
+
+		return false;
+	}
+	/**
 	 * Process text to evaluate and convert any dataview queries
 	 */
 	private async convertDataviewQueries(text: string): Promise<string> {
@@ -303,6 +333,7 @@ class Dataview {
 
 		const dvApi = getAPI(app);
 		if (!dvApi) return text;
+
 		this.sourceText = text;
 		const { inlineMatches, inlineJsMatches } = this.matches();
 		let replacedText = text;
@@ -313,9 +344,8 @@ class Dataview {
 
 				const markdown = await this.inlineDQLDataview(query);
 
-				if (!markdown.includes("Evaluation Error")) {
+				if (!markdown.includes("Evaluation Error"))
 					replacedText = replacedText.replace(code, markdown);
-				}
 			}
 		}
 
@@ -324,9 +354,8 @@ class Dataview {
 				const code = inlineJsQuery[0];
 				const query = inlineJsQuery[1].trim();
 				const markdown = await this.inlineDataviewJS(query);
-				if (!markdown.includes("Evaluation Error")) {
+				if (!markdown.includes("Evaluation Error"))
 					replacedText = replacedText.replace(code, markdown);
-				}
 			}
 		}
 		return replacedText;
@@ -374,6 +403,9 @@ export async function getInlineFields(
 		processedKeys.add(normalizedKey);
 		processedKeys.add(withSpace);
 		processedKeys.add(withoutInvalid);
+
+		// Check if field should be included based on onlyMode settings
+		if (!compiler.shouldIncludeField(key, pageData[key])) continue;
 
 		if (!frontmatter || !(key in frontmatter)) {
 			inlineFields[key] = await compiler.evaluateInline(pageData[key], key);
