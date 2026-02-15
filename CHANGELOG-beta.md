@@ -1,3 +1,10 @@
+## [0.0.25-0](https://github.com/Mara-Li/obsidian-dataview-properties/compare/0.0.24...0.0.25-0) (2026-02-15)
+### Features
+
+* add config for onlyMode ([e800058](https://github.com/Mara-Li/obsidian-dataview-properties/commit/e80005809566b6f6bdcd23dd9de30341cf1d8e14))
+* add new settings for only modes ([d49d1b7](https://github.com/Mara-Li/obsidian-dataview-properties/commit/d49d1b725cbf6882aa8290baa7d653655d700627))
+* onlyMode ([ba4fe75](https://github.com/Mara-Li/obsidian-dataview-properties/commit/ba4fe751c6311e7aa9c9917adb0853e2c20a852c))
+
 ## [0.0.22-0](https://github.com/Mara-Li/obsidian-dataview-properties/compare/0.0.21...0.0.22-0) (2025-08-31)
 ### Features
 
