@@ -1,7 +1,3 @@
-## 0.0.26 (2026-05-27)
-
-## 0.0.25 (2026-05-27)
-
 ## [0.0.24](https://github.com/Mara-Li/obsidian-dataview-properties/compare/0.0.23...0.0.24) (2026-01-20)
 ### Features
 
