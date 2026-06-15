@@ -1,0 +1,39 @@
+allowBuilds:
+  "@codemirror/language@https://codeload.github.com/lishid/cm-language/tar.gz/b817e72a9861b3f8a50a92a2ea53cbafc4f88eb3": true
+  classic-level: true
+  edgedriver: true
+  electron: true
+  esbuild: true
+  geckodriver: true
+  obsidian-typings: true
+blockExoticSubdeps: false
+minimumReleaseAgeExclude:
+  - yargs-parser@5.0.1
+  - svelte@3.49.0
+  - set-value@2.0.1
+  - braces@3.0.3
+  - micromatch@4.0.8
+  - svelte@4.2.19
+  - parse-git-config@3.0.1
+  - expand-object@0.4.3
+  - svelte@3.59.2
+  - diff@8.0.3
+  - svelte@5.51.5
+  - serialize-javascript@7.0.3
+  - svelte@5.53.5
+  - serialize-javascript@7.0.5
+  - svelte@5.55.7
+overrides:
+  braces@<3.0.3: ^3.0.3
+  diff@>=6.0.0 <8.0.3: ^8.0.3
+  micromatch@<4.0.8: ^4.0.8
+  serialize-javascript@<=7.0.2: ^7.0.3
+  serialize-javascript@>=5.0.0 <7.0.5: ^7.0.5
+  set-value@<2.0.1: ^2.0.1
+  svelte@<3.49.0: ^3.49.0
+  svelte@<4.2.19: ^4.2.19
+  svelte@<=5.51.4: ^5.51.5
+  svelte@<=5.53.4: ^5.53.5
+  svelte@<=5.55.6: ^5.55.7
+  svelte@>=3.0.0 <3.59.2: ^3.59.2
+  yargs-parser@<=5.0.0: ^5.0.1

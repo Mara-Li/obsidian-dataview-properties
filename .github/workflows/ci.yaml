@@ -27,7 +27,7 @@ jobs:
 
         with:
             PLUGIN_NAME: dataview-properties
-            CACHE: "bun"
+            CACHE: "pnpm"
         secrets:
             GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -37,6 +37,6 @@ jobs:
         with:
             PLUGIN_NAME: dataview-properties
             BETA: ${{ inputs.beta || false}}
-            CACHE: "bun"
+            CACHE: "pnpm"
         secrets:
             GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

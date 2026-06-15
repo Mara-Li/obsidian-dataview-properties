@@ -18,7 +18,7 @@
 		"e2e": "wdio run ./wdio.conf.mts"
 	},
 	"engines": {
-		"node": "^22.2.0"
+		"node": "^24.14.0"
 	},
 	"keywords": [],
 	"author": "Mara-Li",
@@ -34,26 +34,31 @@
 		"@wdio/mocha-framework": "^9.23.0",
 		"@wdio/spec-reporter": "^9.20.0",
 		"builtin-modules": "5.0.0",
-		"esbuild": "0.27.2",
-		"i18next": "^25.7.4",
+		"esbuild": "0.28.1",
+		"eslint": "^10.5.0",
+		"eslint-plugin-obsidianmd": "^0.3.0",
+		"globals": "^17.6.0",
+		"i18next": "^26.3.1",
+		"jiti": "^2.7.0",
 		"obsidian": "^1.11.4",
-		"ts-deepmerge": "^7.0.3",
+		"ts-deepmerge": "^8.0.0",
 		"tslib": "2.8.1",
 		"typescript": "^5.9.3",
-		"wdio-obsidian-reporter": "^2.2.0",
-		"wdio-obsidian-service": "^2.2.0"
+		"typescript-eslint": "^8.61.0",
+		"wdio-obsidian-reporter": "^3.1.1",
+		"wdio-obsidian-service": "^3.1.1"
 	},
 	"dependencies": {
 		"@delucis/if-env": "^1.1.2",
 		"@enveloppe/obsidian-dataview": "^0.5.70-2",
 		"ansi-colors": "^4.1.3",
-		"commander": "^14.0.2",
+		"commander": "^15.0.0",
 		"commit-and-tag-version": "^12.6.1",
 		"dedent": "^1.7.1",
 		"dotenv": "^17.2.3",
 		"dotenv-cli": "^11.0.0",
 		"mocha": "^11.7.5",
-		"obsidian-typings": "^4.93.0",
+		"obsidian-typings": "^6.15.0",
 		"uniformize": "^2.5.0",
 		"update": "^0.7.4"
 	},

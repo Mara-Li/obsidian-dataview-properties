@@ -1,5 +1,5 @@
 import * as pkg from "./package.json" with { type: "json" };
-import { readFileSync, writeFileSync } from "fs";
+import { readFileSync, writeFileSync } from "node:fs";
 
 const targetVersion = process.env.npm_package_version ?? pkg.version;
 
