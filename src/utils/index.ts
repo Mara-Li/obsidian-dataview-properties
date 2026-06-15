@@ -1,7 +1,7 @@
 import Utils from "./text_utils";
 
-export { Utils };
 export { convertToNumber, isNumber } from "./number";
+export { Utils };
 
 export type NestedRecord<T> = {
 	[key: string]: T | NestedRecord<T>;
