@@ -1,25 +1,13 @@
-import {
-	debounce,
-	type FrontMatterCache,
-	Notice,
-	Plugin,
-	sanitizeHTMLToDom,
-	TFile,
-	TFolder,
-} from "obsidian";
+import {debounce, type FrontMatterCache, Notice, Plugin, sanitizeHTMLToDom, TFile, TFolder,} from "obsidian";
 import "uniformize";
-import { isPluginEnabled } from "@enveloppe/obsidian-dataview";
+import {isPluginEnabled} from "@enveloppe/obsidian-dataview";
 import i18next from "i18next";
-import { DateTime, Duration } from "luxon";
-import { merge } from "ts-deepmerge";
-import { getInlineFields } from "./dataview";
-import {
-	shouldBeUpdated as checkShouldBeUpdated,
-	isRecognized,
-	prepareFields,
-} from "./fields";
-import { cleanList } from "./fields/cleanup";
-import { resources, translationLanguage } from "./i18n";
+import {DateTime, Duration} from "luxon";
+import {merge} from "ts-deepmerge";
+import {getInlineFields} from "./dataview";
+import {isRecognized, prepareFields, shouldBeUpdated as checkShouldBeUpdated,} from "./fields";
+import {cleanList} from "./fields/cleanup";
+import {resources, translationLanguage} from "./i18n";
 import {
 	type DataviewPropertiesSettings,
 	DEFAULT_SETTINGS,
@@ -27,12 +15,12 @@ import {
 	type ScalarLike,
 	UtilsConfig,
 } from "./interfaces";
-import { DataviewPropertiesSettingTab } from "./settings";
-import { Utils } from "./utils";
-import { isExcluded } from "./utils/ignored_file";
+import {DataviewPropertiesSettingTab} from "./settings";
+import {Utils} from "./utils";
+import {isExcluded} from "./utils/ignored_file";
 
 export default class DataviewProperties extends Plugin {
-	settings!: DataviewPropertiesSettings;
+	declare settings: DataviewPropertiesSettings;
 	private ignoredFields: PreparedFields = {
 		keys: new Set<string>(),
 		regex: [],
@@ -334,7 +322,7 @@ export default class DataviewProperties extends Plugin {
 			return;
 		}
 
-		await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
+		await this.app.fileManager.processFrontMatter(file, (frontmatter: Record<string, unknown>) => {
 			if (removedKey && removedKey.size > 0) {
 				this.utils.useConfig(UtilsConfig.Delete);
 				for (const key of removedKey) {
@@ -352,18 +340,20 @@ export default class DataviewProperties extends Plugin {
 				const normalizedValue = this.normalizeValueForFrontmatter(value);
 
 				// Use deep merge for nested objects to preserve existing properties
+				const frontmatterPrefixed = frontmatter[prefixedKey];
 				if (
+					frontmatterPrefixed &&
 					prefixedKey in frontmatter &&
-					typeof frontmatter[prefixedKey] === "object" &&
-					!Array.isArray(frontmatter[prefixedKey]) &&
+					typeof frontmatterPrefixed === "object" &&
+					!Array.isArray(frontmatterPrefixed) &&
 					typeof normalizedValue === "object" &&
 					!Array.isArray(normalizedValue) &&
 					normalizedValue != null
-				) {
-					frontmatter[prefixedKey] = merge(frontmatter[prefixedKey], normalizedValue);
-				} else {
+				)
+					frontmatter[prefixedKey] = merge(frontmatterPrefixed, normalizedValue);
+				 else
 					frontmatter[prefixedKey] = normalizedValue;
-				}
+				
 			}
 		});
 
@@ -432,8 +422,7 @@ export default class DataviewProperties extends Plugin {
 		// biome-ignore lint/suspicious/noExplicitAny: this is the type returned by obsidian for the frontmatter so we need to use it with any
 		inlineFields: Record<string, any>
 	): Promise<void> {
-		const content = await this.app.vault.read(file);
-		let modifiedContent = content;
+		let modifiedContent = await this.app.vault.read(file);
 		let hasChanges = false;
 
 		// Sort entries by key length (descending) to match longer keys first
@@ -567,10 +556,9 @@ export default class DataviewProperties extends Plugin {
 			);
 			if (hasDurationProps) return true;
 
-			const hasLinkPath = typeof recordValue.path === "string";
-			if (hasLinkPath) return true;
+			return typeof recordValue.path === "string";
 
-			return false;
+			
 		}
 
 		return false;
@@ -590,8 +578,7 @@ export default class DataviewProperties extends Plugin {
 		// First escape regex special characters
 		const escaped = this.escapeRegex(text);
 		// Then replace underscores with pattern to match non-word chars
-		const result = escaped.replace(/_/g, "\\S+");
-		return result;
+		return escaped.replace(/_/g, "\\S+");
 	}
 
 	onunload(): void {
