@@ -319,10 +319,7 @@ class Dataview {
 		if (this.hasDataviewFormula(fieldValue?.toString() ?? "")) return true;
 
 		// Check if field is in forceFields
-		if (isRecognized(fieldName, this.plugin.onlyModeFields, this.plugin.utils))
-			return true;
-
-		return false;
+		return isRecognized(fieldName, this.plugin.onlyModeFields, this.plugin.utils);
 	}
 	/**
 	 * Process text to evaluate and convert any dataview queries
