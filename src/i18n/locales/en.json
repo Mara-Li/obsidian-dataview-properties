@@ -8,7 +8,7 @@
   "dataview": {
     "title": "Enable dataview evaluations. If any option is disabled, the query will be added 'as is' to the properties (frontmatter)."
   },
-  "dataviewEnabled": "Dataview need to be enabled to use this plugin.",
+  "dataviewEnabled": "Dataview need to be enabled to use Dataview to Properties.",
   "deleteFromFrontmatter": {
     "desc": "Cleanup the frontmatter when a field is deleted.",
     "title": "Frontmatter cleanup"

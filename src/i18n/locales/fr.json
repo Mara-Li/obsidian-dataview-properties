@@ -8,7 +8,7 @@
   "dataview": {
     "title": "Activer les évaluations de DataView. Si une option est désactivée, la requête sera ajoutée « telle quelle » aux propriétés (frontmatter)."
   },
-  "dataviewEnabled": "DataView doit être activé pour pouvoir utiliser ce module.",
+  "dataviewEnabled": "Dataview doit être activé pour pouvoir utiliser Dataview to Properties.",
   "deleteFromFrontmatter": {
     "desc": "Nettoyer le frontmatter quand un champ est supprimé.",
     "title": "Nettoyage du frontmatter"

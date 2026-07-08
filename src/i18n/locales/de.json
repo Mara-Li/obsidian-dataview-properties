@@ -8,7 +8,7 @@
   "dataview": {
     "title": "Dataview-Auswertungen aktivieren. Wenn eine Option deaktiviert ist, wird die Abfrage 'so wie sie ist' zu den Eigenschaften (Frontmatter) hinzugefügt."
   },
-  "dataviewEnabled": "Dataview muss aktiviert sein, um dieses Plugin zu verwenden.",
+  "dataviewEnabled": "Dataview muss aktiviert sein, damit Dataview to Properties verwendet werden kann.",
   "deleteFromFrontmatter": {
     "desc": "Wenn ein Feld gelöscht wird, Frontmatter ebenfalls bereinigen.",
     "title": "Frontmatter-Bereinigung"
