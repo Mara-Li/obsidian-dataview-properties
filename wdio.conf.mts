@@ -1,72 +1,66 @@
-import * as os from "node:os";
-import * as path from "node:path";
-import dotenv from "dotenv";
-import { obsidianBetaAvailable, resolveObsidianVersions } from "wdio-obsidian-service";
-
-const cacheDir = path.resolve(os.tmpdir(), ".obsidian-cache");
-dotenv.config({ quiet: true });
-
-console.log(`Using obsidian vault: ${process.env.VAULT_TEST}`);
-console.log(`Using obsidian cache dir: ${cacheDir}`);
-
-//download dataview
-
-let versions: [string, string][]; // [appVersion, installerVersion][]
-if (process.env.OBSIDIAN_VERSIONS) {
-	// Space separated list of appVersion/installerVersion, e.g. "1.7.7/latest latest/earliest"
-	versions = process.env.OBSIDIAN_VERSIONS.split(/[ ,]+/).map((v) => {
-		const [app, installer = "earliest"] = v.split("/"); // default to earliest installer
-		return [app, installer];
-	});
-} else if (process.env.CI) {
-	// Running in GitHub CI. You can use RUNNER_OS to select different versions on different
-	// platforms in the workflow matrix if you want
-	versions = [["latest", "latest"]];
-	if (await obsidianBetaAvailable(cacheDir)) {
-		versions.push(["latest-beta", "latest"]);
-	}
-
-	// Print the resolved Obsidian versions to use as the workflow cache key
-	// (see .github/workflows/test.yaml)
-	for (let [app, installer] of versions) {
-		[app, installer] = await resolveObsidianVersions(app, installer, cacheDir);
-		console.log(`${app}/${installer}`);
-	}
-} else {
-	versions = [["latest", "latest"]];
+import * as path from "path"
+import { parseObsidianVersions, obsidianBetaAvailable } from "wdio-obsidian-service";
+import { env } from "process";
+const cacheDir = path.resolve(".obsidian-cache");
+let defaultVersions = "earliest/earliest latest/latest";
+if (await obsidianBetaAvailable({cacheDir})) {
+    defaultVersions += " latest-beta/latest"
+}
+const desktopVersions = await parseObsidianVersions(
+    env.OBSIDIAN_VERSIONS ?? defaultVersions,
+    {cacheDir},
+);
+const mobileVersions = await parseObsidianVersions(
+    env.OBSIDIAN_MOBILE_VERSIONS ?? env.OBSIDIAN_VERSIONS ?? defaultVersions,
+    {cacheDir},
+);
+if (env.CI) {
+    console.log("obsidian-cache-key:", JSON.stringify([desktopVersions, mobileVersions]));
 }
 
 export const config: WebdriverIO.Config = {
-	runner: "local",
+    runner: 'local',
+    framework: 'mocha',
 
-	specs: ["./tests/specs/**/*.e2e.ts"],
-	maxInstances: 4,
+    specs: ['./test/specs/**/*.e2e.ts'],
+	maxInstances: Number(env.WDIO_MAX_INSTANCES || 4),
+	capabilities: [
+        ...desktopVersions.map<WebdriverIO.Capabilities>(([appVersion, installerVersion]) => ({
+            browserName: 'obsidian',
+            'wdio:obsidianOptions': {
+                appVersion, installerVersion,
+                plugins: ["./dist", { id: "dataview", version: "latest" }],
+	            vault: process.env.VAULT_TEST,
+            },
+        })),
+        ...mobileVersions.map<WebdriverIO.Capabilities>(([appVersion, installerVersion]) => ({
+            browserName: 'obsidian',
+            'wdio:obsidianOptions': {
+                appVersion, installerVersion,
+                emulateMobile: true,
+				plugins: ["./dist", { id: "dataview", version: "latest" }],
+	            vault: process.env.VAULT_TEST,
+            },
+            'goog:chromeOptions': {
+                mobileEmulation: {
+                    // can also set deviceName: "iPad" etc. instead of hard-coding size.
+                    // If you have issues getting click events etc. to work properly, try
+                    // setting `touch: false` here.
+                    deviceMetrics: {width: 390, height: 844},
+                },
+            },
+        })),
+    ],
 
-	capabilities: versions.map(([appVersion, installerVersion]) => ({
-		browserName: "obsidian",
-		browserVersion: appVersion,
-		"wdio:obsidianOptions": {
-			installerVersion: installerVersion,
-			plugins: ["./dist", { id: "dataview", version: "latest" }],
-			// If you need to switch between multiple vaults, you can omit this and use
-			// `reloadObsidian` to open vaults during the test.
-			vault: process.env.VAULT_TEST,
-		},
-	})),
-
-	framework: "mocha",
-	services: ["obsidian"],
-	reporters: ["obsidian"],
-
-	mochaOpts: {
-		ui: "bdd",
-		timeout: 60000,
-	},
-
-	waitforInterval: 250,
-	waitforTimeout: 5 * 1000,
-
-	cacheDir: cacheDir,
-
-	logLevel: "warn",
-};
+    services: ["obsidian"],
+    reporters: ['obsidian'],
+    mochaOpts: {
+        ui: 'bdd',
+        timeout: 60 * 1000,
+    },
+    waitforInterval: 250,
+    waitforTimeout: 5 * 1000,
+    logLevel: "warn",
+    cacheDir: cacheDir,
+    injectGlobals: false, // import describe/expect etc explicitly to make eslint happy
+}
