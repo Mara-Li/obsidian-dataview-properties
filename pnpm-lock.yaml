@@ -27,7 +27,7 @@ importers:
         specifier: ^1.1.2
         version: 1.1.2
       '@enveloppe/obsidian-dataview':
-        specifier: ^0.5.70-2
+        specifier: 0.5.70-2
         version: 0.5.70-2
       ansi-colors:
         specifier: ^4.1.3
@@ -36,25 +36,22 @@ importers:
         specifier: ^15.0.0
         version: 15.0.0
       commit-and-tag-version:
-        specifier: ^12.6.1
+        specifier: ^12.7.3
         version: 12.7.3
       dedent:
-        specifier: ^1.7.1
+        specifier: ^1.7.2
         version: 1.7.2
       dotenv:
-        specifier: ^17.2.3
+        specifier: ^17.4.2
         version: 17.4.2
       dotenv-cli:
         specifier: ^11.0.0
         version: 11.0.0
-      mocha:
-        specifier: ^11.7.5
-        version: 11.7.6
       obsidian-typings:
         specifier: ^6.22.0
         version: 6.22.0(@types/node@26.1.0)
       uniformize:
-        specifier: ^2.5.0
+        specifier: ^2.6.1
         version: 2.6.1(typescript@5.9.3)
       update:
         specifier: ^0.7.4
@@ -64,7 +61,7 @@ importers:
         specifier: ^2.5.2
         version: 2.5.2
       '@types/bun':
-        specifier: ^1.3.6
+        specifier: ^1.3.14
         version: 1.3.14
       '@types/luxon':
         specifier: ^3.7.2
@@ -87,9 +84,6 @@ importers:
       '@wdio/spec-reporter':
         specifier: ^9.29.1
         version: 9.29.1
-      builtin-modules:
-        specifier: 5.3.0
-        version: 5.3.0
       esbuild:
         specifier: 0.28.1
         version: 0.28.1
@@ -111,8 +105,11 @@ importers:
       luxon:
         specifier: ^3.7.2
         version: 3.7.2
+      mocha:
+        specifier: ^11.7.6
+        version: 11.7.6
       obsidian:
-        specifier: ^1.11.4
+        specifier: ^1.13.1
         version: 1.13.1(@codemirror/state@6.5.0)(@codemirror/view@6.38.6)
       ts-deepmerge:
         specifier: ^8.0.0
@@ -1517,10 +1514,6 @@ packages:
 
   buffer@6.0.3:
     resolution: {integrity: sha512-FTiCpNxtwiZZHEZbcbTIcZjERVICn9yq/pDFkTl95/AxzD1naBctN7YO68riM/gLSDY7sdrMby8hofADYuuqOA==}
-
-  builtin-modules@5.3.0:
-    resolution: {integrity: sha512-hMQUl2bUFG339QygPM97E+mc8OY1IAchORZxm4a/frcYwKzozMzRVDBwHW0NjOqGElLm2O37AVQE8ikxlZHrMQ==}
-    engines: {node: '>=18.20'}
 
   bun-types@1.3.14:
     resolution: {integrity: sha512-4N0ig0fEomHt5R0KCFWjovxow98rIoRwKolrYdCcknNwMekCXRnWEUvgu5soYV8QXtVsrUD8B95MBOZGPvr6KQ==}
@@ -3379,8 +3372,8 @@ packages:
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
 
-  js-yaml@3.14.2:
-    resolution: {integrity: sha512-PMSmkqxr106Xa156c2M265Z+FTrPl+oxd/rgOQy2tijQeK5TxQ43psO1ZCwhVOSdnn+RzkzlRz/eY4BgJBYVpg==}
+  js-yaml@3.15.0:
+    resolution: {integrity: sha512-ttBQIIQPDeLjpPOohtUdXuXUVoA2uIB6fEH9HyJ7234s5mBJ5wTx20njxplLZQgLaOfpmPQA7X2t5AX6tIPbog==}
     hasBin: true
 
   js-yaml@4.2.0:
@@ -5126,10 +5119,6 @@ packages:
     resolution: {integrity: sha512-YmfV3YnEDzXRC5lZ2jWtWWHKGUm1zIt8AhesR1tens+HTNv+YZlN/dp6G727LOvMJ8xjP9Be7Y2Sdr96LDm+pg==}
     engines: {node: '>=18.17'}
 
-  undici@7.27.2:
-    resolution: {integrity: sha512-uZsKNuzQxDMUY6M3pIMvy5tvlGmtq8XJ2oLAkfRKGNu+1VQAIvLy2xIVG5ATZl5wDXl/tddByAWCizRbOme+TA==}
-    engines: {node: '>=20.18.1'}
-
   undici@7.28.0:
     resolution: {integrity: sha512-cRZYrTDwWznlnRiPjggAGxZXanty6M8RV1ff8Wm4LWXBp7/IG8v5DnOm74DtUBp9OONpK75YlPnIjQqX0dBDtA==}
     engines: {node: '>=20.18.1'}
@@ -5534,7 +5523,7 @@ snapshots:
       semver: 7.8.4
       sumchecker: 3.0.1(supports-color@8.1.1)
     optionalDependencies:
-      undici: 7.27.2
+      undici: 7.28.0
     transitivePeerDependencies:
       - supports-color
 
@@ -7275,8 +7264,6 @@ snapshots:
       base64-js: 1.5.1
       ieee754: 1.2.1
 
-  builtin-modules@5.3.0: {}
-
   bun-types@1.3.14:
     dependencies:
       '@types/node': 26.1.0
@@ -8983,7 +8970,7 @@ snapshots:
   gray-matter@3.1.1:
     dependencies:
       extend-shallow: 2.0.1
-      js-yaml: 3.14.2
+      js-yaml: 3.15.0
       kind-of: 5.1.0
       strip-bom-string: 1.0.0
 
@@ -9583,7 +9570,7 @@ snapshots:
 
   js-tokens@4.0.0: {}
 
-  js-yaml@3.14.2:
+  js-yaml@3.15.0:
     dependencies:
       argparse: 1.0.10
       esprima: 4.0.1
@@ -11709,9 +11696,6 @@ snapshots:
   undici-types@8.3.0: {}
 
   undici@6.27.0: {}
-
-  undici@7.27.2:
-    optional: true
 
   undici@7.28.0: {}
 

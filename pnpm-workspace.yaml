@@ -9,20 +9,17 @@ allowBuilds:
 blockExoticSubdeps: false
 minimumReleaseAgeExclude:
   - yargs-parser@5.0.1
-  - svelte@3.49.0
+  - svelte@3.49.0 || 3.59.2 || 4.2.19 || 5.51.5 || 5.53.5 || 5.55.7
   - set-value@2.0.1
   - braces@3.0.3
   - micromatch@4.0.8
-  - svelte@4.2.19
   - parse-git-config@3.0.1
   - expand-object@0.4.3
-  - svelte@3.59.2
   - diff@8.0.3
-  - svelte@5.51.5
-  - serialize-javascript@7.0.3
-  - svelte@5.53.5
-  - serialize-javascript@7.0.5
-  - svelte@5.55.7
+  - serialize-javascript@7.0.3 || 7.0.5
+  - defaults-deep@0.2.5
+  - undici@7.28.0
+  - js-yaml@3.15.0
 overrides:
   braces@<3.0.3: ^3.0.3
   diff@>=6.0.0 <8.0.3: ^8.0.3
