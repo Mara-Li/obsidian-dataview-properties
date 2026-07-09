@@ -1,6 +1,7 @@
 {
 	"compilerOptions": {
 		"noEmit": true,
+		"ignoreDeprecations": "5.0",
 		"baseUrl": ".",
 		"inlineSourceMap": true,
 		"inlineSources": true,
