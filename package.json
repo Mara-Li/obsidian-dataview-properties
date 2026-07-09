@@ -71,8 +71,5 @@
 		"esbuild",
 		"geckodriver",
 		"obsidian-typings"
-	],
-	"overrides": {
-		"luxon": "^3.7.1"
-	}
+	]
 }
