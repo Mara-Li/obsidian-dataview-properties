@@ -1,3 +1,4 @@
+import type {Literal} from "@enveloppe/obsidian-dataview";
 import { type PreparedFields, UtilsConfig } from "../interfaces";
 import { convertToNumber, type Utils } from "../utils";
 import { isRecognized } from "./fields_prepare";
@@ -53,7 +54,7 @@ export function cleanUpValue(
 	return result.length ? result : null;
 }
 
-export function correctValue(value: unknown, utils: Utils, fields: string[]) {
+export function correctValue(value: Literal, utils: Utils, fields: string[]): Literal {
 	const toClean = typeof value === "number" ? value.toString() : value;
 	const result =
 		typeof toClean === "string" ? utils.removeFromValue(toClean, fields) : toClean;
@@ -62,14 +63,12 @@ export function correctValue(value: unknown, utils: Utils, fields: string[]) {
 
 export function cleanList(
 	utils: Utils,
-	// biome-ignore lint/suspicious/noExplicitAny: Fields can have any shape
-	inline: Record<string, any>,
+	inline: Record<string, Literal>,
 	fields: string[],
 	ignored: PreparedFields,
 	removedKey: Set<string>
 ) {
-	// biome-ignore lint/suspicious/noExplicitAny: Fields can have any shape
-	const result: Record<string, any> = {};
+	const result: Record<string, Literal> = {};
 	utils.useConfig(UtilsConfig.Cleanup);
 
 	for (const [key, value] of Object.entries(inline || {})) {

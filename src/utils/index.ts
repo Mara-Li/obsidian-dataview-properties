@@ -1,7 +1,7 @@
 import Utils from "./text_utils";
 
-export { Utils };
 export { convertToNumber, isNumber } from "./number";
+export { Utils };
 
 export type NestedRecord<T> = {
 	[key: string]: T | NestedRecord<T>;
@@ -23,7 +23,7 @@ export function unflatten<T = unknown>(
 				current[part] = input[key];
 			} else {
 				if (!(part in current) || typeof current[part] !== "object")
-					current[part] = {} as NestedRecord<T>;
+					current[part] = {}
 
 				current = current[part] as NestedRecord<T>;
 			}

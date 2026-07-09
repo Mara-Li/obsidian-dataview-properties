@@ -1,11 +1,11 @@
 import {debounce, type FrontMatterCache, Notice, Plugin, sanitizeHTMLToDom, TFile, TFolder,} from "obsidian";
 import "uniformize";
-import {isPluginEnabled} from "@enveloppe/obsidian-dataview";
+import {isPluginEnabled, type Literal} from "@enveloppe/obsidian-dataview";
 import i18next from "i18next";
 import {DateTime, Duration} from "luxon";
 import {merge} from "ts-deepmerge";
 import {getInlineFields} from "./dataview";
-import {isRecognized, prepareFields, shouldBeUpdated as checkShouldBeUpdated,} from "./fields";
+import {shouldBeUpdated as checkShouldBeUpdated,isRecognized, prepareFields, } from "./fields";
 import {cleanList} from "./fields/cleanup";
 import {resources, translationLanguage} from "./i18n";
 import {
@@ -57,6 +57,8 @@ export default class DataviewProperties extends Plugin {
 
 	async onload() {
 		this.prefix = `[${this.manifest.name}]`;
+		// eslint-disable-next-line eslint-comments/no-restricted-disable -- ???
+		// eslint-disable-next-line obsidianmd/rule-custom-message -- Needed for user
 		console.log(`${this.prefix} Loaded`);
 		await this.loadSettings();
 
@@ -95,6 +97,7 @@ export default class DataviewProperties extends Plugin {
 			this.app.metadataCache.on(
 				//@ts-expect-error
 				"dataview:metadata-change",
+				// eslint-disable-next-line @typescript-eslint/no-misused-promises -- dunno ?
 				async (eventName: string, file: TFile) => {
 					if (eventName === "delete") {
 						//delete from the previousDataviewFields instead
@@ -201,8 +204,7 @@ export default class DataviewProperties extends Plugin {
 	 * Determines if frontmatter needs updating based on inline fields
 	 */
 	private shouldBeUpdated(
-		// biome-ignore lint/suspicious/noExplicitAny: Need this for generic fields
-		fields: Record<string, any>,
+		fields: Record<string, Literal>,
 		frontmatter?: FrontMatterCache
 	): boolean {
 		this.utils.useConfig(UtilsConfig.Ignore);
@@ -309,8 +311,7 @@ export default class DataviewProperties extends Plugin {
 	 */
 	async updateFrontmatter(
 		file: TFile,
-		// biome-ignore lint/suspicious/noExplicitAny: this is the type returned by obsidian for the frontmatter so we need to use it with any
-		inlineFields: Record<string, any>,
+		inlineFields: Record<string, Literal>,
 		removedKey?: Set<string>
 	): Promise<void> {
 		if (!this.isDataviewEnabled()) return;
@@ -419,8 +420,7 @@ export default class DataviewProperties extends Plugin {
 	 */
 	private async replaceInlineFieldsWithExpressions(
 		file: TFile,
-		// biome-ignore lint/suspicious/noExplicitAny: this is the type returned by obsidian for the frontmatter so we need to use it with any
-		inlineFields: Record<string, any>
+		inlineFields: Record<string, Literal>
 	): Promise<void> {
 		let modifiedContent = await this.app.vault.read(file);
 		let hasChanges = false;
@@ -429,7 +429,9 @@ export default class DataviewProperties extends Plugin {
 		// This prevents shorter keys from matching parts of longer keys
 		// Filter to only include scalar values (exclude arrays, objects, etc.)
 		const sortedEntries = Object.entries(inlineFields)
-			.filter(([_, value]) => this.isScalarValue(value))
+			.filter((entry): entry is [string, Literal & ScalarLike] =>
+				this.isScalarValue(entry[1])
+			)
 			.sort((a, b) => b[0].length - a[0].length);
 
 		// Split content into lines once before processing
@@ -582,6 +584,8 @@ export default class DataviewProperties extends Plugin {
 	}
 
 	onunload(): void {
+		// eslint-disable-next-line eslint-comments/no-restricted-disable -- Bruh
+		// eslint-disable-next-line obsidianmd/rule-custom-message -- Useful for user
 		console.log(`${this.prefix} Unloaded`);
 	}
 

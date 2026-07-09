@@ -62,7 +62,7 @@ export class ExcludedFilesModal extends Modal {
 						.setTooltip(i18next.t("excluded.remove"))
 						.onClick(() => {
 							this.ignored.files.splice(index, 1);
-							this.onOpen();
+							void this.onOpen();
 						});
 				});
 		}
@@ -74,7 +74,7 @@ export class ExcludedFilesModal extends Modal {
 					.setTooltip(i18next.t("excluded.add"))
 					.onClick(() => {
 						this.ignored.files.push("");
-						this.onOpen();
+						void this.onOpen();
 					});
 			})
 			.addButton((button) => {

@@ -8,7 +8,10 @@ export const resources = {
 	en: { translation: en },
 };
 
-const localeUsed: string = window.localStorage.language || moment.locale();
+const {language} = window.localStorage
+const languageContext = typeof language === "string" ? language : undefined;
+
+const localeUsed: string = languageContext || moment.locale();
 export const translationLanguage = Object.keys(resources).find(
 	(i) => i.toLocaleLowerCase() === localeUsed.toLowerCase()
 )
