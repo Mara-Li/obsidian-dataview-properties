@@ -10,12 +10,7 @@
 		"module": "ESNext",
 		"types": [
 			"obsidian-typings",
-			"uniformize",
-			"bun",
-			"@wdio/globals/types",
-			"@wdio/mocha-framework",
-			"wdio-obsidian-service",
-			"mocha"
+			"uniformize"
 		],
 		"target": "ESNext",
 		"allowJs": true,
@@ -27,5 +22,6 @@
 		"strictNullChecks": true,
 		"lib": ["DOM", "ES5", "ES6", "ES7", "ES2015", "ES2021", "ES2022", "DOM.Iterable"]
 	},
-	"include": ["**/*.ts", "wdio.conf.mts"]
+	"include": ["**/*.ts"],
+	"exclude": ["tests/**/*.ts"]
 }

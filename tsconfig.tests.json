@@ -1,0 +1,16 @@
+{
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"types": [
+			"bun",
+			"@wdio/globals/types",
+			"@wdio/mocha-framework",
+			"wdio-obsidian-service",
+			"mocha"
+		]
+	},
+	"include": [
+		"wdio.conf.mts",
+		"tests/**/*.ts"
+	]
+}
