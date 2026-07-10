@@ -1,25 +1,13 @@
-import {
-	debounce,
-	type FrontMatterCache,
-	Notice,
-	Plugin,
-	sanitizeHTMLToDom,
-	TFile,
-	TFolder,
-} from "obsidian";
+import {debounce, type FrontMatterCache, Notice, Plugin, sanitizeHTMLToDom, TFile, TFolder,} from "obsidian";
 import "uniformize";
-import { isPluginEnabled } from "@enveloppe/obsidian-dataview";
+import {isPluginEnabled, type Literal} from "@enveloppe/obsidian-dataview";
 import i18next from "i18next";
-import { DateTime, Duration } from "luxon";
-import { merge } from "ts-deepmerge";
-import { getInlineFields } from "./dataview";
-import {
-	shouldBeUpdated as checkShouldBeUpdated,
-	isRecognized,
-	prepareFields,
-} from "./fields";
-import { cleanList } from "./fields/cleanup";
-import { resources, translationLanguage } from "./i18n";
+import {DateTime, Duration} from "luxon";
+import {merge} from "ts-deepmerge";
+import {getInlineFields} from "./dataview";
+import {shouldBeUpdated as checkShouldBeUpdated,isRecognized, prepareFields, } from "./fields";
+import {cleanList} from "./fields/cleanup";
+import {resources, translationLanguage} from "./i18n";
 import {
 	type DataviewPropertiesSettings,
 	DEFAULT_SETTINGS,
@@ -27,12 +15,12 @@ import {
 	type ScalarLike,
 	UtilsConfig,
 } from "./interfaces";
-import { DataviewPropertiesSettingTab } from "./settings";
-import { Utils } from "./utils";
-import { isExcluded } from "./utils/ignored_file";
+import {DataviewPropertiesSettingTab} from "./settings";
+import {Utils} from "./utils";
+import {isExcluded} from "./utils/ignored_file";
 
 export default class DataviewProperties extends Plugin {
-	settings!: DataviewPropertiesSettings;
+	declare settings: DataviewPropertiesSettings;
 	private ignoredFields: PreparedFields = {
 		keys: new Set<string>(),
 		regex: [],
@@ -69,6 +57,8 @@ export default class DataviewProperties extends Plugin {
 
 	async onload() {
 		this.prefix = `[${this.manifest.name}]`;
+		// eslint-disable-next-line eslint-comments/no-restricted-disable -- ???
+		// eslint-disable-next-line obsidianmd/rule-custom-message -- Needed for user
 		console.log(`${this.prefix} Loaded`);
 		await this.loadSettings();
 
@@ -107,6 +97,7 @@ export default class DataviewProperties extends Plugin {
 			this.app.metadataCache.on(
 				//@ts-expect-error
 				"dataview:metadata-change",
+				// eslint-disable-next-line @typescript-eslint/no-misused-promises -- dunno ?
 				async (eventName: string, file: TFile) => {
 					if (eventName === "delete") {
 						//delete from the previousDataviewFields instead
@@ -213,8 +204,7 @@ export default class DataviewProperties extends Plugin {
 	 * Determines if frontmatter needs updating based on inline fields
 	 */
 	private shouldBeUpdated(
-		// biome-ignore lint/suspicious/noExplicitAny: Need this for generic fields
-		fields: Record<string, any>,
+		fields: Record<string, Literal>,
 		frontmatter?: FrontMatterCache
 	): boolean {
 		this.utils.useConfig(UtilsConfig.Ignore);
@@ -321,8 +311,7 @@ export default class DataviewProperties extends Plugin {
 	 */
 	async updateFrontmatter(
 		file: TFile,
-		// biome-ignore lint/suspicious/noExplicitAny: this is the type returned by obsidian for the frontmatter so we need to use it with any
-		inlineFields: Record<string, any>,
+		inlineFields: Record<string, Literal>,
 		removedKey?: Set<string>
 	): Promise<void> {
 		if (!this.isDataviewEnabled()) return;
@@ -334,7 +323,7 @@ export default class DataviewProperties extends Plugin {
 			return;
 		}
 
-		await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
+		await this.app.fileManager.processFrontMatter(file, (frontmatter: Record<string, unknown>) => {
 			if (removedKey && removedKey.size > 0) {
 				this.utils.useConfig(UtilsConfig.Delete);
 				for (const key of removedKey) {
@@ -352,18 +341,20 @@ export default class DataviewProperties extends Plugin {
 				const normalizedValue = this.normalizeValueForFrontmatter(value);
 
 				// Use deep merge for nested objects to preserve existing properties
+				const frontmatterPrefixed = frontmatter[prefixedKey];
 				if (
+					frontmatterPrefixed &&
 					prefixedKey in frontmatter &&
-					typeof frontmatter[prefixedKey] === "object" &&
-					!Array.isArray(frontmatter[prefixedKey]) &&
+					typeof frontmatterPrefixed === "object" &&
+					!Array.isArray(frontmatterPrefixed) &&
 					typeof normalizedValue === "object" &&
 					!Array.isArray(normalizedValue) &&
 					normalizedValue != null
-				) {
-					frontmatter[prefixedKey] = merge(frontmatter[prefixedKey], normalizedValue);
-				} else {
+				)
+					frontmatter[prefixedKey] = merge(frontmatterPrefixed, normalizedValue);
+				 else
 					frontmatter[prefixedKey] = normalizedValue;
-				}
+				
 			}
 		});
 
@@ -429,18 +420,18 @@ export default class DataviewProperties extends Plugin {
 	 */
 	private async replaceInlineFieldsWithExpressions(
 		file: TFile,
-		// biome-ignore lint/suspicious/noExplicitAny: this is the type returned by obsidian for the frontmatter so we need to use it with any
-		inlineFields: Record<string, any>
+		inlineFields: Record<string, Literal>
 	): Promise<void> {
-		const content = await this.app.vault.read(file);
-		let modifiedContent = content;
+		let modifiedContent = await this.app.vault.read(file);
 		let hasChanges = false;
 
 		// Sort entries by key length (descending) to match longer keys first
 		// This prevents shorter keys from matching parts of longer keys
 		// Filter to only include scalar values (exclude arrays, objects, etc.)
 		const sortedEntries = Object.entries(inlineFields)
-			.filter(([_, value]) => this.isScalarValue(value))
+			.filter((entry): entry is [string, Literal & ScalarLike] =>
+				this.isScalarValue(entry[1])
+			)
 			.sort((a, b) => b[0].length - a[0].length);
 
 		// Split content into lines once before processing
@@ -567,10 +558,9 @@ export default class DataviewProperties extends Plugin {
 			);
 			if (hasDurationProps) return true;
 
-			const hasLinkPath = typeof recordValue.path === "string";
-			if (hasLinkPath) return true;
+			return typeof recordValue.path === "string";
 
-			return false;
+			
 		}
 
 		return false;
@@ -590,11 +580,12 @@ export default class DataviewProperties extends Plugin {
 		// First escape regex special characters
 		const escaped = this.escapeRegex(text);
 		// Then replace underscores with pattern to match non-word chars
-		const result = escaped.replace(/_/g, "\\S+");
-		return result;
+		return escaped.replace(/_/g, "\\S+");
 	}
 
 	onunload(): void {
+		// eslint-disable-next-line eslint-comments/no-restricted-disable -- Bruh
+		// eslint-disable-next-line obsidianmd/rule-custom-message -- Useful for user
 		console.log(`${this.prefix} Unloaded`);
 	}
 

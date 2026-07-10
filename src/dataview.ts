@@ -91,7 +91,8 @@ class Dataview {
 	 */
 	private removeDataviewQueries(dataviewMarkdown: Literal): string {
 		if (dataviewMarkdown == null) return "";
-		const toStr = dataviewMarkdown?.toString();
+		// eslint-disable-next-line @typescript-eslint/no-base-to-string -- Literal covers types without a meaningful toString (e.g. plain objects); falling back to the default representation is acceptable here.
+		const toStr = dataviewMarkdown.toString();
 		return toStr || "";
 	}
 
@@ -123,7 +124,7 @@ class Dataview {
 
 	private delay(ms: number): Promise<void> {
 		return new Promise((resolve, _) => {
-			setTimeout(resolve, ms);
+			window.setTimeout(resolve, ms);
 		});
 	}
 
@@ -137,7 +138,7 @@ class Dataview {
 		if (this.queryCache.has(cacheKey)) return this.queryCache.get(cacheKey)!;
 		try {
 			// biome-ignore lint/correctness/noUndeclaredVariables: createEl is a global function from Obsidian
-			const div = createEl("div");
+			const div = createDiv();
 			const component = new Component();
 			component.load();
 			const evaluateQuery = dedent(`
@@ -208,19 +209,18 @@ class Dataview {
 	isHtml(value: unknown): boolean {
 		if (Values.isString(value)) {
 			const regex = /<[^>]+>/g;
-			return regex.test(value as string);
+			return regex.test(value);
 		}
 		return false;
 	}
 
-	// biome-ignore lint/suspicious/noExplicitAny: dataview use type strangly
-	private convertDuration(field: any): string {
+	private convertDuration(field: Duration): string {
 		const { humanReadableOptions, textReplacement, formatDuration } =
 			this.plugin.settings.dataviewOptions.durationFormat;
-		if (!formatDuration) return field.toString();
+		if (!formatDuration) return field.toString() ?? "";
 		console.debug(`${this.prefix} Converting Duration:`, field);
 		//should keep duration in a readable format
-		const dur = Duration.fromObject(field.values);
+		const dur = Duration.fromObject(field.toObject());
 
 		const formatedDur = dur.toHuman(humanReadableOptions);
 
@@ -236,7 +236,7 @@ class Dataview {
 	/**
 	 * Evaluate and convert a dataview field value
 	 */
-	async evaluateInline(value: unknown, fieldName: string): Promise<unknown | undefined> {
+	async evaluateInline(value: unknown, fieldName: string): Promise<unknown> {
 		if (value === "" || value === undefined) return;
 
 		try {
@@ -250,24 +250,24 @@ class Dataview {
 						isRecognized(fieldName, this.plugin.listFields, this.plugin.utils) ||
 						fieldName.endsWith(this.plugin.settings.listSuffix)
 					) {
-						return this.convertToDvArrayLinks(parseMarkdownList(res as string));
+						return this.convertToDvArrayLinks(parseMarkdownList(res));
 					}
 					return res;
 				}
 				return res;
 			}
 
-			if (Values.isLink(value as Link) || value?.constructor.name === "Link")
+			if (Values.isLink(value) || value?.constructor.name === "Link")
 				return this.stringifyLink(value as Link);
 
 			if (Values.isHtml(value)) return htmlToMarkdown(value);
 
 			if (Values.isWidget(value)) {
-				console.warn(`${this.prefix} Skipping widget value: ${value}`);
+				console.warn(`${this.prefix} Skipping widget value:`, value);
 				return;
 			}
 			if (Values.isFunction(value)) {
-				console.warn(`${this.prefix} Skipping function value: ${value}`);
+				console.warn(`${this.prefix} Skipping function value:`, value);
 				return;
 			}
 			if (Values.isNull(value)) {
@@ -319,10 +319,7 @@ class Dataview {
 		if (this.hasDataviewFormula(fieldValue?.toString() ?? "")) return true;
 
 		// Check if field is in forceFields
-		if (isRecognized(fieldName, this.plugin.onlyModeFields, this.plugin.utils))
-			return true;
-
-		return false;
+		return isRecognized(fieldName, this.plugin.onlyModeFields, this.plugin.utils);
 	}
 	/**
 	 * Process text to evaluate and convert any dataview queries
@@ -373,7 +370,7 @@ export async function getInlineFields(
 	path: string,
 	plugin: DataviewProperties,
 	frontmatter?: FrontMatterCache
-): Promise<Record<string, unknown>> {
+): Promise<Record<string, Literal>> {
 	const { app } = plugin;
 	if (!plugin.isDataviewEnabled()) return {};
 
@@ -384,7 +381,7 @@ export async function getInlineFields(
 	if (!pageData) return {};
 
 	const compiler = new Dataview(dvApi, path, plugin);
-	const inlineFields: Record<string, unknown> = {};
+	const inlineFields: Record<string, Literal> = {};
 	const processedKeys = new Set<string>();
 
 	for (const key in pageData) {
@@ -408,7 +405,7 @@ export async function getInlineFields(
 		if (!compiler.shouldIncludeField(key, pageData[key])) continue;
 
 		if (!frontmatter || !(key in frontmatter)) {
-			inlineFields[key] = await compiler.evaluateInline(pageData[key], key);
+			inlineFields[key] = (await compiler.evaluateInline(pageData[key], key)) as Literal;
 		} else if (
 			Array.isArray(pageData[key]) &&
 			pageData[key].length > 0 &&
@@ -417,12 +414,12 @@ export async function getInlineFields(
 			// Handle arrays by using the last value (most recent)
 			const arrayValue = pageData[key];
 			const valueToUse = arrayValue[arrayValue.length - 1];
-			inlineFields[key] = await compiler.evaluateInline(valueToUse, key);
+			inlineFields[key] = (await compiler.evaluateInline(valueToUse, key)) as Literal;
 		}
 	}
 
 	if (plugin.settings.unflatten.enabled) {
-		return unflatten(inlineFields, plugin.settings.unflatten.separator);
+		return unflatten<Literal>(inlineFields, plugin.settings.unflatten.separator);
 	}
 
 	return inlineFields;

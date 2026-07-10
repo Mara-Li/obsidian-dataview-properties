@@ -1,3 +1,9 @@
+## [1.0.2](https://github.com/Mara-Li/obsidian-dataview-properties/compare/1.0.1...1.0.2) (2026-07-09)
+### Bug Fixes
+
+* grant write permissions to auto-assign workflow ([#27](https://github.com/Mara-Li/obsidian-dataview-properties/issues/27)) ([d2e78a9](https://github.com/Mara-Li/obsidian-dataview-properties/commit/d2e78a96b42ec72c58b7d30187b5d95c11a96301))
+* **i18n:** cryptic message when disabling dataview ([cedd207](https://github.com/Mara-Li/obsidian-dataview-properties/commit/cedd207c39e94b2727c4fa4c1a49b3f2df5a6ace)), closes [#26](https://github.com/Mara-Li/obsidian-dataview-properties/issues/26)
+
 ## [1.0.1](https://github.com/Mara-Li/obsidian-dataview-properties/compare/1.0.0...1.0.1) (2026-05-27)
 
 ## [1.0.0](https://github.com/Mara-Li/obsidian-dataview-properties/compare/0.0.26...1.0.0) (2026-05-27)

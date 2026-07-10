@@ -40,7 +40,7 @@ export default class Utils {
 		if (this.regexCache.has(key)) return this.regexCache.get(key) || null;
 
 		const match = key.match(REGEX_RECOGNITION);
-		if (!match || !match.groups) {
+		if (!match?.groups) {
 			this.regexCache.set(key, null);
 			return null;
 		}

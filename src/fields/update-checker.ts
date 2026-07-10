@@ -1,8 +1,8 @@
+import type {Literal} from "@enveloppe/obsidian-dataview";
+
 export function shouldBeUpdated(
-	// biome-ignore lint/suspicious/noExplicitAny: Fields can have any shape
-	fields: Record<string, any>,
-	// biome-ignore lint/suspicious/noExplicitAny: frontmatter can have any shape
-	frontmatter: Record<string, any> | undefined,
+	fields: Record<string, Literal>,
+	frontmatter: Record<string, Literal> | undefined,
 	isIgnoredFn: (key: string) => boolean,
 	keysMatchFn: (key1: string, key2: string) => boolean,
 	valuesEqualFn: (val1: unknown, val2: unknown) => boolean

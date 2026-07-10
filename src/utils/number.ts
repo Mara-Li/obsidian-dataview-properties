@@ -16,10 +16,10 @@ export function isNumber(value: unknown): boolean {
 
 /**
  * Convert a value to number if possible
- * @param {unknown} value The value to convert
- * @return {number | unknown} The converted number or the original value
+ * @param value The value to convert
+ * @return The converted number, or the original value if it can't be converted
  */
-export function convertToNumber(value: unknown): number | unknown {
+export function convertToNumber<T>(value: T): number | T {
 	if (typeof value === "number") return value;
 	if (isNumber(value)) return Number(value);
 	return value;
