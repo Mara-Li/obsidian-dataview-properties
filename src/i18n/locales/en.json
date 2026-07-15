@@ -1,8 +1,10 @@
 {
   "addToFrontmatter": "Add the Dataview field to the frontmatter",
   "cleanUpText": {
+    "add": "Add value",
     "desc": "When adding the value to the frontmatter, remove the following text. Separate value by comma or a newline. To use a regex, encapsulate the value with",
     "heading": "Remove texte from value",
+    "placeholder": "text or /regex/gi",
     "title": "Remove text from value"
   },
   "dataview": {
@@ -49,9 +51,10 @@
     "title": "Ignore accents"
   },
   "ignoredFields": {
+    "add": "Add field",
     "desc": "The following fields won't be added to the frontmatter. Separate the value by a new line or a comma. To use regex, encapsulate with",
     "example": "for example:",
-    "placeholder": "field1, field-with-text, another field",
+    "placeholder": "field name or /regex/gi",
     "title": "Ignored fields"
   },
   "interval": {
@@ -64,6 +67,7 @@
     "title": "Interval"
   },
   "listFields": {
+    "add": "Add field",
     "desc": "Sometimes, an inline field can be recognized as a string instead of a list. You can use this options to \"force\" a recognition as a list. You can, also, use a (configurable) suffix  in the field name to allow it to be recognized directly.",
     "example": "in the field name.",
     "invalid": "The list suffix cannot be empty",
@@ -78,8 +82,9 @@
   "note": "Fields with empty value won't be added!",
   "onlyMode": {
     "forceFields": {
-      "desc": "",
-      "title": ""
+      "add": "Add field",
+      "desc": "Force some fields to be added even if they are not Dataview queries.",
+      "title": "Forced fields"
     }
   },
   "prefix": {

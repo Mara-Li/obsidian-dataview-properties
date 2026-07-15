@@ -1,8 +1,10 @@
 {
   "addToFrontmatter": "Ajouter les champs Dataview au frontmatter",
   "cleanUpText": {
+    "add": "Ajouter une valeur",
     "desc": "Quand la valeur sera ajouté au frontmatter, le(s) texte(s) suivant seront supprimé. Séparé les valeurs par une virgule ou un retour à la ligne. Pour utiliser une expression régulière, encadrer le texte avec",
     "heading": "Supprimer des valeurs",
+    "placeholder": "texte ou /regex/gi",
     "title": "Supprimer du texte dans les valeurs"
   },
   "dataview": {
@@ -49,9 +51,10 @@
     "title": "Ignorer les accents"
   },
   "ignoredFields": {
+    "add": "Ajouter un champ",
     "desc": "Les champs suivants ne seront pas ajouté au frontmatter. Séparez les valeurs par un retour à la ligne ou une virgule. Pour utiliser une expression régulière, encadré le texte avec",
     "example": "par exemple :",
-    "placeholder": "champ1, champ-avec-text, autre champ",
+    "placeholder": "nom du champ ou /regex/gi",
     "title": "Champs ignorés"
   },
   "interval": {
@@ -64,6 +67,7 @@
     "title": "Intervalle"
   },
   "listFields": {
+    "add": "Ajouter un champ",
     "desc": "Parfois, un champ inline peut être reconnu comme une chaîne de caractère au lieu d'une liste. Vous pouvez utiliser cette option pour \"forcer\" la reconnaissance en tant que tel. Vous pouvez également utiliser un suffixe (configurable) dans le nom du champ pour le faire reconnaître directement.",
     "example": "dans le nom du champ.",
     "invalid": "Le suffix indiquant une liste ne peut être vide.",
@@ -78,6 +82,7 @@
   "note": "Les champs avec valeur vide ne seront pas ajoutés!",
   "onlyMode": {
     "forceFields": {
+      "add": "Ajouter un champ",
       "desc": "Permet de forcer des champs à être ajouté même s'ils ne sont pas des queries Dataview.",
       "title": "Champs forcés"
     }

@@ -1,8 +1,10 @@
 {
   "addToFrontmatter": "Dataview-Felder zur Frontmatter hinzufügen",
   "cleanUpText": {
+    "add": "Wert hinzufügen",
     "desc": "Beim Hinzufügen der Werte zur Frontmatter werden folgende Texte entfernt. Trennen Sie die Texte durch Komma oder Zeilenumbruch. Um einen regulären Ausdruck zu verwenden, umschließen Sie den Wert in ",
     "heading": "Texte aus Wert entfernen",
+    "placeholder": "Text oder /regex/gi",
     "title": "Texte aus Wert entfernen"
   },
   "dataview": {
@@ -49,9 +51,10 @@
     "title": "Akzente ignorieren"
   },
   "ignoredFields": {
+    "add": "Feld hinzufügen",
     "desc": "Die folgenden Felder werden nicht zur Frontmatter hinzugefügt. Trennen Sie die Werte durch Zeilenumbruch oder Komma. Um einen regulären Ausdruck zu verwenden, umschließen Sie mit",
     "example": "zum Beispiel:",
-    "placeholder": "feld1, feld-mit-text, anderes feld",
+    "placeholder": "Feldname oder /regex/gi",
     "title": "Ignorierte Felder"
   },
   "interval": {
@@ -64,6 +67,7 @@
     "title": "Intervall"
   },
   "listFields": {
+    "add": "Feld hinzufügen",
     "desc": "Manchmal kann ein Inline-Feld als String statt als Liste erkannt werden. Sie können diese Option verwenden, um die Erkennung als Liste zu \"erzwingen\". Sie können auch ein (konfigurierbares) Suffix im Feldnamen verwenden, damit es direkt erkannt wird.",
     "example": "im Feldnamen.",
     "invalid": "Das Listen-Suffix darf nicht leer sein",
@@ -78,8 +82,9 @@
   "note": "Felder mit leerem Wert werden nicht hinzugefügt!",
   "onlyMode": {
     "forceFields": {
-      "desc": "",
-      "title": ""
+      "add": "Feld hinzufügen",
+      "desc": "Erzwingt das Hinzufügen bestimmter Felder, auch wenn sie keine Dataview-Abfragen sind.",
+      "title": "Erzwungene Felder"
     }
   },
   "prefix": {
