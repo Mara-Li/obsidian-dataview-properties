@@ -1,19 +1,18 @@
 import dedent from "dedent";
 import i18next from "i18next";
+import type { ToHumanDurationOptions } from "luxon";
 import {
 	type App,
 	Component,
 	MarkdownRenderer,
 	Notice,
 	PluginSettingTab,
-	Setting,
+	type SettingDefinition,
 	type SettingDefinitionItem,
 	sanitizeHTMLToDom,
-	type TextAreaComponent,
 } from "obsidian";
 import { ExcludedFilesModal } from "./ignoredFileModal";
 import type DataviewProperties from "./main";
-import { isNumber } from "./utils";
 
 export class DataviewPropertiesSettingTab extends PluginSettingTab {
 	plugin: DataviewProperties;
@@ -44,8 +43,10 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 		for (let i = 0; i < parts.length - 1; i++) {
 			obj = obj[parts[i]] as Record<string, unknown>;
 		}
-		obj[parts[parts.length - 1]] = value;
+		obj[parts[parts.length - 1]] = typeof value === "string" ? value.trim() : value;
 		await this.plugin.saveSettings();
+		// interval's desc shows a human-readable duration derived from the stored value
+		if (key === "interval") this.update();
 	}
 
 	override getSettingDefinitions(): SettingDefinitionItem[] {
@@ -58,9 +59,9 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 				render: (setting) => {
 					setting.addButton((btn) =>
 						btn.setButtonText(i18next.t("excluded.title")).onClick(() => {
-							new ExcludedFilesModal(this.app, s.ignore, async (ignored) => {
+							new ExcludedFilesModal(this.app, s.ignore, (ignored) => {
 								s.ignore = ignored;
-								await this.plugin.saveSettings();
+								void this.plugin.saveSettings();
 							}).open();
 						})
 					);
@@ -71,25 +72,11 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 			{
 				name: i18next.t("prefix.title"),
 				desc: i18next.t("prefix.desc"),
-				render: (setting) => {
-					setting.addText((text) => {
-						text.setValue(s.prefix);
-						text.inputEl.onblur = async () => {
-							const value = text.getValue();
-							if (value.trim().length === 0) {
-								new Notice(
-									sanitizeHTMLToDom(
-										`<span class="notice-error">${i18next.t("prefix.invalid")}</span>`
-									)
-								);
-								text.inputEl.addClass("is-invalid");
-							} else {
-								s.prefix = value.trim();
-								await this.plugin.saveSettings();
-								text.inputEl.removeClass("is-invalid");
-							}
-						};
-					});
+				control: {
+					type: "text",
+					key: "prefix",
+					validate: (value) =>
+						value.trim().length === 0 ? i18next.t("prefix.invalid") : undefined,
 				},
 			},
 
@@ -145,32 +132,14 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 					`${i18next.t("separator.desc")}<br><span class='warning'>${i18next.t("separator.warning", { point: "<code>.</code>" })}</span>`
 				),
 				visible: () => s.unflatten.enabled,
-				render: (setting) => {
-					setting.addText((text) => {
-						text.setValue(s.unflatten.separator);
-						text.inputEl.onblur = async () => {
-							const value = text.getValue();
-							if (value.trim().length === 0) {
-								new Notice(
-									sanitizeHTMLToDom(
-										`<span class="obsidian-dataview-properties notice-error">${i18next.t("separator.invalid")}</span>`
-									)
-								);
-								text.inputEl.addClass("is-invalid");
-							} else if (value.includes(".")) {
-								new Notice(
-									sanitizeHTMLToDom(
-										`<span class="obsidian-dataview-properties notice-error">${i18next.t("separator.point", { point: `<code>${value}</code>` })}</span>`
-									)
-								);
-								text.inputEl.addClass("is-invalid");
-							} else {
-								s.unflatten.separator = value.trim();
-								await this.plugin.saveSettings();
-								text.inputEl.removeClass("is-invalid");
-							}
-						};
-					});
+				control: {
+					type: "text",
+					key: "unflatten.separator",
+					validate: (value) => {
+						if (value.trim().length === 0) return i18next.t("separator.invalid");
+						if (value.includes("."))
+							return i18next.t("separator.point", { point: value });
+					},
 				},
 			},
 
@@ -187,43 +156,21 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 				desc: sanitizeHTMLToDom(
 					`${i18next.t("interval.info")} (→ <code>${this.convertTimeInterval(s.interval)}</code>) ${i18next.t("interval.desc")}`
 				),
-				render: (setting) => {
-					setting.addText((text) => {
-						text.setValue(s.interval.toString());
-						text.inputEl.onblur = async () => {
-							const value = text.getValue();
-							if (!isNumber(value)) {
-								new Notice(
-									sanitizeHTMLToDom(
-										`<span class="notice-error">${i18next.t("interval.invalid.number")}</span>`
-									)
-								);
-								text.inputEl.addClass("is-invalid");
-							} else if (Number(value) < 0) {
-								new Notice(
-									sanitizeHTMLToDom(
-										`<span class="notice-error">${i18next.t("interval.invalid.negative")}</span>`
-									)
-								);
-								text.inputEl.addClass("is-invalid");
-							} else {
-								s.interval = Number(value);
-								await this.plugin.saveSettings();
-								this.update(); // rebuild to refresh human-readable desc
-							}
-						};
-					});
+				control: {
+					type: "number",
+					key: "interval",
+					min: 0,
 				},
 			},
 
 			// List fields
 			{
-				type: "group",
-				heading: i18next.t("listFields.title"),
+				type: "page",
+				name: i18next.t("listFields.title"),
+				desc: i18next.t("listFields.desc"),
 				items: [
 					{
 						name: i18next.t("listFields.suffix"),
-						desc: sanitizeHTMLToDom(i18next.t("listFields.desc")),
 						render: (setting) => {
 							setting.addText((text) => {
 								text.setValue(s.listSuffix);
@@ -257,74 +204,32 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 							});
 						},
 					},
-					{
-						name: "",
-						render: (setting) => {
-							setting.setNoInfo().setClass("max-width");
-							setting.addTextArea((text) => {
-								text.setValue(s.listFields.fields.join(", "));
-								text.inputEl.onblur = async () => {
-									s.listFields.fields = this.textAreaSettings(text);
-									await this.plugin.saveSettings();
-									this.refreshDomState();
-								};
-							});
-						},
-					},
-					{
-						name: i18next.t("lowerCase.title"),
-						desc: i18next.t("lowerCase.desc"),
-						visible: () => s.listFields.fields.length > 0,
-						control: { type: "toggle", key: "listFields.lowerCase" },
-					},
-					{
-						name: i18next.t("ignoreAccents.title"),
-						desc: sanitizeHTMLToDom(
-							`${i18next.t("ignoreAccents.desc")} <code>é</code> → <code>e</code>`
-						),
-						visible: () => s.listFields.fields.length > 0,
-						control: { type: "toggle", key: "listFields.ignoreAccents" },
-					},
+					...this.fieldListPageItems(
+						s.listFields.fields,
+						"listFields.fields",
+						i18next.t("ignoredFields.placeholder"),
+						i18next.t("listFields.add"),
+						"listFields.lowerCase",
+						"listFields.ignoreAccents"
+					),
 				],
 			},
 
 			// Ignored fields
 			{
-				type: "group",
-				heading: i18next.t("ignoredFields.title"),
-				items: [
-					{
-						name: "",
-						desc: sanitizeHTMLToDom(
-							`${i18next.t("ignoredFields.desc")} <code>/</code> ${i18next.t("ignoredFields.example")} <code>/myRegex/gi</code>`
-						),
-						render: (setting) => {
-							setting.setClass("textarea");
-							setting.addTextArea((text) => {
-								text.setValue(s.ignoreFields.fields.join(", "));
-								text.inputEl.onblur = async () => {
-									s.ignoreFields.fields = this.textAreaSettings(text);
-									await this.plugin.saveSettings();
-									this.refreshDomState();
-								};
-							});
-						},
-					},
-					{
-						name: i18next.t("lowerCase.title"),
-						desc: i18next.t("lowerCase.desc"),
-						visible: () => s.ignoreFields.fields.length > 0,
-						control: { type: "toggle", key: "ignoreFields.lowerCase" },
-					},
-					{
-						name: i18next.t("ignoreAccents.title"),
-						desc: sanitizeHTMLToDom(
-							`${i18next.t("ignoreAccents.desc")} <code>é</code> → <code>e</code>`
-						),
-						visible: () => s.ignoreFields.fields.length > 0,
-						control: { type: "toggle", key: "ignoreFields.ignoreAccents" },
-					},
-				],
+				type: "page",
+				name: i18next.t("ignoredFields.title"),
+				desc: sanitizeHTMLToDom(
+					`${i18next.t("ignoredFields.desc")} <code>/</code> ${i18next.t("ignoredFields.example")} <code>/myRegex/gi</code>`
+				),
+				items: this.fieldListPageItems(
+					s.ignoreFields.fields,
+					"ignoreFields.fields",
+					i18next.t("ignoredFields.placeholder"),
+					i18next.t("ignoredFields.add"),
+					"ignoreFields.lowerCase",
+					"ignoreFields.ignoreAccents"
+				),
 			},
 
 			// Delete from frontmatter
@@ -350,26 +255,17 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 
 			// Clean up text
 			{
-				type: "group",
-				heading: i18next.t("cleanUpText.title"),
+				type: "page",
+				name: i18next.t("cleanUpText.title"),
+				desc: sanitizeHTMLToDom(
+					`${i18next.t("cleanUpText.desc")} <code>/</code> ${i18next.t("ignoredFields.example")} <code>/myRegex/gi</code>`
+				),
 				items: [
 					{
 						name: "",
-						desc: sanitizeHTMLToDom(
-							`${i18next.t("cleanUpText.desc")} <code>/</code> ${i18next.t("ignoredFields.example")} <code>/myRegex/gi</code>`
-						),
 						render: (setting) => {
 							const comp = new Component();
 							comp.load();
-							setting.setClass("textarea");
-							setting.addTextArea((text) => {
-								text.setValue(s.cleanUpText.fields.join(", "));
-								text.inputEl.onblur = async () => {
-									s.cleanUpText.fields = this.textAreaSettings(text);
-									await this.plugin.saveSettings();
-									this.refreshDomState();
-								};
-							});
 							void MarkdownRenderer.render(
 								this.app,
 								dedent(`
@@ -382,21 +278,31 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 							return () => comp.unload();
 						},
 					},
-					{
-						name: i18next.t("lowerCase.title"),
-						desc: i18next.t("lowerCase.desc"),
-						visible: () => s.cleanUpText.fields.length > 0,
-						control: { type: "toggle", key: "cleanUpText.lowerCase" },
-					},
-					{
-						name: i18next.t("ignoreAccents.title"),
-						desc: sanitizeHTMLToDom(
-							`${i18next.t("ignoreAccents.desc")} <code>é</code> → <code>e</code>`
-						),
-						visible: () => s.cleanUpText.fields.length > 0,
-						control: { type: "toggle", key: "cleanUpText.ignoreAccents" },
-					},
+					...this.fieldListPageItems(
+						s.cleanUpText.fields,
+						"cleanUpText.fields",
+						i18next.t("cleanUpText.placeholder"),
+						i18next.t("cleanUpText.add"),
+						"cleanUpText.lowerCase",
+						"cleanUpText.ignoreAccents"
+					),
 				],
+			},
+
+			// Force fields (visible when only-mode is enabled)
+			{
+				type: "page",
+				name: i18next.t("onlyMode.forceFields.title"),
+				desc: i18next.t("onlyMode.forceFields.desc"),
+				visible: () => s.onlyMode.enable,
+				items: this.fieldListPageItems(
+					s.onlyMode.forceFields.fields,
+					"onlyMode.forceFields.fields",
+					i18next.t("ignoredFields.placeholder"),
+					i18next.t("onlyMode.forceFields.add"),
+					"onlyMode.forceFields.lowerCase",
+					"onlyMode.forceFields.ignoreAccents"
+				),
 			},
 
 			// Dataview
@@ -440,37 +346,6 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 						name: "Javascript (DJS)",
 						control: { type: "toggle", key: "djs" },
 					},
-					// Force fields textarea (visible when onlyMode enabled)
-					{
-						name: i18next.t("onlyMode.forceFields.title"),
-						desc: i18next.t("onlyMode.forceFields.desc"),
-						visible: () => s.onlyMode.enable,
-						render: (setting) => {
-							setting.setClass("textarea").setClass("max-width");
-							setting.addTextArea((text) => {
-								text.setValue(s.onlyMode.forceFields.fields.join(", "));
-								text.inputEl.onblur = async () => {
-									s.onlyMode.forceFields.fields = this.textAreaSettings(text);
-									await this.plugin.saveSettings();
-									this.refreshDomState();
-								};
-							});
-						},
-					},
-					{
-						name: i18next.t("lowerCase.title"),
-						desc: i18next.t("lowerCase.desc"),
-						visible: () => s.onlyMode.enable && s.onlyMode.forceFields.fields.length > 0,
-						control: { type: "toggle", key: "onlyMode.forceFields.lowerCase" },
-					},
-					{
-						name: i18next.t("ignoreAccents.title"),
-						desc: sanitizeHTMLToDom(
-							`${i18next.t("ignoreAccents.desc")} <code>é</code> → <code>e</code>`
-						),
-						visible: () => s.onlyMode.enable && s.onlyMode.forceFields.fields.length > 0,
-						control: { type: "toggle", key: "onlyMode.forceFields.ignoreAccents" },
-					},
 					// Duration format toggle
 					{
 						name: i18next.t("durationFormat.title"),
@@ -505,9 +380,10 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 										await this.plugin.saveSettings();
 									} else {
 										try {
-											const parsed = JSON.parse(value);
+											const parsed: unknown = JSON.parse(value);
 											if (typeof parsed === "object" && !Array.isArray(parsed)) {
-												s.dataviewOptions.durationFormat.humanReadableOptions = parsed;
+												s.dataviewOptions.durationFormat.humanReadableOptions =
+													parsed as ToHumanDurationOptions;
 												await this.plugin.saveSettings();
 												text.inputEl.removeClass("is-invalid");
 											} else {
@@ -594,17 +470,69 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 			},
 		];
 	}
+	
+	private deleteFieldEntry(fields: string[], index: number) {
+		fields.splice(index, 1);
+		void this.plugin.saveSettings();
+		this.update();
+	}
 
-	// --- Imperative fallback (Obsidian < 1.13.0) ---
+	/** Each row is a `control` bound to `<basePath>.<index>` — no manual read/write/save wiring. */
+	private fieldListItems(
+		fields: string[],
+		basePath: string,
+		placeholder: string
+	): SettingDefinition[] {
+		return fields.map(
+			(_, index): SettingDefinition => ({
+				name: "",
+				searchable: false,
+				control: {
+					type: "text",
+					key: `${basePath}.${index}`,
+					placeholder,
+				},
+			})
+		);
+	}
 
-	private textAreaSettings(text: TextAreaComponent) {
-		const value = text.getValue();
-		if (value.length === 0) return [];
-		else
-			return value
-				.split(/[,\n]+/)
-				.map((item) => item.trim())
-				.filter((item) => item.length > 0);
+	/** The [list, lowerCase toggle, ignoreAccents toggle] shared by every field-list page. */
+	private fieldListPageItems(
+		fields: string[],
+		basePath: string,
+		placeholder: string,
+		addLabel: string,
+		lowerCaseKey: string,
+		ignoreAccentsKey: string
+	): SettingDefinitionItem[] {
+		return [
+			{
+				type: "list",
+				addItem: {
+					name: addLabel,
+					action: () => {
+						fields.push("");
+						this.update();
+					},
+				},
+				onDelete: (idx) => this.deleteFieldEntry(fields, idx),
+				items: this.fieldListItems(fields, basePath, placeholder),
+			},
+			{
+				name: i18next.t("lowerCase.title"),
+				desc: i18next.t("lowerCase.desc"),
+				visible: () => fields.length > 0,
+				control: { type: "toggle", key: lowerCaseKey },
+			},
+			{
+				name: i18next.t("ignoreAccents.title"),
+				desc: sanitizeHTMLToDom(
+					`${i18next.t("ignoreAccents.desc")} <code>é</code> → <code>e</code>`
+				),
+				visible: () => fields.length > 0,
+				control: { type: "toggle", key: ignoreAccentsKey },
+			},
+		];
 	}
 
 	private convertTimeInterval(ms: number) {
@@ -623,543 +551,5 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 		if (secs > 0 || (hours === 0 && minutes === 0)) result += `${secs}s`;
 
 		return result;
-	}
-
-	// helper to render lowerCase & ignoreAccents toggles for any group with .fields
-	private addFieldToggles(
-		containerEl: HTMLElement,
-		group: {
-			enabled?: false | true | undefined;
-			fields?: string[] | undefined;
-			ignoreAccents: boolean;
-			lowerCase: boolean;
-		}
-	) {
-		if ((group.fields && group.fields.length > 0) || group.enabled) {
-			new Setting(containerEl)
-				.setName(i18next.t("lowerCase.title"))
-				.setDesc(i18next.t("lowerCase.desc"))
-				.setClass("li")
-				.addToggle((t) =>
-					t.setValue(group.lowerCase).onChange(async (v) => {
-						group.lowerCase = v;
-						await this.plugin.saveSettings();
-					})
-				);
-			new Setting(containerEl)
-				.setName(i18next.t("ignoreAccents.title"))
-				.setDesc(
-					sanitizeHTMLToDom(
-						`${i18next.t("ignoreAccents.desc")} <code>é</code> → <code>e</code>`
-					)
-				)
-				.setClass("li")
-				.addToggle((t) =>
-					t.setValue(group.ignoreAccents).onChange(async (v) => {
-						group.ignoreAccents = v;
-						await this.plugin.saveSettings();
-					})
-				);
-		}
-	}
-
-	private addDeleteFieldToggles(containerEl: HTMLElement) {
-		const grp = this.plugin.settings.deleteFromFrontmatter;
-		this.addFieldToggles(containerEl, grp);
-	}
-
-	async display(): Promise<void> {
-		const { containerEl } = this;
-
-		containerEl.empty();
-
-		containerEl.addClass("obsidian-dataview-properties");
-
-		new Setting(containerEl).addButton((button) => {
-			button.setButtonText(i18next.t("excluded.title")).onClick(() => {
-				new ExcludedFilesModal(this.app, this.plugin.settings.ignore, async (ignored) => {
-					this.plugin.settings.ignore = ignored;
-					await this.plugin.saveSettings();
-				}).open();
-			});
-		});
-
-		new Setting(containerEl)
-			.setName(i18next.t("prefix.title"))
-			.setDesc(i18next.t("prefix.desc"))
-
-			.addText((text) => {
-				text.setValue(this.plugin.settings.prefix).inputEl.onblur = async () => {
-					const value = text.getValue();
-					if (value.trim().length === 0) {
-						new Notice(
-							sanitizeHTMLToDom(
-								`<span class="notice-error">${i18next.t("prefix.invalid")}</span>`
-							)
-						);
-						text.inputEl.addClass("is-invalid");
-					} else {
-						this.plugin.settings.prefix = value.trim();
-						await this.plugin.saveSettings();
-						await this.display();
-					}
-				};
-			});
-
-		new Setting(containerEl)
-			.setName(i18next.t("replaceInlineFields.title"))
-			.setDesc(i18next.t("replaceInlineFields.desc"))
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.replaceInlineFieldsWith.enabled)
-					.onChange(async (value) => {
-						this.plugin.settings.replaceInlineFieldsWith.enabled = value;
-						await this.plugin.saveSettings();
-						await this.display();
-					})
-			);
-
-		if (this.plugin.settings.replaceInlineFieldsWith.enabled) {
-			new Setting(containerEl)
-				.setName(i18next.t("replaceInlineFields.template.title"))
-				.setDesc(sanitizeHTMLToDom(i18next.t("replaceInlineFields.template.desc")))
-				.addText((text) => {
-					text
-						.setValue(this.plugin.settings.replaceInlineFieldsWith.template)
-						.setPlaceholder("{{key}} = `= this.{{prefix}}{{key}}`").inputEl.onblur =
-						async () => {
-							const value = text.getValue();
-							if (value.trim().length === 0) {
-								new Notice(
-									sanitizeHTMLToDom(
-										`<span class="notice-error">${i18next.t("replaceInlineFields.template.invalid")}</span>`
-									)
-								);
-								text.inputEl.addClass("is-invalid");
-							} else {
-								this.plugin.settings.replaceInlineFieldsWith.template = value;
-								await this.plugin.saveSettings();
-								text.inputEl.removeClass("is-invalid");
-							}
-						};
-					text.inputEl.addClass("max-width");
-				});
-		}
-
-		containerEl.createEl("hr");
-
-		new Setting(containerEl)
-			.setName(i18next.t("unflatten.title"))
-			.setDesc(
-				sanitizeHTMLToDom(
-					i18next.t("unflatten.desc", {
-						keys: "<code>k1.k2.k3: value<code>",
-						conversion: "<code>k1: { k2: { k3: value } }</code>",
-					})
-				)
-			)
-
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.unflatten.enabled)
-					.onChange(async (value) => {
-						this.plugin.settings.unflatten.enabled = value;
-						await this.plugin.saveSettings();
-						await this.display();
-					})
-			);
-
-		if (this.plugin.settings.unflatten.enabled) {
-			new Setting(containerEl)
-				.setName(i18next.t("separator.title"))
-
-				.setDesc(
-					sanitizeHTMLToDom(
-						`${i18next.t("separator.desc")}<br><span class='warning'>${i18next.t("separator.warning", { point: "<code>.</code>" })}</span>`
-					)
-				)
-				.addText((text) => {
-					text.setValue(this.plugin.settings.unflatten.separator).inputEl.onblur =
-						async () => {
-							const value = text.getValue();
-							if (value.trim().length === 0) {
-								new Notice(
-									sanitizeHTMLToDom(
-										`<span class="obsidian-dataview-properties notice-error">${i18next.t("separator.invalid")}</span>`
-									)
-								);
-								text.inputEl.addClass("is-invalid");
-							} else if (value.includes(".")) {
-								new Notice(
-									sanitizeHTMLToDom(
-										`<span class="obsidian-dataview-properties notice-error">${i18next.t(
-											"separator.point",
-											{
-												point: `<code>${value}</code>`,
-											}
-										)}</span>`
-									)
-								);
-
-								text.inputEl.addClass("is-invalid");
-								text.inputEl.setText("");
-							} else {
-								this.plugin.settings.unflatten.separator = value.trim();
-								await this.plugin.saveSettings();
-								await this.display();
-							}
-						};
-				});
-		}
-		containerEl.createEl("hr");
-
-		new Setting(containerEl)
-			.setName(i18next.t("extraMenus.title"))
-			.setDesc(i18next.t("extraMenus.desc"))
-			.addToggle((toggle) =>
-				toggle.setValue(this.plugin.settings.extraMenus).onChange(async (value) => {
-					this.plugin.settings.extraMenus = value;
-					await this.plugin.saveSettings();
-				})
-			);
-
-		new Setting(containerEl)
-			.setName(i18next.t("interval.title"))
-			.setHeading()
-			.setDesc(
-				sanitizeHTMLToDom(
-					`${i18next.t("interval.info")} (→ <code>${this.convertTimeInterval(this.plugin.settings.interval)}</code>) ${i18next.t("interval.desc")}`
-				)
-			)
-			.addText((text) => {
-				text.setValue(this.plugin.settings.interval.toString()).inputEl.onblur =
-					async () => {
-						const value = text.getValue();
-						if (!isNumber(value)) {
-							new Notice(
-								sanitizeHTMLToDom(
-									`<span class="notice-error">${i18next.t("interval.invalid.number")}</span>`
-								)
-							);
-							text.inputEl.addClass("is-invalid");
-						} else if (Number(value) < 0) {
-							new Notice(
-								sanitizeHTMLToDom(
-									`<span class="notice-error);">${i18next.t("interval.invalid.negative")}</span>`
-								)
-							);
-							text.inputEl.addClass("is-invalid");
-						} else {
-							this.plugin.settings.interval = Number(value);
-							await this.plugin.saveSettings();
-							await this.display();
-						}
-					};
-			});
-
-		containerEl.createEl("hr");
-
-		new Setting(containerEl)
-			.setName(i18next.t("listFields.title"))
-			.setHeading()
-			.setDesc(sanitizeHTMLToDom(`${i18next.t("listFields.desc")}`));
-		new Setting(containerEl).setName(i18next.t("listFields.suffix")).addText((text) => {
-			text.setValue(this.plugin.settings.listSuffix).inputEl.onblur = async () => {
-				const value = text.getValue();
-				if (value.trim().length === 0) {
-					new Notice(
-						sanitizeHTMLToDom(
-							`<span class="notice-error">${i18next.t("listFields.invalid")}</span>`
-						)
-					);
-					text.inputEl.addClass("is-invalid");
-					text.setValue("_list");
-				} else if (
-					value.includes(this.plugin.settings.unflatten.separator) &&
-					this.plugin.settings.unflatten.enabled
-				) {
-					new Notice(
-						sanitizeHTMLToDom(
-							`<span class="notice-error">${i18next.t("listFields.separator", {
-								separator: `<code>${this.plugin.settings.unflatten.separator}</code>`,
-							})}</span>`
-						)
-					);
-					text.inputEl.addClass("is-invalid");
-					text.setValue(value.replaceAll(this.plugin.settings.unflatten.separator, ""));
-				} else {
-					this.plugin.settings.listSuffix = value.trim();
-					await this.plugin.saveSettings();
-					await this.display();
-				}
-			};
-		});
-		new Setting(containerEl)
-			.setNoInfo()
-			.setHeading()
-			.setClass("max-width")
-
-			.addTextArea((text) => {
-				text.setValue(this.plugin.settings.listFields.fields.join(", ")).inputEl.onblur =
-					async () => {
-						this.plugin.settings.listFields.fields = this.textAreaSettings(text);
-						await this.plugin.saveSettings();
-						await this.display();
-					};
-			});
-		this.addFieldToggles(containerEl, this.plugin.settings.listFields);
-		containerEl.createEl("hr");
-		new Setting(containerEl)
-			.setHeading()
-			.setName(i18next.t("ignoredFields.title"))
-			.setDesc(
-				sanitizeHTMLToDom(
-					`${i18next.t("ignoredFields.desc")} <code>/</code> ${i18next.t("ignoredFields.example")} <code>/myRegex/gi</code>`
-				)
-			)
-			.setClass("textarea")
-			.addTextArea((text) => {
-				text.setValue(
-					this.plugin.settings.ignoreFields.fields.join(", ")
-				).inputEl.onblur = async () => {
-					this.plugin.settings.ignoreFields.fields = this.textAreaSettings(text);
-					await this.plugin.saveSettings();
-					await this.display();
-				};
-			});
-		this.addFieldToggles(containerEl, this.plugin.settings.ignoreFields);
-		containerEl.createEl("hr");
-		new Setting(containerEl)
-			.setHeading()
-			.setName(i18next.t("deleteFromFrontmatter.title"))
-			.setDesc(i18next.t("deleteFromFrontmatter.desc"))
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.deleteFromFrontmatter.enabled)
-					.onChange(async (value) => {
-						this.plugin.settings.deleteFromFrontmatter.enabled = value;
-						await this.plugin.saveSettings();
-						await this.display();
-					})
-			);
-		this.addDeleteFieldToggles(containerEl);
-
-		containerEl.createEl("hr");
-
-		const set = new Setting(containerEl)
-			.setName(i18next.t("cleanUpText.title"))
-			.setHeading()
-			.setDesc(
-				sanitizeHTMLToDom(
-					`${i18next.t("cleanUpText.desc")} <code>/</code> ${i18next.t("ignoredFields.example")} <code>/myRegex/gi</code>`
-				)
-			)
-			.setClass("textarea")
-			.addTextArea((text) => {
-				text.setValue(this.plugin.settings.cleanUpText.fields.join(", ")).inputEl.onblur =
-					async () => {
-						this.plugin.settings.cleanUpText.fields = this.textAreaSettings(text);
-						await this.plugin.saveSettings();
-						await this.display();
-					};
-			});
-
-		const components = new Component();
-		components.load();
-		await MarkdownRenderer.render(
-			this.app,
-			dedent(`
-			> [!NOTE] ${i18next.t("note")}
-			`),
-			set.descEl,
-			"",
-			components
-		);
-		this.addFieldToggles(containerEl, this.plugin.settings.cleanUpText);
-		containerEl.createEl("hr");
-		new Setting(containerEl)
-			.setName("Dataview")
-			.setDesc(i18next.t("dataview.title"))
-			.setHeading();
-
-		await MarkdownRenderer.render(
-			this.app,
-			dedent(`
-			> [!WARNING] ${i18next.t("warning.title")}
-			> ${i18next.t("warning.desc")}
-			`),
-			containerEl,
-			"",
-			components
-		);
-
-		components.unload();
-
-		new Setting(containerEl)
-			.setName(i18next.t("dql.title"))
-			.setDesc(i18next.t("dql.description"))
-			.addToggle((toggle) =>
-				toggle.setValue(this.plugin.settings.onlyMode.enable).onChange(async (value) => {
-					this.plugin.settings.onlyMode.enable = value;
-					await this.plugin.saveSettings();
-					this.display();
-				})
-			);
-
-		new Setting(containerEl).setName("Query language (DQL)").addToggle((toggle) =>
-			toggle.setValue(this.plugin.settings.dql).onChange(async (value) => {
-				this.plugin.settings.dql = value;
-				await this.plugin.saveSettings();
-			})
-		);
-		new Setting(containerEl).setName("Javascript (DJS)").addToggle((toggle) =>
-			toggle.setValue(this.plugin.settings.djs).onChange(async (value) => {
-				this.plugin.settings.djs = value;
-				await this.plugin.saveSettings();
-			})
-		);
-
-		if (this.plugin.settings.onlyMode.enable) {
-			//add the force fields textarea
-			new Setting(containerEl)
-				.setName(i18next.t("onlyMode.forceFields.title"))
-				.setDesc(i18next.t("onlyMode.forceFields.desc"))
-				.setClass("textarea")
-				.setClass("max-width")
-				.addTextArea((text) => {
-					text.setValue(
-						this.plugin.settings.onlyMode.forceFields.fields.join(", ")
-					).inputEl.onblur = async () => {
-						this.plugin.settings.onlyMode.forceFields.fields =
-							this.textAreaSettings(text);
-						await this.plugin.saveSettings();
-					};
-				});
-
-			this.addFieldToggles(containerEl, this.plugin.settings.onlyMode.forceFields);
-		}
-
-		new Setting(containerEl)
-			.setName(i18next.t("durationFormat.title"))
-			.setDesc(
-				sanitizeHTMLToDom(
-					`${i18next.t("durationFormat.desc", { link: '<a href="https://moment.github.io/luxon/api-docs/index.html#durationtohuman" target="_blank">Luxon <code>toHuman(opts)</code></a>' })}`
-				)
-			)
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.dataviewOptions.durationFormat.formatDuration)
-					.onChange(async (value) => {
-						this.plugin.settings.dataviewOptions.durationFormat.formatDuration = value;
-						await this.plugin.saveSettings();
-						await this.display();
-					})
-			);
-
-		if (this.plugin.settings.dataviewOptions.durationFormat.formatDuration) {
-			new Setting(containerEl)
-				.setName(i18next.t("durationFormat.options.title"))
-				.addTextArea((text) => {
-					text
-						.setValue(
-							JSON.stringify(
-								this.plugin.settings.dataviewOptions.durationFormat.humanReadableOptions
-							) ?? ""
-						)
-						.setPlaceholder(
-							'e.g. { "unitDisplay": "long", "round": true }'
-						).inputEl.onblur = async () => {
-						const value = text.getValue();
-						if (value.trim().length === 0) {
-							this.plugin.settings.dataviewOptions.durationFormat.humanReadableOptions =
-								undefined;
-							await this.plugin.saveSettings();
-						} else {
-							try {
-								const parsed = JSON.parse(value);
-								if (typeof parsed === "object" && !Array.isArray(parsed)) {
-									this.plugin.settings.dataviewOptions.durationFormat.humanReadableOptions =
-										parsed;
-									await this.plugin.saveSettings();
-									text.inputEl.removeClass("is-invalid");
-								} else {
-									new Notice(
-										sanitizeHTMLToDom(
-											`<span class="notice-error">${i18next.t("durationFormat.options.invalid")}</span>`
-										)
-									);
-									text.inputEl.addClass("is-invalid");
-								}
-							} catch (e) {
-								new Notice(
-									sanitizeHTMLToDom(
-										`<span class="notice-error">${i18next.t("durationFormat.options.invalid")}</span>`
-									)
-								);
-								console.error(e);
-								text.inputEl.addClass("is-invalid");
-							}
-						}
-					};
-				})
-				.setClass("max-width")
-				.setClass("li")
-				.setClass("display-block");
-
-			new Setting(containerEl)
-				.setName(i18next.t("durationFormat.textReplacement.title"))
-				.setDesc(i18next.t("durationFormat.textReplacement.desc"))
-				.setClass("li")
-				.setClass("padding-top")
-				.setClass("display-block")
-				.addText((cb) =>
-					cb
-						.setValue(
-							this.plugin.settings.dataviewOptions.durationFormat.textReplacement
-								?.toReplace ?? ""
-						)
-						.setPlaceholder(i18next.t("durationFormat.textReplacement.placeholder"))
-						.onChange(async (value) => {
-							if (value.trim().length === 0) {
-								this.plugin.settings.dataviewOptions.durationFormat.textReplacement =
-									undefined;
-								await this.plugin.saveSettings();
-								return;
-							}
-							this.plugin.settings.dataviewOptions.durationFormat.textReplacement = {
-								toReplace: value.length === 0 ? undefined : value,
-								replaceWith:
-									this.plugin.settings.dataviewOptions.durationFormat.textReplacement
-										?.replaceWith ?? "",
-							};
-							await this.plugin.saveSettings();
-						})
-						.inputEl.addClass("max-width")
-				)
-				.addExtraButton((btn) =>
-					btn
-						.setIcon("arrow-right")
-						.setDisabled(true)
-						.extraSettingsEl.addClass("no-hover")
-				)
-				.addText((cb) =>
-					cb
-						.setValue(
-							this.plugin.settings.dataviewOptions.durationFormat.textReplacement
-								?.replaceWith ?? ""
-						)
-						.setPlaceholder(i18next.t("durationFormat.textReplacement.placeholder2"))
-						.onChange(async (value) => {
-							this.plugin.settings.dataviewOptions.durationFormat.textReplacement = {
-								toReplace:
-									this.plugin.settings.dataviewOptions.durationFormat.textReplacement
-										?.toReplace,
-								replaceWith: value,
-							};
-							await this.plugin.saveSettings();
-						})
-						.inputEl.addClass("max-width")
-				);
-		}
 	}
 }

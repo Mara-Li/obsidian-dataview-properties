@@ -31,6 +31,9 @@ export default defineConfig([
 		"main.js",
 		"*.json",
 		"eslint.config.mts",
-		"wdio.conf.mts"
+		"wdio.conf.mts",
+		"tests/**",
+		"hooks",
+		"*.mjs"
 	]),
 ]);
