@@ -199,6 +199,15 @@ for (const option of ["default", "unflatted"]) {
 						}
 					}, manifest.id);
 				}
+				if (fileName === "no_prefix_collision.md") {
+					await browser.executeObsidian(({ app }, pluginId) => {
+						const plugin = app.plugins.getPlugin(pluginId) as DataviewProperties;
+						if (plugin) {
+							plugin.settings.prefixEnabled = false;
+							plugin.saveSettings();
+						}
+					}, manifest.id);
+				}
 
 				if (fileName === "onlyMode_no_formula.md") {
 					await browser.executeObsidian(({ app }, pluginId) => {
@@ -246,6 +255,18 @@ for (const option of ["default", "unflatted"]) {
 				}
 				const content = await runTestWithFixture(fileName, fileName);
 				expect(normalizeContent(content)).toEqual(getExpectedContent(fileName));
+				if (fileName === "no_prefix_collision.md") {
+					await browser.pause(1000);
+					const settledContent = await browser.executeObsidian(
+						async ({ app, obsidian }, fileName) => {
+							const file = app.vault.getAbstractFileByPath(fileName);
+							if (file && file instanceof obsidian.TFile) return app.vault.read(file);
+							return "";
+						},
+						fileName
+					);
+					expect(normalizeContent(settledContent)).toEqual(getExpectedContent(fileName));
+				}
 			});
 		}
 	});

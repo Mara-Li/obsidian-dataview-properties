@@ -83,7 +83,11 @@
     }
   },
   "prefix": {
-    "desc": "Dieses Präfix wird hinzugefügt, um die von Inline zur Frontmatter hinzugefügten Schlüssel zu unterscheiden. Es verhindert auch Duplikate in den von Dataview analysierten Metadaten.",
+    "desc": "Dieses Präfix wird zu den Schlüsseln hinzugefügt, die von Inline-Feldern in das Frontmatter kopiert werden.",
+    "enabled": {
+      "desc": "Deaktivieren, um Feldnamen unverändert zu verwenden. Achtung: Ohne Präfix kann ein Inline-Feld mit einer gleichnamigen Frontmatter-Eigenschaft kollidieren.",
+      "title": "Präfix zu Eigenschaften hinzufügen"
+    },
     "invalid": "Das Präfix darf nicht leer sein!",
     "title": "Präfix"
   },

@@ -31,6 +31,7 @@ export type Ignore = {
 };
 
 export interface DataviewPropertiesSettings {
+	prefixEnabled: boolean;
 	prefix: string;
 	ignore: Ignore;
 	unflatten: Unflatten;
@@ -108,6 +109,7 @@ export type Unflatten = {
 };
 
 export const DEFAULT_SETTINGS: DataviewPropertiesSettings = {
+	prefixEnabled: true,
 	prefix: "dv_",
 	listSuffix: "_list",
 	unflatten: {

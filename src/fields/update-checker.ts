@@ -5,7 +5,8 @@ export function shouldBeUpdated(
 	frontmatter: Record<string, Literal> | undefined,
 	isIgnoredFn: (key: string) => boolean,
 	keysMatchFn: (key1: string, key2: string) => boolean,
-	valuesEqualFn: (val1: unknown, val2: unknown) => boolean
+	valuesEqualFn: (val1: unknown, val2: unknown) => boolean,
+	outputKeyFn: (key: string) => string = (key) => key
 ): boolean {
 	if (!fields || Object.keys(fields).length === 0) return false;
 
@@ -15,7 +16,7 @@ export function shouldBeUpdated(
 		if (isIgnoredFn(key)) return false;
 
 		const frontmatterKey = Object.keys(frontmatter).find(
-			(fmKey) => !isIgnoredFn(fmKey) && keysMatchFn(fmKey, key)
+			(fmKey) => !isIgnoredFn(fmKey) && keysMatchFn(fmKey, outputKeyFn(key))
 		);
 		if (!frontmatterKey) return inlineValue != null;
 		if (inlineValue == null) return true;

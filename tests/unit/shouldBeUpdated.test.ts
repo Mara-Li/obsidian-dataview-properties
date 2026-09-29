@@ -96,6 +96,22 @@ describe("shouldBeUpdated tests", () => {
 		).toBe(false);
 	});
 
+	test("should compare against the prefixed output key", () => {
+		const fields = { duration: "1 hour" };
+		const frontmatter = { dv_duration: "1 hour" };
+
+		expect(
+			shouldBeUpdated(
+				fields,
+				frontmatter,
+				isIgnoredWithUtils,
+				(key1, key2) => utils.keysMatch(key1, key2),
+				(val1, val2) => utils.valuesEqual(val1, val2),
+				(key) => `dv_${key}`
+			)
+		).toBe(false);
+	});
+
 	test("should works with insensitive keys", () => {
 		const fields = { key: "value" };
 		// biome-ignore lint/style/useNamingConvention: testing the case insensitivity for keynames

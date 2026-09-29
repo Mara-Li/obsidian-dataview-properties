@@ -95,6 +95,14 @@ export default class Utils {
 	 */
 	valuesEqual(val1: unknown, val2: unknown): boolean {
 		if (val1 === val2) return true;
+		if (Array.isArray(val1) || Array.isArray(val2)) {
+			return (
+				Array.isArray(val1) &&
+				Array.isArray(val2) &&
+				val1.length === val2.length &&
+				val1.every((value, index) => this.valuesEqual(value, val2[index]))
+			);
+		}
 		if (typeof val1 === "string" && typeof val2 === "string")
 			return this.processString(val1) === this.processString(val2);
 		if (
@@ -102,6 +110,29 @@ export default class Utils {
 			(typeof val2 === "number" || isNumber(val2))
 		)
 			return Number(val1) === Number(val2);
+		if (
+			val1 !== null &&
+			val2 !== null &&
+			typeof val1 === "object" &&
+			typeof val2 === "object" &&
+			(Object.getPrototypeOf(val1) === Object.prototype ||
+				Object.getPrototypeOf(val1) === null) &&
+			(Object.getPrototypeOf(val2) === Object.prototype ||
+				Object.getPrototypeOf(val2) === null)
+		) {
+			const keys = Object.keys(val1);
+			return (
+				keys.length === Object.keys(val2).length &&
+				keys.every(
+					(key) =>
+						Object.hasOwn(val2, key) &&
+						this.valuesEqual(
+							(val1 as Record<string, unknown>)[key],
+							(val2 as Record<string, unknown>)[key]
+						)
+				)
+			);
+		}
 		return false;
 	}
 

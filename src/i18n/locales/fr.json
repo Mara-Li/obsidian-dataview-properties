@@ -83,8 +83,12 @@
     }
   },
   "prefix": {
-    "desc": "Ce préfixe sera ajouté pour discriminer la clé ajoutée en \"inline\" du frontmatter.\nCela empêche également la duplication des métadonnées analysées par Dataview.",
-    "invalid": "Le préfixe ne peut pas être vide!",
+    "desc": "Ce préfixe sera ajouté aux clés copiées des champs en ligne vers le frontmatter.",
+    "enabled": {
+      "desc": "Désactivez cette option pour conserver les noms des champs. Attention : sans préfixe, un champ en ligne peut entrer en collision avec une propriété du frontmatter portant le même nom.",
+      "title": "Ajouter un préfixe aux propriétés"
+    },
+    "invalid": "Le préfixe ne peut pas être vide !",
     "title": "Préfixe"
   },
   "replaceInlineFields": {

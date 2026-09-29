@@ -409,9 +409,11 @@ export async function getInlineFields(
 		} else if (
 			Array.isArray(pageData[key]) &&
 			pageData[key].length > 0 &&
-			!frontmatter?.[key]
+			(!frontmatter[key] ||
+				pageData[key].length >
+					(Array.isArray(frontmatter[key]) ? frontmatter[key].length : 1))
 		) {
-			// Handle arrays by using the last value (most recent)
+			// Dataview merges duplicate frontmatter and inline keys into an array.
 			const arrayValue = pageData[key];
 			const valueToUse = arrayValue[arrayValue.length - 1];
 			inlineFields[key] = (await compiler.evaluateInline(valueToUse, key)) as Literal;
