@@ -324,12 +324,13 @@ export default class DataviewProperties extends Plugin {
 		}
 
 		await this.app.fileManager.processFrontMatter(file, (frontmatter: Record<string, unknown>) => {
+			const prefix = this.settings.prefixEnabled ? this.settings.prefix : "";
 			if (removedKey && removedKey.size > 0) {
 				this.utils.useConfig(UtilsConfig.Delete);
 				for (const key of removedKey) {
 					if (this.isIgnored(key)) continue; //more efficient to check if the key is ignored as we don't need to process it
 					const frontmatterKey = Object.keys(frontmatter).find((fmKey) =>
-						this.utils.keysMatch(fmKey, `${this.settings.prefix}${key}`)
+						this.utils.keysMatch(fmKey, `${prefix}${key}`)
 					);
 					if (frontmatterKey) delete frontmatter[frontmatterKey];
 				}
@@ -337,7 +338,7 @@ export default class DataviewProperties extends Plugin {
 			this.utils.useConfig(UtilsConfig.Cleanup);
 			for (const [key, value] of Object.entries(inlineFields)) {
 				if (this.isIgnored(key) || value == null) continue;
-				const prefixedKey = `${this.settings.prefix}${key}`;
+				const prefixedKey = `${prefix}${key}`;
 				const normalizedValue = this.normalizeValueForFrontmatter(value);
 
 				// Use deep merge for nested objects to preserve existing properties
@@ -411,7 +412,10 @@ export default class DataviewProperties extends Plugin {
 		const template = this.settings.replaceInlineFieldsWith.template;
 		return template
 			.replace(/\{\{key\}\}/g, key)
-			.replace(/\{\{prefix\}\}/g, this.settings.prefix)
+			.replace(
+				/\{\{prefix\}\}/g,
+				this.settings.prefixEnabled ? this.settings.prefix : ""
+			)
 			.replace(/\{\{value\}\}/g, String(value));
 	}
 
@@ -424,6 +428,7 @@ export default class DataviewProperties extends Plugin {
 	): Promise<void> {
 		let modifiedContent = await this.app.vault.read(file);
 		let hasChanges = false;
+		const prefix = this.settings.prefixEnabled ? this.settings.prefix : "";
 
 		// Sort entries by key length (descending) to match longer keys first
 		// This prevents shorter keys from matching parts of longer keys
@@ -449,8 +454,8 @@ export default class DataviewProperties extends Plugin {
 			const currentKeyRegex = new RegExp(`\\bdv.current\\(\\)\\.${escapedKey}\\b`, "g");
 
 			// Replace with prefixed version
-			const prefixedThisKey = `this.${this.settings.prefix}${key}`;
-			const prefixedCurrentKey = `dv.current().${this.settings.prefix}${key}`;
+			const prefixedThisKey = `this.${prefix}${key}`;
+			const prefixedCurrentKey = `dv.current().${prefix}${key}`;
 
 			// Process each line, updating in place
 			for (let i = 0; i < lines.length; i++) {

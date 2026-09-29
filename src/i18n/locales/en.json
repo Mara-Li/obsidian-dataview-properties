@@ -83,7 +83,11 @@
     }
   },
   "prefix": {
-    "desc": "This prefix will be added to discriminate added key from the inline to the frontmatter. It, also, prevent duplicate in the metadata parsed by Dataview.",
+    "desc": "This prefix will be added to keys copied from inline fields to frontmatter.",
+    "enabled": {
+      "desc": "Turn this off to use field names as-is. Warning: without a prefix, an inline field may collide with a frontmatter property with the same name.",
+      "title": "Add a prefix to properties"
+    },
     "invalid": "The prefix can't be empty!",
     "title": "Prefix"
   },

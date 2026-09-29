@@ -110,26 +110,38 @@ export class DataviewPropertiesSettingTab extends PluginSettingTab {
 		});
 
 		new Setting(containerEl)
-			.setName(i18next.t("prefix.title"))
-			.setDesc(i18next.t("prefix.desc"))
+			.setName(i18next.t("prefix.enabled.title"))
+			.setDesc(i18next.t("prefix.enabled.desc"))
+			.addToggle((toggle) =>
+				toggle.setValue(this.plugin.settings.prefixEnabled).onChange(async (value) => {
+					this.plugin.settings.prefixEnabled = value;
+					await this.plugin.saveSettings();
+					await this.display();
+				})
+			);
 
-			.addText((text) => {
-				text.setValue(this.plugin.settings.prefix).inputEl.onblur = async () => {
-					const value = text.getValue();
-					if (value.trim().length === 0) {
-						new Notice(
-							sanitizeHTMLToDom(
-								`<span class="notice-error">${i18next.t("prefix.invalid")}</span>`
-							)
-						);
-						text.inputEl.addClass("is-invalid");
-					} else {
-						this.plugin.settings.prefix = value.trim();
-						await this.plugin.saveSettings();
-						await this.display();
-					}
-				};
-			});
+		if (this.plugin.settings.prefixEnabled) {
+			new Setting(containerEl)
+				.setName(i18next.t("prefix.title"))
+				.setDesc(i18next.t("prefix.desc"))
+				.addText((text) => {
+					text.setValue(this.plugin.settings.prefix).inputEl.onblur = async () => {
+						const value = text.getValue();
+						if (value.trim().length === 0) {
+							new Notice(
+								sanitizeHTMLToDom(
+									`<span class="notice-error">${i18next.t("prefix.invalid")}</span>`
+								)
+							);
+							text.inputEl.addClass("is-invalid");
+						} else {
+							this.plugin.settings.prefix = value.trim();
+							await this.plugin.saveSettings();
+							await this.display();
+						}
+					};
+				});
+		}
 
 		new Setting(containerEl)
 			.setName(i18next.t("replaceInlineFields.title"))
