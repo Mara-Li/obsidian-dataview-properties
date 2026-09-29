@@ -213,7 +213,9 @@ export default class DataviewProperties extends Plugin {
 			frontmatter,
 			(key) => this.isIgnored(key),
 			(key1, key2) => this.utils.keysMatch(key1, key2),
-			(val1, val2) => this.utils.valuesEqual(val1, val2)
+			(val1, val2) =>
+				this.utils.valuesEqual(this.normalizeValueForFrontmatter(val1), val2),
+			(key) => `${this.settings.prefixEnabled ? this.settings.prefix : ""}${key}`
 		);
 	}
 
@@ -288,7 +290,7 @@ export default class DataviewProperties extends Plugin {
 			if (inline && Object.keys(inline).length > 0)
 				this.previousDataviewFields.set(filePath, new Set(Object.keys(inline)));
 
-			if (shouldCheckRemoved || hasNewFields)
+			if (removedKey.size > 0 || hasNewFields)
 				await this.updateFrontmatter(activeFile, cleanedInline, removedKey);
 		} finally {
 			this.processingFiles.delete(filePath);
@@ -371,6 +373,7 @@ export default class DataviewProperties extends Plugin {
 	 */
 	private normalizeValueForFrontmatter(value: unknown): unknown {
 		if (value == null) return value;
+		if (Array.isArray(value)) return value.map((item) => this.normalizeValueForFrontmatter(item));
 		if (typeof value !== "object") return value;
 
 		if (value instanceof DateTime) {
